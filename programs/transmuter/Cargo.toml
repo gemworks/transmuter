@@ -17,3 +17,4 @@ default = []
 
 [dependencies]
 anchor-lang = "0.20.1"
+vipers = "1.5.9"

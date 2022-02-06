@@ -165,6 +165,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "anchor-spl"
+version = "0.20.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9ea94b04fc9a0aaae4d4473b0595fb5f55b6c9b38e0d6f596df8c8060f95f096"
+dependencies = [
+ "anchor-lang",
+ "solana-program",
+ "spl-associated-token-account",
+ "spl-token",
+]
+
+[[package]]
 name = "anchor-syn"
 version = "0.20.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -302,7 +314,7 @@ checksum = "6441c552f230375d18e3cc377677914d2ca2b0d36e52129fe15450a2dce46775"
 dependencies = [
  "borsh-derive-internal",
  "borsh-schema-derive-internal",
- "proc-macro-crate",
+ "proc-macro-crate 0.1.5",
  "proc-macro2",
  "syn",
 ]
@@ -756,6 +768,27 @@ dependencies = [
 ]
 
 [[package]]
+name = "num_enum"
+version = "0.5.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "720d3ea1055e4e4574c0c0b0f8c3fd4f24c4cdaf465948206dea090b57b526ad"
+dependencies = [
+ "num_enum_derive",
+]
+
+[[package]]
+name = "num_enum_derive"
+version = "0.5.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0d992b768490d7fe0d8586d9b5745f6c49f557da6d81dc982b1d167ad4edbb21"
+dependencies = [
+ "proc-macro-crate 1.1.0",
+ "proc-macro2",
+ "quote",
+ "syn",
+]
+
+[[package]]
 name = "once_cell"
 version = "1.9.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -804,6 +837,16 @@ version = "0.1.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1d6ea3c4595b96363c13943497db34af4460fb474a95c43f4446ad341b8c9785"
 dependencies = [
+ "toml",
+]
+
+[[package]]
+name = "proc-macro-crate"
+version = "1.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1ebace6889caf889b4d3f76becee12e90353f2b8c7d875534a71e5742f8f6f83"
+dependencies = [
+ "thiserror",
  "toml",
 ]
 
@@ -1109,6 +1152,30 @@ dependencies = [
 ]
 
 [[package]]
+name = "spl-associated-token-account"
+version = "1.0.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "393e2240d521c3dd770806bff25c2c00d761ac962be106e14e22dd912007f428"
+dependencies = [
+ "solana-program",
+ "spl-token",
+]
+
+[[package]]
+name = "spl-token"
+version = "3.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0cc67166ef99d10c18cb5e9c208901e6d8255c6513bb1f877977eba48e6cc4fb"
+dependencies = [
+ "arrayref",
+ "num-derive",
+ "num-traits",
+ "num_enum",
+ "solana-program",
+ "thiserror",
+]
+
+[[package]]
 name = "subtle"
 version = "2.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1168,6 +1235,7 @@ name = "transmuter"
 version = "0.1.0"
 dependencies = [
  "anchor-lang",
+ "vipers",
 ]
 
 [[package]]
@@ -1193,6 +1261,17 @@ name = "version_check"
 version = "0.9.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "49874b5167b65d7193b8aba1567f5c7d93d001cafc34600cee003eda787e483f"
+
+[[package]]
+name = "vipers"
+version = "1.5.9"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "aa8c839e2a15777b45909d05ab3eeaaa3035b43241b404345c9cd999ed30df09"
+dependencies = [
+ "anchor-lang",
+ "anchor-spl",
+ "spl-associated-token-account",
+]
 
 [[package]]
 name = "wasi"
