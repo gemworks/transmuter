@@ -50,5 +50,21 @@ pub fn handler(ctx: Context<InitMutation>, config: MutationConfig) -> ProgramRes
     mutation.owner = ctx.accounts.mutation_owner.key();
     mutation.config = config;
 
+    // init first bank
+    let bank_a = ctx.accounts.bank_a.to_account_info();
+    gem_bank::cpi::init_bank(ctx.accounts.init_bank_ctx(bank_a))?;
+
+    // init second bank
+    if config.in_token_b.is_some() {
+        let bank_b = ctx.accounts.bank_b.to_account_info();
+        gem_bank::cpi::init_bank(ctx.accounts.init_bank_ctx(bank_b))?;
+    }
+
+    // init third bank
+    if config.in_token_c.is_some() {
+        let bank_c = ctx.accounts.bank_c.to_account_info();
+        gem_bank::cpi::init_bank(ctx.accounts.init_bank_ctx(bank_c))?;
+    }
+
     Ok(())
 }

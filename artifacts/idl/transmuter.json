@@ -4,8 +4,56 @@
   "instructions": [
     {
       "name": "initMutation",
-      "accounts": [],
-      "args": []
+      "accounts": [
+        {
+          "name": "mutation",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "mutationOwner",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "bankA",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "bankB",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "bankC",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "gemBank",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "config",
+          "type": {
+            "defined": "MutationConfig"
+          }
+        }
+      ]
     },
     {
       "name": "beginMutation",
@@ -34,6 +82,30 @@
             "type": "u16"
           },
           {
+            "name": "owner",
+            "type": "publicKey"
+          },
+          {
+            "name": "config",
+            "type": {
+              "defined": "MutationConfig"
+            }
+          },
+          {
+            "name": "paid",
+            "type": "bool"
+          }
+        ]
+      }
+    }
+  ],
+  "types": [
+    {
+      "name": "MutationConfig",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
             "name": "inTokenA",
             "type": {
               "defined": "InTokenConfig"
@@ -42,13 +114,17 @@
           {
             "name": "inTokenB",
             "type": {
-              "defined": "InTokenConfig"
+              "option": {
+                "defined": "InTokenConfig"
+              }
             }
           },
           {
             "name": "inTokenC",
             "type": {
-              "defined": "InTokenConfig"
+              "option": {
+                "defined": "InTokenConfig"
+              }
             }
           },
           {
@@ -60,13 +136,17 @@
           {
             "name": "outTokenB",
             "type": {
-              "defined": "OutTokenConfig"
+              "option": {
+                "defined": "OutTokenConfig"
+              }
             }
           },
           {
             "name": "outTokenC",
             "type": {
-              "defined": "OutTokenConfig"
+              "option": {
+                "defined": "OutTokenConfig"
+              }
             }
           },
           {
@@ -82,10 +162,8 @@
             }
           },
           {
-            "name": "priceSettings",
-            "type": {
-              "defined": "PriceSettings"
-            }
+            "name": "payEveryTime",
+            "type": "bool"
           },
           {
             "name": "updateMetadata",
@@ -97,9 +175,7 @@
           }
         ]
       }
-    }
-  ],
-  "types": [
+    },
     {
       "name": "InTokenConfig",
       "type": {
@@ -147,7 +223,9 @@
           },
           {
             "name": "destination",
-            "type": "publicKey"
+            "type": {
+              "option": "publicKey"
+            }
           }
         ]
       }
@@ -158,28 +236,12 @@
         "kind": "struct",
         "fields": [
           {
-            "name": "timeToMutateSec",
+            "name": "mutationTimeSec",
             "type": "u64"
           },
           {
-            "name": "timeToCancelSec",
+            "name": "cancelWindowSec",
             "type": "u64"
-          }
-        ]
-      }
-    },
-    {
-      "name": "PriceSettings",
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "paid",
-            "type": "bool"
-          },
-          {
-            "name": "payEveryTime",
-            "type": "bool"
           }
         ]
       }

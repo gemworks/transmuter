@@ -1474,8 +1474,6 @@ dependencies = [
  "anchor-lang 0.18.2",
  "anchor-spl 0.18.2",
  "gem_bank",
- "solana-program",
- "uint 0.9.1",
  "vipers",
 ]
 

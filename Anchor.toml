@@ -10,3 +10,7 @@ wallet = "./tests/test-key.json"
 
 [scripts]
 test = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/**/*.ts"
+
+[[test.genesis]]
+address = "bankHHdqMuaaST4qQk6mkzxGeKPHWmqdgor6Gs8r88m"
+program = "./tests/programs/gem_bank.so"

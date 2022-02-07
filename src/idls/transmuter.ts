@@ -5,8 +5,56 @@ export type UtransmuterIDL =
   "instructions": [
     {
       "name": "initMutation",
-      "accounts": [],
-      "args": []
+      "accounts": [
+        {
+          "name": "mutation",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "mutationOwner",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "bankA",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "bankB",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "bankC",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "gemBank",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "config",
+          "type": {
+            "defined": "MutationConfig"
+          }
+        }
+      ]
     },
     {
       "name": "beginMutation",
@@ -35,6 +83,30 @@ export type UtransmuterIDL =
             "type": "u16"
           },
           {
+            "name": "owner",
+            "type": "publicKey"
+          },
+          {
+            "name": "config",
+            "type": {
+              "defined": "MutationConfig"
+            }
+          },
+          {
+            "name": "paid",
+            "type": "bool"
+          }
+        ]
+      }
+    }
+  ],
+  "types": [
+    {
+      "name": "MutationConfig",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
             "name": "inTokenA",
             "type": {
               "defined": "InTokenConfig"
@@ -43,13 +115,17 @@ export type UtransmuterIDL =
           {
             "name": "inTokenB",
             "type": {
-              "defined": "InTokenConfig"
+              "option": {
+                "defined": "InTokenConfig"
+              }
             }
           },
           {
             "name": "inTokenC",
             "type": {
-              "defined": "InTokenConfig"
+              "option": {
+                "defined": "InTokenConfig"
+              }
             }
           },
           {
@@ -61,13 +137,17 @@ export type UtransmuterIDL =
           {
             "name": "outTokenB",
             "type": {
-              "defined": "OutTokenConfig"
+              "option": {
+                "defined": "OutTokenConfig"
+              }
             }
           },
           {
             "name": "outTokenC",
             "type": {
-              "defined": "OutTokenConfig"
+              "option": {
+                "defined": "OutTokenConfig"
+              }
             }
           },
           {
@@ -83,10 +163,8 @@ export type UtransmuterIDL =
             }
           },
           {
-            "name": "priceSettings",
-            "type": {
-              "defined": "PriceSettings"
-            }
+            "name": "payEveryTime",
+            "type": "bool"
           },
           {
             "name": "updateMetadata",
@@ -98,9 +176,7 @@ export type UtransmuterIDL =
           }
         ]
       }
-    }
-  ],
-  "types": [
+    },
     {
       "name": "InTokenConfig",
       "type": {
@@ -148,7 +224,9 @@ export type UtransmuterIDL =
           },
           {
             "name": "destination",
-            "type": "publicKey"
+            "type": {
+              "option": "publicKey"
+            }
           }
         ]
       }
@@ -159,28 +237,12 @@ export type UtransmuterIDL =
         "kind": "struct",
         "fields": [
           {
-            "name": "timeToMutateSec",
+            "name": "mutationTimeSec",
             "type": "u64"
           },
           {
-            "name": "timeToCancelSec",
+            "name": "cancelWindowSec",
             "type": "u64"
-          }
-        ]
-      }
-    },
-    {
-      "name": "PriceSettings",
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "paid",
-            "type": "bool"
-          },
-          {
-            "name": "payEveryTime",
-            "type": "bool"
           }
         ]
       }
@@ -226,8 +288,56 @@ export const UtransmuterJSON: UtransmuterIDL =
   "instructions": [
     {
       "name": "initMutation",
-      "accounts": [],
-      "args": []
+      "accounts": [
+        {
+          "name": "mutation",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "mutationOwner",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "bankA",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "bankB",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "bankC",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "gemBank",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "config",
+          "type": {
+            "defined": "MutationConfig"
+          }
+        }
+      ]
     },
     {
       "name": "beginMutation",
@@ -256,6 +366,30 @@ export const UtransmuterJSON: UtransmuterIDL =
             "type": "u16"
           },
           {
+            "name": "owner",
+            "type": "publicKey"
+          },
+          {
+            "name": "config",
+            "type": {
+              "defined": "MutationConfig"
+            }
+          },
+          {
+            "name": "paid",
+            "type": "bool"
+          }
+        ]
+      }
+    }
+  ],
+  "types": [
+    {
+      "name": "MutationConfig",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
             "name": "inTokenA",
             "type": {
               "defined": "InTokenConfig"
@@ -264,13 +398,17 @@ export const UtransmuterJSON: UtransmuterIDL =
           {
             "name": "inTokenB",
             "type": {
-              "defined": "InTokenConfig"
+              "option": {
+                "defined": "InTokenConfig"
+              }
             }
           },
           {
             "name": "inTokenC",
             "type": {
-              "defined": "InTokenConfig"
+              "option": {
+                "defined": "InTokenConfig"
+              }
             }
           },
           {
@@ -282,13 +420,17 @@ export const UtransmuterJSON: UtransmuterIDL =
           {
             "name": "outTokenB",
             "type": {
-              "defined": "OutTokenConfig"
+              "option": {
+                "defined": "OutTokenConfig"
+              }
             }
           },
           {
             "name": "outTokenC",
             "type": {
-              "defined": "OutTokenConfig"
+              "option": {
+                "defined": "OutTokenConfig"
+              }
             }
           },
           {
@@ -304,10 +446,8 @@ export const UtransmuterJSON: UtransmuterIDL =
             }
           },
           {
-            "name": "priceSettings",
-            "type": {
-              "defined": "PriceSettings"
-            }
+            "name": "payEveryTime",
+            "type": "bool"
           },
           {
             "name": "updateMetadata",
@@ -319,9 +459,7 @@ export const UtransmuterJSON: UtransmuterIDL =
           }
         ]
       }
-    }
-  ],
-  "types": [
+    },
     {
       "name": "InTokenConfig",
       "type": {
@@ -369,7 +507,9 @@ export const UtransmuterJSON: UtransmuterIDL =
           },
           {
             "name": "destination",
-            "type": "publicKey"
+            "type": {
+              "option": "publicKey"
+            }
           }
         ]
       }
@@ -380,28 +520,12 @@ export const UtransmuterJSON: UtransmuterIDL =
         "kind": "struct",
         "fields": [
           {
-            "name": "timeToMutateSec",
+            "name": "mutationTimeSec",
             "type": "u64"
           },
           {
-            "name": "timeToCancelSec",
+            "name": "cancelWindowSec",
             "type": "u64"
-          }
-        ]
-      }
-    },
-    {
-      "name": "PriceSettings",
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "paid",
-            "type": "bool"
-          },
-          {
-            "name": "payEveryTime",
-            "type": "bool"
           }
         ]
       }

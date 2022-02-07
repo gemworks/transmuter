@@ -11,6 +11,8 @@ pub struct Mutation {
     pub owner: Pubkey,
 
     pub config: MutationConfig,
+
+    pub paid: bool,
 }
 
 #[repr(C)]
@@ -18,19 +20,19 @@ pub struct Mutation {
 pub struct MutationConfig {
     // in tokens
     pub in_token_a: InTokenConfig,
-    pub in_token_b: InTokenConfig,
-    pub in_token_c: InTokenConfig,
+    pub in_token_b: Option<InTokenConfig>,
+    pub in_token_c: Option<InTokenConfig>,
 
     // out tokens
     pub out_token_a: OutTokenConfig,
-    pub out_token_b: OutTokenConfig,
-    pub out_token_c: OutTokenConfig,
+    pub out_token_b: Option<OutTokenConfig>,
+    pub out_token_c: Option<OutTokenConfig>,
 
     pub sink_settings: SinkSettings,
 
     pub time_settings: TimeSettings,
 
-    pub price_settings: PriceSettings,
+    pub pay_every_time: bool,
 
     pub update_metadata: bool,
 
@@ -74,21 +76,13 @@ pub enum SinkAction {
 pub struct SinkSettings {
     pub action: SinkAction,
 
-    pub destination: Pubkey,
+    pub destination: Option<Pubkey>,
 }
 
 #[repr(C)]
 #[derive(Debug, Copy, Clone, AnchorSerialize, AnchorDeserialize)]
 pub struct TimeSettings {
-    pub time_to_mutate_sec: u64,
+    pub mutation_time_sec: u64,
 
-    pub time_to_cancel_sec: u64,
-}
-
-#[repr(C)]
-#[derive(Debug, Copy, Clone, AnchorSerialize, AnchorDeserialize)]
-pub struct PriceSettings {
-    pub paid: bool,
-
-    pub pay_every_time: bool,
+    pub cancel_window_sec: u64,
 }
