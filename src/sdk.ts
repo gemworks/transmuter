@@ -70,6 +70,15 @@ export class TransmuterSDK {
 
   // --------------------------------------- pda derivations
 
+  async findMutationAuthorityPDA(
+    mutation: PublicKey
+  ): Promise<[PublicKey, number]> {
+    return PublicKey.findProgramAddress(
+      [mutation.toBytes()],
+      this.programs.Transmuter.programId
+    );
+  }
+
   // --------------------------------------- initializers
 
   async initMutation(
@@ -99,12 +108,16 @@ export class TransmuterSDK {
       signers.push(fakeBankC);
     }
 
+    const [authority, bump] = await this.findMutationAuthorityPDA(mutation);
+
     const ix = this.programs.Transmuter.instruction.initMutation(
+      bump,
       config as any,
       {
         accounts: {
           mutation,
           mutationOwner: this.provider.wallet.publicKey,
+          authority,
           bankA,
           bankB,
           bankC,

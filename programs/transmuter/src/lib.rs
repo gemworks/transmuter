@@ -13,8 +13,12 @@ declare_id!("4c5WjWPmecCLHMSo8bQESo26VCotSKtjiUpCPnfEPL2p");
 pub mod transmuter {
     use super::*;
 
-    pub fn init_mutation(ctx: Context<InitMutation>, config: MutationConfig) -> ProgramResult {
-        instructions::init_mutation::handler(ctx, config)
+    pub fn init_mutation(
+        ctx: Context<InitMutation>,
+        bump: u8,
+        config: MutationConfig,
+    ) -> ProgramResult {
+        instructions::init_mutation::handler(ctx, bump, config)
     }
 
     pub fn begin_mutation(ctx: Context<BeginMutation>) -> ProgramResult {

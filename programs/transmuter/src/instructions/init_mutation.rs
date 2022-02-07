@@ -4,11 +4,14 @@ use gem_bank::{self, cpi::accounts::InitBank, program::GemBank};
 use std::str::FromStr;
 
 #[derive(Accounts)]
+#[instruction(bump: u8)]
 pub struct InitMutation<'info> {
     //mutation
     #[account(init, payer = payer, space = 8 + std::mem::size_of::<Mutation>())]
     pub mutation: Box<Account<'info, Mutation>>,
     pub mutation_owner: Signer<'info>,
+    #[account(seeds = [mutation.key().as_ref()], bump = bump)]
+    pub authority: AccountInfo<'info>,
 
     //cpi
     #[account(mut)]
@@ -35,7 +38,8 @@ impl<'info> InitMutation<'info> {
             self.gem_bank.to_account_info(),
             InitBank {
                 bank,
-                bank_manager: self.mutation_owner.to_account_info(),
+                // can't use mutation owner
+                bank_manager: self.authority.clone(),
                 payer: self.payer.to_account_info(),
                 system_program: self.system_program.to_account_info(),
             },
@@ -43,27 +47,46 @@ impl<'info> InitMutation<'info> {
     }
 }
 
-pub fn handler(ctx: Context<InitMutation>, config: MutationConfig) -> ProgramResult {
+pub fn handler(ctx: Context<InitMutation>, bump: u8, config: MutationConfig) -> ProgramResult {
     let mutation = &mut ctx.accounts.mutation;
+    let mutation_key = mutation.key();
 
     mutation.version = LATEST_MUTATION_VERSION;
     mutation.owner = ctx.accounts.mutation_owner.key();
     mutation.config = config;
 
+    mutation.authority = ctx.accounts.authority.key();
+    mutation.authority_seed = mutation_key;
+    mutation.authority_bump_seed = [bump];
+
+    let full_seeds = [mutation_key.as_ref(), &[bump]];
+
     // init first bank
     let bank_a = ctx.accounts.bank_a.to_account_info();
-    gem_bank::cpi::init_bank(ctx.accounts.init_bank_ctx(bank_a))?;
+    gem_bank::cpi::init_bank(
+        ctx.accounts
+            .init_bank_ctx(bank_a)
+            .with_signer(&[&full_seeds]),
+    )?;
 
     // init second bank
     if config.in_token_b.is_some() {
         let bank_b = ctx.accounts.bank_b.to_account_info();
-        gem_bank::cpi::init_bank(ctx.accounts.init_bank_ctx(bank_b))?;
+        gem_bank::cpi::init_bank(
+            ctx.accounts
+                .init_bank_ctx(bank_b)
+                .with_signer(&[&full_seeds]),
+        )?;
     }
 
     // init third bank
     if config.in_token_c.is_some() {
         let bank_c = ctx.accounts.bank_c.to_account_info();
-        gem_bank::cpi::init_bank(ctx.accounts.init_bank_ctx(bank_c))?;
+        gem_bank::cpi::init_bank(
+            ctx.accounts
+                .init_bank_ctx(bank_c)
+                .with_signer(&[&full_seeds]),
+        )?;
     }
 
     Ok(())

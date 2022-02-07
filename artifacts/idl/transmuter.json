@@ -16,6 +16,11 @@
           "isSigner": true
         },
         {
+          "name": "authority",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
           "name": "bankA",
           "isMut": true,
           "isSigner": true
@@ -48,6 +53,10 @@
       ],
       "args": [
         {
+          "name": "bump",
+          "type": "u8"
+        },
+        {
           "name": "config",
           "type": {
             "defined": "MutationConfig"
@@ -57,7 +66,13 @@
     },
     {
       "name": "beginMutation",
-      "accounts": [],
+      "accounts": [
+        {
+          "name": "mutation",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
       "args": []
     },
     {
@@ -67,6 +82,11 @@
     },
     {
       "name": "cancelMutation",
+      "accounts": [],
+      "args": []
+    },
+    {
+      "name": "updateMutation",
       "accounts": [],
       "args": []
     }
@@ -84,6 +104,23 @@
           {
             "name": "owner",
             "type": "publicKey"
+          },
+          {
+            "name": "authority",
+            "type": "publicKey"
+          },
+          {
+            "name": "authoritySeed",
+            "type": "publicKey"
+          },
+          {
+            "name": "authorityBumpSeed",
+            "type": {
+              "array": [
+                "u8",
+                1
+              ]
+            }
           },
           {
             "name": "config",

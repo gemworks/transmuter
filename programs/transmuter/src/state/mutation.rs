@@ -10,9 +10,19 @@ pub struct Mutation {
 
     pub owner: Pubkey,
 
+    pub authority: Pubkey,
+    pub authority_seed: Pubkey,
+    pub authority_bump_seed: [u8; 1],
+
     pub config: MutationConfig,
 
     pub paid: bool,
+}
+
+impl Mutation {
+    pub fn get_seeds(&self) -> [&[u8]; 2] {
+        [self.authority_seed.as_ref(), &self.authority_bump_seed]
+    }
 }
 
 #[repr(C)]

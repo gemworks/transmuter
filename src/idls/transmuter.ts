@@ -17,6 +17,11 @@ export type UtransmuterIDL =
           "isSigner": true
         },
         {
+          "name": "authority",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
           "name": "bankA",
           "isMut": true,
           "isSigner": true
@@ -49,6 +54,10 @@ export type UtransmuterIDL =
       ],
       "args": [
         {
+          "name": "bump",
+          "type": "u8"
+        },
+        {
           "name": "config",
           "type": {
             "defined": "MutationConfig"
@@ -58,7 +67,13 @@ export type UtransmuterIDL =
     },
     {
       "name": "beginMutation",
-      "accounts": [],
+      "accounts": [
+        {
+          "name": "mutation",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
       "args": []
     },
     {
@@ -68,6 +83,11 @@ export type UtransmuterIDL =
     },
     {
       "name": "cancelMutation",
+      "accounts": [],
+      "args": []
+    },
+    {
+      "name": "updateMutation",
       "accounts": [],
       "args": []
     }
@@ -85,6 +105,23 @@ export type UtransmuterIDL =
           {
             "name": "owner",
             "type": "publicKey"
+          },
+          {
+            "name": "authority",
+            "type": "publicKey"
+          },
+          {
+            "name": "authoritySeed",
+            "type": "publicKey"
+          },
+          {
+            "name": "authorityBumpSeed",
+            "type": {
+              "array": [
+                "u8",
+                1
+              ]
+            }
           },
           {
             "name": "config",
@@ -300,6 +337,11 @@ export const UtransmuterJSON: UtransmuterIDL =
           "isSigner": true
         },
         {
+          "name": "authority",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
           "name": "bankA",
           "isMut": true,
           "isSigner": true
@@ -332,6 +374,10 @@ export const UtransmuterJSON: UtransmuterIDL =
       ],
       "args": [
         {
+          "name": "bump",
+          "type": "u8"
+        },
+        {
           "name": "config",
           "type": {
             "defined": "MutationConfig"
@@ -341,7 +387,13 @@ export const UtransmuterJSON: UtransmuterIDL =
     },
     {
       "name": "beginMutation",
-      "accounts": [],
+      "accounts": [
+        {
+          "name": "mutation",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
       "args": []
     },
     {
@@ -351,6 +403,11 @@ export const UtransmuterJSON: UtransmuterIDL =
     },
     {
       "name": "cancelMutation",
+      "accounts": [],
+      "args": []
+    },
+    {
+      "name": "updateMutation",
       "accounts": [],
       "args": []
     }
@@ -368,6 +425,23 @@ export const UtransmuterJSON: UtransmuterIDL =
           {
             "name": "owner",
             "type": "publicKey"
+          },
+          {
+            "name": "authority",
+            "type": "publicKey"
+          },
+          {
+            "name": "authoritySeed",
+            "type": "publicKey"
+          },
+          {
+            "name": "authorityBumpSeed",
+            "type": {
+              "array": [
+                "u8",
+                1
+              ]
+            }
           },
           {
             "name": "config",
