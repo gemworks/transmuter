@@ -38,8 +38,6 @@ pub struct MutationConfig {
     pub out_token_b: Option<OutTokenConfig>,
     pub out_token_c: Option<OutTokenConfig>,
 
-    pub sink_settings: SinkSettings,
-
     pub time_settings: TimeSettings,
 
     pub pay_every_time: bool,
@@ -56,6 +54,11 @@ pub struct InTokenConfig {
     pub gem_bank: Pubkey,
 
     pub count: u64,
+
+    pub action: SinkAction,
+
+    // in case we need to transfer somewhere, this will record where
+    pub destination: Option<Pubkey>,
 }
 
 #[repr(C)]
@@ -79,14 +82,6 @@ pub enum SinkAction {
     Burn,
     Transfer,
     Preserve,
-}
-
-#[repr(C)]
-#[derive(Debug, Copy, Clone, AnchorSerialize, AnchorDeserialize)]
-pub struct SinkSettings {
-    pub action: SinkAction,
-
-    pub destination: Option<Pubkey>,
 }
 
 #[repr(C)]

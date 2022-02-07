@@ -14,6 +14,8 @@ import { GEM_BANK_PROG_ID } from "@gemworks/gem-farm-ts";
 export interface InTokenConfig {
   gemBank: PublicKey;
   count: BN;
+  action: any; //SinkAction
+  destination: PublicKey | null;
 }
 
 export const OutTokenSource = {
@@ -32,11 +34,6 @@ export const SinkAction = {
   Preserve: { preserve: {} },
 };
 
-export interface SinkSettings {
-  action: any; //SinkAction
-  destination: PublicKey | null;
-}
-
 export interface TimeSettings {
   mutationTimeSec: BN;
   cancelWindowSec: BN;
@@ -50,8 +47,6 @@ export interface MutationConfig {
   outTokenA: OutTokenConfig;
   outTokenB: OutTokenConfig | null;
   outTokenC: OutTokenConfig | null;
-
-  sinkSettings: SinkSettings;
 
   timeSettings: TimeSettings;
 

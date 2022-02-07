@@ -72,6 +72,11 @@ export type UtransmuterIDL =
           "name": "mutation",
           "isMut": false,
           "isSigner": false
+        },
+        {
+          "name": "authority",
+          "isMut": false,
+          "isSigner": false
         }
       ],
       "args": []
@@ -188,12 +193,6 @@ export type UtransmuterIDL =
             }
           },
           {
-            "name": "sinkSettings",
-            "type": {
-              "defined": "SinkSettings"
-            }
-          },
-          {
             "name": "timeSettings",
             "type": {
               "defined": "TimeSettings"
@@ -226,6 +225,18 @@ export type UtransmuterIDL =
           {
             "name": "count",
             "type": "u64"
+          },
+          {
+            "name": "action",
+            "type": {
+              "defined": "SinkAction"
+            }
+          },
+          {
+            "name": "destination",
+            "type": {
+              "option": "publicKey"
+            }
           }
         ]
       }
@@ -244,26 +255,6 @@ export type UtransmuterIDL =
           {
             "name": "count",
             "type": "u64"
-          }
-        ]
-      }
-    },
-    {
-      "name": "SinkSettings",
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "action",
-            "type": {
-              "defined": "SinkAction"
-            }
-          },
-          {
-            "name": "destination",
-            "type": {
-              "option": "publicKey"
-            }
           }
         ]
       }
@@ -392,6 +383,11 @@ export const UtransmuterJSON: UtransmuterIDL =
           "name": "mutation",
           "isMut": false,
           "isSigner": false
+        },
+        {
+          "name": "authority",
+          "isMut": false,
+          "isSigner": false
         }
       ],
       "args": []
@@ -508,12 +504,6 @@ export const UtransmuterJSON: UtransmuterIDL =
             }
           },
           {
-            "name": "sinkSettings",
-            "type": {
-              "defined": "SinkSettings"
-            }
-          },
-          {
             "name": "timeSettings",
             "type": {
               "defined": "TimeSettings"
@@ -546,6 +536,18 @@ export const UtransmuterJSON: UtransmuterIDL =
           {
             "name": "count",
             "type": "u64"
+          },
+          {
+            "name": "action",
+            "type": {
+              "defined": "SinkAction"
+            }
+          },
+          {
+            "name": "destination",
+            "type": {
+              "option": "publicKey"
+            }
           }
         ]
       }
@@ -564,26 +566,6 @@ export const UtransmuterJSON: UtransmuterIDL =
           {
             "name": "count",
             "type": "u64"
-          }
-        ]
-      }
-    },
-    {
-      "name": "SinkSettings",
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "action",
-            "type": {
-              "defined": "SinkAction"
-            }
-          },
-          {
-            "name": "destination",
-            "type": {
-              "option": "publicKey"
-            }
           }
         ]
       }

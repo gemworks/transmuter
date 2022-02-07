@@ -26,6 +26,8 @@ describe("transmuter", () => {
       inTokenA: {
         gemBank: gemBank.publicKey,
         count: toBN(5),
+        action: SinkAction.Burn,
+        destination: Keypair.generate().publicKey,
       },
       inTokenB: null,
       inTokenC: null,
@@ -35,10 +37,6 @@ describe("transmuter", () => {
       },
       outTokenB: null,
       outTokenC: null,
-      sinkSettings: {
-        action: SinkAction.Burn,
-        destination: Keypair.generate().publicKey,
-      },
       timeSettings: {
         mutationTimeSec: toBN(1),
         cancelWindowSec: toBN(1),

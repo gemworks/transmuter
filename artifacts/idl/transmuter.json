@@ -71,6 +71,11 @@
           "name": "mutation",
           "isMut": false,
           "isSigner": false
+        },
+        {
+          "name": "authority",
+          "isMut": false,
+          "isSigner": false
         }
       ],
       "args": []
@@ -187,12 +192,6 @@
             }
           },
           {
-            "name": "sinkSettings",
-            "type": {
-              "defined": "SinkSettings"
-            }
-          },
-          {
             "name": "timeSettings",
             "type": {
               "defined": "TimeSettings"
@@ -225,6 +224,18 @@
           {
             "name": "count",
             "type": "u64"
+          },
+          {
+            "name": "action",
+            "type": {
+              "defined": "SinkAction"
+            }
+          },
+          {
+            "name": "destination",
+            "type": {
+              "option": "publicKey"
+            }
           }
         ]
       }
@@ -243,26 +254,6 @@
           {
             "name": "count",
             "type": "u64"
-          }
-        ]
-      }
-    },
-    {
-      "name": "SinkSettings",
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "action",
-            "type": {
-              "defined": "SinkAction"
-            }
-          },
-          {
-            "name": "destination",
-            "type": {
-              "option": "publicKey"
-            }
           }
         ]
       }
