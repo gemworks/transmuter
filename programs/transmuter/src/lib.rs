@@ -28,4 +28,8 @@ pub mod transmuter {
     pub fn cancel_mutation(ctx: Context<CancelMutation>) -> ProgramResult {
         instructions::cancel_mutation::handler(ctx)
     }
+
+    pub fn update_mutation(ctx: Context<UpdateMutation>) -> ProgramResult {
+        instructions::update_mutation::handler(ctx)
+    }
 }
