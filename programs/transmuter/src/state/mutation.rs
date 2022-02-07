@@ -1,13 +1,21 @@
 use crate::*;
 
-pub const LATEST_TRANSMUTER_VERSION: u16 = 0;
+pub const LATEST_MUTATION_VERSION: u16 = 0;
 
-// todo add size check
+// todo add reserve space + size check
 #[repr(C)]
 #[account]
 pub struct Mutation {
     pub version: u16,
 
+    pub owner: Pubkey,
+
+    pub config: MutationConfig,
+}
+
+#[repr(C)]
+#[derive(Debug, Copy, Clone, AnchorSerialize, AnchorDeserialize)]
+pub struct MutationConfig {
     // in tokens
     pub in_token_a: InTokenConfig,
     pub in_token_b: InTokenConfig,

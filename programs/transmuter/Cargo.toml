@@ -16,5 +16,9 @@ cpi = ["no-entrypoint"]
 default = []
 
 [dependencies]
-anchor-lang = "0.20.1"
+anchor-lang = "0.18.2"
+anchor-spl = "0.18.2"
 vipers = "1.5.9"
+gem_bank = {git = "https://github.com/gemworks/gem-farm", features = ["cpi"]}
+uint = "=0.9.1"
+solana-program = "=1.8.14"
