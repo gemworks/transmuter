@@ -291,7 +291,7 @@ target/
 *.pdb
 
 # fuzzers - cargo-fuzz
-artifacts/
+#artifacts/
 corpus/
 
 # fuzzers - honggfuzz

@@ -1,12 +1,40 @@
 {
-    "dependencies": {
-        "@project-serum/anchor": "^0.20.1"
-    },
-    "devDependencies": {
-        "chai": "^4.3.4",
-        "mocha": "^9.0.3",
-        "ts-mocha": "^8.0.0",
-        "@types/mocha": "^9.0.0",
-        "typescript": "^4.3.5"
-    }
+  "name": "@gemworks/transmuter-ts",
+  "description": "TypeScript client for Magic Transmuter.",
+  "version": "0.1.0",
+  "repository": "https://github.com/gemworks/transmuter",
+  "license": "MIT",
+  "scripts": {
+    "build": "./scripts/parse-idls.sh && ./scripts/generate-idl-types.sh",
+    "test": "yarn build && anchor test"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {
+    "@project-serum/anchor": "^0.20.1",
+    "@solana/spl-token": "^0.1.8",
+    "@solana/web3.js": "^1.33.0",
+    "@types/bn.js": "^5.1.0",
+    "bn.js": "^5.2.0"
+  },
+  "devDependencies": {
+    "@saberhq/anchor-contrib": "^1.12.37",
+    "@saberhq/chai-solana": "1.11.1",
+    "@saberhq/eslint-config": "^1.12.37",
+    "@saberhq/solana-contrib": "^1.12.37",
+    "@saberhq/token-utils": "^1.12.37",
+    "@types/chai": "^4.3.0",
+    "@types/chai-as-promised": "^7.1.4",
+    "@types/mocha": "^9.1.0",
+    "chai": "^4.3.6",
+    "chai-as-promised": "^7.1.1",
+    "chai-bn": "^0.3.1",
+    "jsbi": "^4.1.0",
+    "mocha": "^9.2.0",
+    "prettier": "^2.5.1",
+    "ts-mocha": "^8.0.0",
+    "typescript": "^4.3.5"
+  }
 }
+

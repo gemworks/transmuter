@@ -7,7 +7,7 @@ pub mod state;
 pub use instructions::*;
 pub use state::*;
 
-declare_id!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
+declare_id!("4c5WjWPmecCLHMSo8bQESo26VCotSKtjiUpCPnfEPL2p");
 
 #[program]
 pub mod transmuter {
