@@ -14,7 +14,7 @@ import {
   SYSVAR_RENT_PUBKEY,
 } from "@solana/web3.js";
 import { BN } from "@project-serum/anchor";
-import { GEM_BANK_PROG_ID, stringifyPKsAndBNs } from "@gemworks/gem-farm-ts";
+import { GEM_BANK_PROG_ID } from "@gemworks/gem-farm-ts";
 import {
   createMint,
   getATAAddress,
@@ -25,20 +25,20 @@ import {
 } from "@saberhq/token-utils";
 import { TOKEN_PROGRAM_ID, u64 } from "@solana/spl-token";
 
-export interface InTokenConfig {
+export interface TakerTokenConfig {
   gemBank: PublicKey;
   amount: BN;
   action: any; //SinkAction
   destination: PublicKey | null;
 }
 
-export const OutTokenSource = {
+export const MakerTokenSource = {
   Mint: { mint: {} },
   Prefunded: { prefunded: {} },
 };
 
-export interface OutTokenConfig {
-  source: any; //OutTokenSource
+export interface MakerTokenConfig {
+  source: any; //MakerTokenSource
   amount: BN;
   candyMachine: PublicKey | null;
   mint: PublicKey | null;
@@ -56,13 +56,13 @@ export interface TimeSettings {
 }
 
 export interface MutationConfig {
-  inTokenA: InTokenConfig;
-  inTokenB: InTokenConfig | null;
-  inTokenC: InTokenConfig | null;
+  takerTokenA: TakerTokenConfig;
+  takerTokenB: TakerTokenConfig | null;
+  takerTokenC: TakerTokenConfig | null;
 
-  outTokenA: OutTokenConfig;
-  outTokenB: OutTokenConfig | null;
-  outTokenC: OutTokenConfig | null;
+  makerTokenA: MakerTokenConfig;
+  makerTokenB: MakerTokenConfig | null;
+  makerTokenC: MakerTokenConfig | null;
 
   timeSettings: TimeSettings;
 
@@ -110,22 +110,22 @@ export class TransmuterSDK {
     payer?: PublicKey
   ) {
     // ----------------- prep banks
-    const bankA = config.inTokenA.gemBank;
+    const bankA = config.takerTokenA.gemBank;
     let bankB: PublicKey;
     let bankC: PublicKey;
 
     const signers: Keypair[] = [];
 
-    if (config.inTokenB) {
-      bankB = config.inTokenB.gemBank;
+    if (config.takerTokenB) {
+      bankB = config.takerTokenB.gemBank;
     } else {
       const fakeBankB = Keypair.generate();
       bankB = fakeBankB.publicKey;
       signers.push(fakeBankB);
     }
 
-    if (config.inTokenC) {
-      bankC = config.inTokenC.gemBank;
+    if (config.takerTokenC) {
+      bankC = config.takerTokenC.gemBank;
     } else {
       const fakeBankC = Keypair.generate();
       bankC = fakeBankC.publicKey;
@@ -137,23 +137,23 @@ export class TransmuterSDK {
     //todo CM logic
 
     const tokenAMint =
-      config.outTokenA.mint ?? (await createMint(this.provider));
+      config.makerTokenA.mint ?? (await createMint(this.provider));
     const [tokenAEscrow, tokenAEscrowBump, tokenASource] =
-      await this.prepTokenAccs(mutation, tokenAMint);
+      await this.prepTokenAccounts(mutation, tokenAMint);
 
     const tokenBMint =
-      config.outTokenB && config.outTokenB.mint
-        ? config.outTokenB.mint
+      config.makerTokenB && config.makerTokenB.mint
+        ? config.makerTokenB.mint
         : await createMint(this.provider);
     const [tokenBEscrow, tokenBEscrowBump, tokenBSource] =
-      await this.prepTokenAccs(mutation, tokenBMint);
+      await this.prepTokenAccounts(mutation, tokenBMint);
 
     const tokenCMint =
-      config.outTokenC && config.outTokenC.mint
-        ? config.outTokenC.mint
+      config.makerTokenC && config.makerTokenC.mint
+        ? config.makerTokenC.mint
         : await createMint(this.provider);
     const [tokenCEscrow, tokenCEscrowBump, tokenCSource] =
-      await this.prepTokenAccs(mutation, tokenCMint);
+      await this.prepTokenAccounts(mutation, tokenCMint);
 
     // ----------------- prep ix
 
@@ -192,12 +192,14 @@ export class TransmuterSDK {
     );
 
     return {
-      mutationWrapper: new MutationWrapper(this),
+      mutationWrapper: new MutationWrapper(this, mutation),
       tx: new TransactionEnvelope(this.provider, [ix], signers),
     };
   }
 
-  async prepTokenAccs(mutation: PublicKey, tokenMint: PublicKey) {
+  // --------------------------------------- helpers
+
+  async prepTokenAccounts(mutation: PublicKey, tokenMint: PublicKey) {
     const [tokenEscrow, tokenEscrowBump] = await this.findTokenEscrowPDA(
       mutation,
       tokenMint
@@ -209,8 +211,6 @@ export class TransmuterSDK {
 
     return [tokenEscrow, tokenEscrowBump, tokenSource];
   }
-
-  // --------------------------------------- helpers
 
   async createMintAndATA(initialFunding: u64) {
     //create mint
@@ -238,7 +238,7 @@ export class TransmuterSDK {
     return [mint, ata];
   }
 
-  // --------------------------------------- load
+  // --------------------------------------- load sdk
 
   static load({
     provider,

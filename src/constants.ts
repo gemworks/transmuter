@@ -1,14 +1,17 @@
 import { PublicKey } from "@solana/web3.js";
 import * as anchor from "@project-serum/anchor";
 import { buildCoderMap } from "@saberhq/anchor-contrib";
-import { UtransmuterIDL, UtransmuterJSON } from "./idls/transmuter";
+import { IDL, Transmuter } from "./types/transmuter";
+
+//todo doesn't work - dig deeper into how Goki are doing it
+export type MutationData = Programs["Transmuter"]["account"]["mutation"];
 
 export interface Programs {
-  Transmuter: anchor.Program<UtransmuterIDL>;
+  Transmuter: anchor.Program<Transmuter>;
 }
 
 export const TRANSMUTER_IDLS = {
-  Transmuter: UtransmuterJSON,
+  Transmuter: IDL,
 };
 
 export const TRANSMUTER_ADDRESSES = {

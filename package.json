@@ -5,7 +5,7 @@
   "repository": "https://github.com/gemworks/transmuter",
   "license": "MIT",
   "scripts": {
-    "build": "anchor build && ./scripts/parse-idls.sh && ./scripts/generate-idl-types.sh",
+    "build": "anchor build && ./scripts/cp_idl.sh",
     "test": "yarn build && anchor test",
     "update": "yarn upgrade @gemworks/gem-farm-ts --latest --check-files"
   },

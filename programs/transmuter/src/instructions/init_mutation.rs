@@ -163,7 +163,7 @@ pub fn handler(ctx: Context<InitMutation>, bump_auth: u8, config: MutationConfig
     // --------------------------------------- fund maker escrow
 
     // fund first escrow
-    if config.maker_token_a.source == OutTokenSource::Prefunded {
+    if config.maker_token_a.source == MakerTokenSource::Prefunded {
         let mint_a = ctx.accounts.token_a_mint.to_account_info();
         // safe to .unwrap() because mint always specified for prefunded reward
         require!(
@@ -183,7 +183,7 @@ pub fn handler(ctx: Context<InitMutation>, bump_auth: u8, config: MutationConfig
 
     // fund second escrow
     if let Some(maker_token_b) = config.maker_token_b {
-        if maker_token_b.source == OutTokenSource::Prefunded {
+        if maker_token_b.source == MakerTokenSource::Prefunded {
             let mint_b = ctx.accounts.token_b_mint.to_account_info();
             // safe to .unwrap() because mint always specified for prefunded reward
             require!(
@@ -204,7 +204,7 @@ pub fn handler(ctx: Context<InitMutation>, bump_auth: u8, config: MutationConfig
 
     // fund third escrow
     if let Some(maker_token_c) = config.maker_token_c {
-        if maker_token_c.source == OutTokenSource::Prefunded {
+        if maker_token_c.source == MakerTokenSource::Prefunded {
             let mint_c = ctx.accounts.token_c_mint.to_account_info();
             // safe to .unwrap() because mint always specified for prefunded reward
             require!(

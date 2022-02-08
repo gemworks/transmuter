@@ -72,7 +72,7 @@ pub struct TakerTokenConfig {
 
 #[repr(C)]
 #[derive(Debug, Copy, Clone, AnchorSerialize, AnchorDeserialize, PartialEq)]
-pub enum OutTokenSource {
+pub enum MakerTokenSource {
     // todo this can either be CM directly or a custom 3rd party program that creates NFTs
     Mint,
     Prefunded,
@@ -81,7 +81,7 @@ pub enum OutTokenSource {
 #[repr(C)]
 #[derive(Debug, Copy, Clone, AnchorSerialize, AnchorDeserialize)]
 pub struct MakerTokenConfig {
-    pub source: OutTokenSource,
+    pub source: MakerTokenSource,
 
     pub amount: u64,
 

@@ -2,7 +2,7 @@ import { makeSDK } from "./workspace";
 import {
   MutationConfig,
   MutationWrapper,
-  OutTokenSource,
+  MakerTokenSource,
   SinkAction,
 } from "../src";
 import { expectTX } from "@saberhq/chai-solana";
@@ -22,22 +22,22 @@ describe("transmuter", () => {
     const [outMint] = await sdk.createMintAndATA(toBN(10));
 
     const config: MutationConfig = {
-      inTokenA: {
+      takerTokenA: {
         gemBank: gemBank.publicKey,
         amount: toBN(5),
         action: SinkAction.Burn,
         destination: Keypair.generate().publicKey,
       },
-      inTokenB: null,
-      inTokenC: null,
-      outTokenA: {
-        source: OutTokenSource.Prefunded,
+      takerTokenB: null,
+      takerTokenC: null,
+      makerTokenA: {
+        source: MakerTokenSource.Prefunded,
         amount: toBN(1),
         mint: outMint,
         candyMachine: null,
       },
-      outTokenB: null,
-      outTokenC: null,
+      makerTokenB: null,
+      makerTokenC: null,
       timeSettings: {
         mutationTimeSec: toBN(1),
         cancelWindowSec: toBN(1),

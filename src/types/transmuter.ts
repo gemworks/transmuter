@@ -1,5 +1,4 @@
-export type UtransmuterIDL =
-{
+export type Transmuter = {
   "version": "0.1.0",
   "name": "transmuter",
   "instructions": [
@@ -138,7 +137,7 @@ export type UtransmuterIDL =
       "args": []
     },
     {
-      "name": "cancelMutation",
+      "name": "destroyMutation",
       "accounts": [],
       "args": []
     },
@@ -154,14 +153,141 @@ export type UtransmuterIDL =
           "name": "authority",
           "isMut": false,
           "isSigner": false
+        },
+        {
+          "name": "vaultA",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "bankA",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "vaultB",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "bankB",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "vaultC",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "bankC",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "gemBank",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenAEscrow",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenADestination",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenAMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenBEscrow",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenBDestination",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenBMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenCEscrow",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenCDestination",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenCMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "receiver",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "associatedTokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "rent",
+          "isMut": false,
+          "isSigner": false
         }
       ],
+      "args": [
+        {
+          "name": "bumpAuth",
+          "type": "u8"
+        },
+        {
+          "name": "bumpA",
+          "type": "u8"
+        },
+        {
+          "name": "bumpB",
+          "type": "u8"
+        },
+        {
+          "name": "bumpC",
+          "type": "u8"
+        }
+      ]
+    },
+    {
+      "name": "abortMutation",
+      "accounts": [],
       "args": []
     }
   ],
   "accounts": [
     {
-      "name": "Mutation",
+      "name": "mutation",
       "type": {
         "kind": "struct",
         "fields": [
@@ -217,46 +343,46 @@ export type UtransmuterIDL =
         "kind": "struct",
         "fields": [
           {
-            "name": "inTokenA",
+            "name": "takerTokenA",
             "type": {
-              "defined": "InTokenConfig"
+              "defined": "TakerTokenConfig"
             }
           },
           {
-            "name": "inTokenB",
+            "name": "takerTokenB",
             "type": {
               "option": {
-                "defined": "InTokenConfig"
+                "defined": "TakerTokenConfig"
               }
             }
           },
           {
-            "name": "inTokenC",
+            "name": "takerTokenC",
             "type": {
               "option": {
-                "defined": "InTokenConfig"
+                "defined": "TakerTokenConfig"
               }
             }
           },
           {
-            "name": "outTokenA",
+            "name": "makerTokenA",
             "type": {
-              "defined": "OutTokenConfig"
+              "defined": "MakerTokenConfig"
             }
           },
           {
-            "name": "outTokenB",
+            "name": "makerTokenB",
             "type": {
               "option": {
-                "defined": "OutTokenConfig"
+                "defined": "MakerTokenConfig"
               }
             }
           },
           {
-            "name": "outTokenC",
+            "name": "makerTokenC",
             "type": {
               "option": {
-                "defined": "OutTokenConfig"
+                "defined": "MakerTokenConfig"
               }
             }
           },
@@ -286,7 +412,7 @@ export type UtransmuterIDL =
       }
     },
     {
-      "name": "InTokenConfig",
+      "name": "TakerTokenConfig",
       "type": {
         "kind": "struct",
         "fields": [
@@ -314,14 +440,14 @@ export type UtransmuterIDL =
       }
     },
     {
-      "name": "OutTokenConfig",
+      "name": "MakerTokenConfig",
       "type": {
         "kind": "struct",
         "fields": [
           {
             "name": "source",
             "type": {
-              "defined": "OutTokenSource"
+              "defined": "MakerTokenSource"
             }
           },
           {
@@ -368,13 +494,13 @@ export type UtransmuterIDL =
             "name": "Open"
           },
           {
-            "name": "Complete"
+            "name": "Closed"
           }
         ]
       }
     },
     {
-      "name": "OutTokenSource",
+      "name": "MakerTokenSource",
       "type": {
         "kind": "enum",
         "variants": [
@@ -422,10 +548,9 @@ export type UtransmuterIDL =
       "msg": "Mint account passed != mint account in config"
     }
   ]
-}
-;
-export const UtransmuterJSON: UtransmuterIDL =
-{
+};
+
+export const IDL: Transmuter = {
   "version": "0.1.0",
   "name": "transmuter",
   "instructions": [
@@ -564,7 +689,7 @@ export const UtransmuterJSON: UtransmuterIDL =
       "args": []
     },
     {
-      "name": "cancelMutation",
+      "name": "destroyMutation",
       "accounts": [],
       "args": []
     },
@@ -580,14 +705,141 @@ export const UtransmuterJSON: UtransmuterIDL =
           "name": "authority",
           "isMut": false,
           "isSigner": false
+        },
+        {
+          "name": "vaultA",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "bankA",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "vaultB",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "bankB",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "vaultC",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "bankC",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "gemBank",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenAEscrow",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenADestination",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenAMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenBEscrow",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenBDestination",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenBMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenCEscrow",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenCDestination",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenCMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "receiver",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "associatedTokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "rent",
+          "isMut": false,
+          "isSigner": false
         }
       ],
+      "args": [
+        {
+          "name": "bumpAuth",
+          "type": "u8"
+        },
+        {
+          "name": "bumpA",
+          "type": "u8"
+        },
+        {
+          "name": "bumpB",
+          "type": "u8"
+        },
+        {
+          "name": "bumpC",
+          "type": "u8"
+        }
+      ]
+    },
+    {
+      "name": "abortMutation",
+      "accounts": [],
       "args": []
     }
   ],
   "accounts": [
     {
-      "name": "Mutation",
+      "name": "mutation",
       "type": {
         "kind": "struct",
         "fields": [
@@ -643,46 +895,46 @@ export const UtransmuterJSON: UtransmuterIDL =
         "kind": "struct",
         "fields": [
           {
-            "name": "inTokenA",
+            "name": "takerTokenA",
             "type": {
-              "defined": "InTokenConfig"
+              "defined": "TakerTokenConfig"
             }
           },
           {
-            "name": "inTokenB",
+            "name": "takerTokenB",
             "type": {
               "option": {
-                "defined": "InTokenConfig"
+                "defined": "TakerTokenConfig"
               }
             }
           },
           {
-            "name": "inTokenC",
+            "name": "takerTokenC",
             "type": {
               "option": {
-                "defined": "InTokenConfig"
+                "defined": "TakerTokenConfig"
               }
             }
           },
           {
-            "name": "outTokenA",
+            "name": "makerTokenA",
             "type": {
-              "defined": "OutTokenConfig"
+              "defined": "MakerTokenConfig"
             }
           },
           {
-            "name": "outTokenB",
+            "name": "makerTokenB",
             "type": {
               "option": {
-                "defined": "OutTokenConfig"
+                "defined": "MakerTokenConfig"
               }
             }
           },
           {
-            "name": "outTokenC",
+            "name": "makerTokenC",
             "type": {
               "option": {
-                "defined": "OutTokenConfig"
+                "defined": "MakerTokenConfig"
               }
             }
           },
@@ -712,7 +964,7 @@ export const UtransmuterJSON: UtransmuterIDL =
       }
     },
     {
-      "name": "InTokenConfig",
+      "name": "TakerTokenConfig",
       "type": {
         "kind": "struct",
         "fields": [
@@ -740,14 +992,14 @@ export const UtransmuterJSON: UtransmuterIDL =
       }
     },
     {
-      "name": "OutTokenConfig",
+      "name": "MakerTokenConfig",
       "type": {
         "kind": "struct",
         "fields": [
           {
             "name": "source",
             "type": {
-              "defined": "OutTokenSource"
+              "defined": "MakerTokenSource"
             }
           },
           {
@@ -794,13 +1046,13 @@ export const UtransmuterJSON: UtransmuterIDL =
             "name": "Open"
           },
           {
-            "name": "Complete"
+            "name": "Closed"
           }
         ]
       }
     },
     {
-      "name": "OutTokenSource",
+      "name": "MakerTokenSource",
       "type": {
         "kind": "enum",
         "variants": [
@@ -848,7 +1100,4 @@ export const UtransmuterJSON: UtransmuterIDL =
       "msg": "Mint account passed != mint account in config"
     }
   ]
-}
-;
-import { generateErrorMap } from '@saberhq/anchor-contrib';
-export const UtransmuterErrors = generateErrorMap(UtransmuterJSON);
+};
