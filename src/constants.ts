@@ -5,6 +5,7 @@ import { IDL, Transmuter } from "./types/transmuter";
 
 //todo doesn't work - dig deeper into how Goki are doing it
 export type MutationData = Programs["Transmuter"]["account"]["mutation"];
+export type MutationProgram = Programs["Transmuter"];
 
 export interface Programs {
   Transmuter: anchor.Program<Transmuter>;

@@ -102,6 +102,17 @@ export class TransmuterSDK {
     );
   }
 
+  //todo should be using gem farm's instead, but need to re-do the sdk for that
+  async findVaultPDA(
+    bank: PublicKey,
+    creator: PublicKey
+  ): Promise<[PublicKey, number]> {
+    return PublicKey.findProgramAddress(
+      [Buffer.from("vault"), bank.toBytes(), creator.toBytes()],
+      GEM_BANK_PROG_ID
+    );
+  }
+
   // --------------------------------------- initializers
 
   async initMutation(
@@ -199,17 +210,21 @@ export class TransmuterSDK {
 
   // --------------------------------------- helpers
 
-  async prepTokenAccounts(mutation: PublicKey, tokenMint: PublicKey) {
+  async prepTokenAccounts(
+    mutation: PublicKey,
+    tokenMint: PublicKey,
+    owner?: PublicKey
+  ): Promise<[PublicKey, number, PublicKey]> {
     const [tokenEscrow, tokenEscrowBump] = await this.findTokenEscrowPDA(
       mutation,
       tokenMint
     );
-    const tokenSource = await getATAAddress({
+    const tokenAcc = await getATAAddress({
       mint: tokenMint,
-      owner: this.provider.wallet.publicKey,
+      owner: owner ?? this.provider.wallet.publicKey,
     });
 
-    return [tokenEscrow, tokenEscrowBump, tokenSource];
+    return [tokenEscrow, tokenEscrowBump, tokenAcc];
   }
 
   async createMintAndATA(initialFunding: u64) {

@@ -1,15 +1,30 @@
 import { TransmuterSDK } from "../sdk";
-import { PublicKey } from "@solana/web3.js";
-import { AugmentedProvider } from "@saberhq/solana-contrib";
-import { MutationData, Programs } from "../constants";
+import {
+  Keypair,
+  PublicKey,
+  SystemProgram,
+  SYSVAR_RENT_PUBKEY,
+} from "@solana/web3.js";
+import {
+  AugmentedProvider,
+  TransactionEnvelope,
+} from "@saberhq/solana-contrib";
+import { MutationData, MutationProgram } from "../constants";
+import { GEM_BANK_PROG_ID } from "@gemworks/gem-farm-ts";
+import {
+  ASSOCIATED_TOKEN_PROGRAM_ID,
+  TOKEN_PROGRAM_ID,
+} from "@solana/spl-token";
+import { createMint } from "@saberhq/token-utils";
 
 export class MutationWrapper {
-  private _data?: MutationData;
+  private _data?: any; //todo temp
 
   constructor(
     readonly sdk: TransmuterSDK,
     readonly key: PublicKey,
-    _data?: MutationData
+    _data?: MutationData,
+    readonly program: MutationProgram = sdk.programs.Transmuter
   ) {}
 
   get provider(): AugmentedProvider {
@@ -24,14 +39,106 @@ export class MutationWrapper {
    * reloadData into _data
    */
   async reloadData(): Promise<MutationData> {
-    console.log("accounts:", this.sdk.programs.Transmuter.account);
-    this._data = (await this.sdk.programs.Transmuter.account.mutation.fetch(
-      this.key
-    )) as any;
+    console.log("accounts:", this.program.account);
+    this._data = (await this.program.account.mutation.fetch(this.key)) as any;
     return this._data;
   }
 
-  async execute() {}
+  // --------------------------------------- ixs
+
+  async execute(receiver: PublicKey) {
+    let config = this._data.config;
+
+    // ----------------- prep banks
+    const bankA = config.takerTokenA.gemBank;
+    let bankB: PublicKey;
+    let bankC: PublicKey;
+
+    const signers: Keypair[] = [];
+
+    if (config.takerTokenB) {
+      bankB = config.takerTokenB.gemBank;
+    } else {
+      const fakeBankB = Keypair.generate();
+      bankB = fakeBankB.publicKey;
+      signers.push(fakeBankB);
+    }
+
+    if (config.takerTokenC) {
+      bankC = config.takerTokenC.gemBank;
+    } else {
+      const fakeBankC = Keypair.generate();
+      bankC = fakeBankC.publicKey;
+      signers.push(fakeBankC);
+    }
+
+    // ----------------- prep vaults
+
+    const [vaultA] = await this.sdk.findVaultPDA(bankA, receiver);
+    const [vaultB] = await this.sdk.findVaultPDA(bankB, receiver);
+    const [vaultC] = await this.sdk.findVaultPDA(bankC, receiver);
+
+    // ----------------- prep escrows
+
+    const tokenAMint =
+      config.makerTokenA.mint ?? (await createMint(this.provider));
+    const [tokenAEscrow, tokenAEscrowBump, tokenADestination] =
+      await this.sdk.prepTokenAccounts(this.key, tokenAMint, receiver);
+
+    const tokenBMint =
+      config.makerTokenB && config.makerTokenB.mint
+        ? config.makerTokenB.mint
+        : await createMint(this.provider);
+    const [tokenBEscrow, tokenBEscrowBump, tokenBDestination] =
+      await this.sdk.prepTokenAccounts(this.key, tokenBMint, receiver);
+
+    const tokenCMint =
+      config.makerTokenC && config.makerTokenC.mint
+        ? config.makerTokenC.mint
+        : await createMint(this.provider);
+    const [tokenCEscrow, tokenCEscrowBump, tokenCDestination] =
+      await this.sdk.prepTokenAccounts(this.key, tokenCMint, receiver);
+
+    // ----------------- prep ix
+
+    const [authority, bump] = await this.sdk.findMutationAuthorityPDA(this.key);
+
+    const ix = this.program.instruction.executeMutation(
+      bump,
+      tokenAEscrowBump,
+      tokenBEscrowBump,
+      tokenCEscrowBump,
+      {
+        accounts: {
+          mutation: this.key,
+          authority,
+          vaultA,
+          bankA,
+          vaultB,
+          bankB,
+          vaultC,
+          bankC,
+          gemBank: GEM_BANK_PROG_ID,
+          tokenAEscrow,
+          tokenADestination,
+          tokenAMint,
+          tokenBEscrow,
+          tokenBDestination,
+          tokenBMint,
+          tokenCEscrow,
+          tokenCDestination,
+          tokenCMint,
+          receiver,
+          tokenProgram: TOKEN_PROGRAM_ID,
+          associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
+          systemProgram: SystemProgram.programId,
+          rent: SYSVAR_RENT_PUBKEY,
+        },
+      }
+    );
+
+    return new TransactionEnvelope(this.sdk.provider, [ix], signers);
+  }
 
   // --------------------------------------- load
 
