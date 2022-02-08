@@ -31,21 +31,19 @@ impl Mutation {
 #[derive(Debug, Copy, Clone, AnchorSerialize, AnchorDeserialize)]
 pub enum MutationState {
     Open,
-    Complete,
+    Closed,
 }
 
 #[repr(C)]
 #[derive(Debug, Copy, Clone, AnchorSerialize, AnchorDeserialize)]
 pub struct MutationConfig {
-    // in tokens
-    pub in_token_a: InTokenConfig,
-    pub in_token_b: Option<InTokenConfig>,
-    pub in_token_c: Option<InTokenConfig>,
+    pub taker_token_a: TakerTokenConfig,
+    pub taker_token_b: Option<TakerTokenConfig>,
+    pub taker_token_c: Option<TakerTokenConfig>,
 
-    // out tokens
-    pub out_token_a: OutTokenConfig,
-    pub out_token_b: Option<OutTokenConfig>,
-    pub out_token_c: Option<OutTokenConfig>,
+    pub maker_token_a: MakerTokenConfig,
+    pub maker_token_b: Option<MakerTokenConfig>,
+    pub maker_token_c: Option<MakerTokenConfig>,
 
     pub time_settings: TimeSettings,
 
@@ -60,7 +58,7 @@ pub struct MutationConfig {
 
 #[repr(C)]
 #[derive(Debug, Copy, Clone, AnchorSerialize, AnchorDeserialize)]
-pub struct InTokenConfig {
+pub struct TakerTokenConfig {
     /// each gem bank has a whitelist with mints/creators allowed / not allowed
     pub gem_bank: Pubkey,
 
@@ -82,7 +80,7 @@ pub enum OutTokenSource {
 
 #[repr(C)]
 #[derive(Debug, Copy, Clone, AnchorSerialize, AnchorDeserialize)]
-pub struct OutTokenConfig {
+pub struct MakerTokenConfig {
     pub source: OutTokenSource,
 
     pub amount: u64,

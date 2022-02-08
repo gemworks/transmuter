@@ -128,7 +128,10 @@ pub fn handler(ctx: Context<InitMutation>, bump_auth: u8, config: MutationConfig
     // --------------------------------------- init taker banks
     // init first bank
     let bank_a = ctx.accounts.bank_a.to_account_info();
-    require!(bank_a.key() == config.in_token_a.gem_bank, BankDoesNotMatch);
+    require!(
+        bank_a.key() == config.taker_token_a.gem_bank,
+        BankDoesNotMatch
+    );
     gem_bank::cpi::init_bank(
         ctx.accounts
             .init_bank_ctx(bank_a)
@@ -136,9 +139,9 @@ pub fn handler(ctx: Context<InitMutation>, bump_auth: u8, config: MutationConfig
     )?;
 
     // init second bank
-    if let Some(in_token_b) = config.in_token_b {
+    if let Some(taker_token_b) = config.taker_token_b {
         let bank_b = ctx.accounts.bank_b.to_account_info();
-        require!(bank_b.key() == in_token_b.gem_bank, BankDoesNotMatch);
+        require!(bank_b.key() == taker_token_b.gem_bank, BankDoesNotMatch);
         gem_bank::cpi::init_bank(
             ctx.accounts
                 .init_bank_ctx(bank_b)
@@ -147,9 +150,9 @@ pub fn handler(ctx: Context<InitMutation>, bump_auth: u8, config: MutationConfig
     }
 
     // init third bank
-    if let Some(in_token_c) = config.in_token_c {
+    if let Some(taker_token_c) = config.taker_token_c {
         let bank_c = ctx.accounts.bank_c.to_account_info();
-        require!(bank_c.key() == in_token_c.gem_bank, BankDoesNotMatch);
+        require!(bank_c.key() == taker_token_c.gem_bank, BankDoesNotMatch);
         gem_bank::cpi::init_bank(
             ctx.accounts
                 .init_bank_ctx(bank_c)
@@ -160,11 +163,11 @@ pub fn handler(ctx: Context<InitMutation>, bump_auth: u8, config: MutationConfig
     // --------------------------------------- fund maker escrow
 
     // fund first escrow
-    if config.out_token_a.source == OutTokenSource::Prefunded {
+    if config.maker_token_a.source == OutTokenSource::Prefunded {
         let mint_a = ctx.accounts.token_a_mint.to_account_info();
         // safe to .unwrap() because mint always specified for prefunded reward
         require!(
-            mint_a.key() == config.out_token_a.mint.unwrap(),
+            mint_a.key() == config.maker_token_a.mint.unwrap(),
             MintDoesNotMatch
         );
         let source_a = ctx.accounts.token_a_source.to_account_info();
@@ -172,24 +175,27 @@ pub fn handler(ctx: Context<InitMutation>, bump_auth: u8, config: MutationConfig
 
         token::transfer(
             ctx.accounts.transfer_ctx(source_a, escrow_a),
-            config.out_token_a.amount,
+            config.maker_token_a.amount,
         )?;
     } else {
         //todo record CM ID
     }
 
     // fund second escrow
-    if let Some(out_token_b) = config.out_token_b {
-        if out_token_b.source == OutTokenSource::Prefunded {
+    if let Some(maker_token_b) = config.maker_token_b {
+        if maker_token_b.source == OutTokenSource::Prefunded {
             let mint_b = ctx.accounts.token_b_mint.to_account_info();
             // safe to .unwrap() because mint always specified for prefunded reward
-            require!(mint_b.key() == out_token_b.mint.unwrap(), MintDoesNotMatch);
+            require!(
+                mint_b.key() == maker_token_b.mint.unwrap(),
+                MintDoesNotMatch
+            );
             let source_b = ctx.accounts.token_b_source.to_account_info();
             let escrow_b = ctx.accounts.token_b_escrow.to_account_info();
 
             token::transfer(
                 ctx.accounts.transfer_ctx(source_b, escrow_b),
-                out_token_b.amount,
+                maker_token_b.amount,
             )?;
         } else {
             // todo record CM ID
@@ -197,17 +203,20 @@ pub fn handler(ctx: Context<InitMutation>, bump_auth: u8, config: MutationConfig
     }
 
     // fund third escrow
-    if let Some(out_token_c) = config.out_token_c {
-        if out_token_c.source == OutTokenSource::Prefunded {
+    if let Some(maker_token_c) = config.maker_token_c {
+        if maker_token_c.source == OutTokenSource::Prefunded {
             let mint_c = ctx.accounts.token_c_mint.to_account_info();
             // safe to .unwrap() because mint always specified for prefunded reward
-            require!(mint_c.key() == out_token_c.mint.unwrap(), MintDoesNotMatch);
+            require!(
+                mint_c.key() == maker_token_c.mint.unwrap(),
+                MintDoesNotMatch
+            );
             let source_c = ctx.accounts.token_c_source.to_account_info();
             let escrow_c = ctx.accounts.token_c_escrow.to_account_info();
 
             token::transfer(
                 ctx.accounts.transfer_ctx(source_c, escrow_c),
-                out_token_c.amount,
+                maker_token_c.amount,
             )?;
         } else {
             // todo record CM ID
