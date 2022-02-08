@@ -227,27 +227,34 @@ export class TransmuterSDK {
     return [tokenEscrow, tokenEscrowBump, tokenAcc];
   }
 
-  async createMintAndATA(initialFunding: u64) {
+  async createMintAndATA(initialFunding: u64, owner?: Keypair) {
     //create mint
-    const mint = await createMint(this.provider);
+    const mint = await createMint(
+      this.provider,
+      owner ? owner.publicKey : undefined
+    );
 
     //create ATA ix
     const { address: ata, instruction } = await getOrCreateATA({
       provider: this.provider,
       mint,
+      owner: owner ? owner.publicKey : undefined,
     });
 
     //create mintTo ix
     const token = Token.fromMint(mint, 0);
-    const owner = new TokenOwner(this.provider.wallet.publicKey);
+    const tokenOwner = new TokenOwner(
+      owner ? owner.publicKey : this.provider.wallet.publicKey
+    );
     const amount = new TokenAmount(token, initialFunding);
-    const mintToIx = owner.mintTo(amount, ata);
+    const mintToIx = tokenOwner.mintTo(amount, ata);
 
     //prep & send tx
-    const mintTx = new TransactionEnvelope(this.provider, [
-      instruction,
-      mintToIx,
-    ]);
+    const mintTx = new TransactionEnvelope(
+      this.provider,
+      [instruction, mintToIx],
+      [owner]
+    );
     await mintTx.confirm();
 
     return [mint, ata];

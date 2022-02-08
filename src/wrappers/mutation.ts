@@ -39,7 +39,6 @@ export class MutationWrapper {
    * reloadData into _data
    */
   async reloadData(): Promise<MutationData> {
-    console.log("accounts:", this.program.account);
     this._data = (await this.program.account.mutation.fetch(this.key)) as any;
     return this._data;
   }
@@ -47,6 +46,7 @@ export class MutationWrapper {
   // --------------------------------------- ixs
 
   async execute(receiver: PublicKey) {
+    await this.reloadData();
     let config = this._data.config;
 
     // ----------------- prep banks
@@ -54,14 +54,11 @@ export class MutationWrapper {
     let bankB: PublicKey;
     let bankC: PublicKey;
 
-    const signers: Keypair[] = [];
-
     if (config.takerTokenB) {
       bankB = config.takerTokenB.gemBank;
     } else {
       const fakeBankB = Keypair.generate();
       bankB = fakeBankB.publicKey;
-      signers.push(fakeBankB);
     }
 
     if (config.takerTokenC) {
@@ -69,7 +66,6 @@ export class MutationWrapper {
     } else {
       const fakeBankC = Keypair.generate();
       bankC = fakeBankC.publicKey;
-      signers.push(fakeBankC);
     }
 
     // ----------------- prep vaults
@@ -79,6 +75,8 @@ export class MutationWrapper {
     const [vaultC] = await this.sdk.findVaultPDA(bankC, receiver);
 
     // ----------------- prep escrows
+
+    //todo ok this design doesn't work - we don't want to be creating empty token accs
 
     const tokenAMint =
       config.makerTokenA.mint ?? (await createMint(this.provider));
@@ -137,7 +135,7 @@ export class MutationWrapper {
       }
     );
 
-    return new TransactionEnvelope(this.sdk.provider, [ix], signers);
+    return new TransactionEnvelope(this.sdk.provider, [ix]);
   }
 
   // --------------------------------------- load
