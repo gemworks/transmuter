@@ -40,7 +40,13 @@ pub mod transmuter {
 
     // --------------------------------------- taker
 
-    pub fn execute_mutation(ctx: Context<ExecuteMutation>) -> ProgramResult {
+    pub fn execute_mutation(
+        ctx: Context<ExecuteMutation>,
+        bump_auth: u8,
+        _bump_a: u8,
+        _bump_b: u8,
+        _bump_c: u8,
+    ) -> ProgramResult {
         msg!("execute mutation");
         instructions::execute_mutation::handler(ctx)
     }

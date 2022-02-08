@@ -1,6 +1,5 @@
 use crate::*;
-use anchor_spl::token;
-use anchor_spl::token::{Mint, Token, TokenAccount, Transfer};
+use anchor_spl::token::{self, Mint, Token, TokenAccount, Transfer};
 use gem_bank::{self, cpi::accounts::InitBank, program::GemBank};
 
 #[derive(Accounts)]
@@ -38,7 +37,7 @@ pub struct InitMutation<'info> {
     // intentionally not checking if it's a TokenAccount - in some cases it'll be empty
     #[account(mut)]
     pub token_a_source: AccountInfo<'info>,
-    pub token_a_mint: Account<'info, Mint>,
+    pub token_a_mint: Box<Account<'info, Mint>>,
     // b
     // todo can make optional
     #[account(init, seeds = [
@@ -53,7 +52,7 @@ pub struct InitMutation<'info> {
     pub token_b_escrow: Box<Account<'info, TokenAccount>>,
     #[account(mut)]
     pub token_b_source: AccountInfo<'info>,
-    pub token_b_mint: Account<'info, Mint>,
+    pub token_b_mint: Box<Account<'info, Mint>>,
     // c
     #[account(init, seeds = [
             b"escrow".as_ref(),
@@ -67,7 +66,7 @@ pub struct InitMutation<'info> {
     pub token_c_escrow: Box<Account<'info, TokenAccount>>,
     #[account(mut)]
     pub token_c_source: AccountInfo<'info>,
-    pub token_c_mint: Account<'info, Mint>,
+    pub token_c_mint: Box<Account<'info, Mint>>,
 
     // misc
     #[account(mut)]
