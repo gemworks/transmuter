@@ -1,4 +1,3 @@
-import * as anchor from "@project-serum/anchor";
 import { makeSDK } from "./workspace";
 import {
   MutationConfig,
@@ -13,19 +12,19 @@ import { Keypair } from "@solana/web3.js";
 import { toBN } from "@gemworks/gem-farm-ts";
 
 describe("transmuter", () => {
-  const { BN, web3 } = anchor;
   const sdk = makeSDK();
-  const program = sdk.programs.Transmuter;
+
   let mutationWrapper: MutationWrapper;
 
   before("prep", async () => {
     const gemBank = Keypair.generate();
     const mutation = Keypair.generate();
+    const [outMint] = await sdk.createMintAndATA(toBN(10));
 
     const config: MutationConfig = {
       inTokenA: {
         gemBank: gemBank.publicKey,
-        count: toBN(5),
+        amount: toBN(5),
         action: SinkAction.Burn,
         destination: Keypair.generate().publicKey,
       },
@@ -33,7 +32,9 @@ describe("transmuter", () => {
       inTokenC: null,
       outTokenA: {
         source: OutTokenSource.Prefunded,
-        count: toBN(1),
+        amount: toBN(1),
+        mint: outMint,
+        candyMachine: null,
       },
       outTokenB: null,
       outTokenC: null,
@@ -41,6 +42,7 @@ describe("transmuter", () => {
         mutationTimeSec: toBN(1),
         cancelWindowSec: toBN(1),
       },
+      price: toBN(0),
       payEveryTime: false,
       updateMetadata: false,
       reversible: false,

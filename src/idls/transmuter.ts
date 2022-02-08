@@ -12,7 +12,7 @@ export type UtransmuterIDL =
           "isSigner": true
         },
         {
-          "name": "mutationOwner",
+          "name": "owner",
           "isMut": false,
           "isSigner": true
         },
@@ -42,19 +42,86 @@ export type UtransmuterIDL =
           "isSigner": false
         },
         {
+          "name": "tokenAEscrow",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenASource",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenAMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenBEscrow",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenBSource",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenBMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenCEscrow",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenCSource",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenCMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
           "name": "payer",
           "isMut": true,
           "isSigner": true
         },
         {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
           "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "rent",
           "isMut": false,
           "isSigner": false
         }
       ],
       "args": [
         {
-          "name": "bump",
+          "name": "bumpAuth",
+          "type": "u8"
+        },
+        {
+          "name": "bumpA",
+          "type": "u8"
+        },
+        {
+          "name": "bumpB",
+          "type": "u8"
+        },
+        {
+          "name": "bumpC",
           "type": "u8"
         },
         {
@@ -66,7 +133,17 @@ export type UtransmuterIDL =
       ]
     },
     {
-      "name": "beginMutation",
+      "name": "updateMutation",
+      "accounts": [],
+      "args": []
+    },
+    {
+      "name": "cancelMutation",
+      "accounts": [],
+      "args": []
+    },
+    {
+      "name": "executeMutation",
       "accounts": [
         {
           "name": "mutation",
@@ -79,21 +156,6 @@ export type UtransmuterIDL =
           "isSigner": false
         }
       ],
-      "args": []
-    },
-    {
-      "name": "completeMutation",
-      "accounts": [],
-      "args": []
-    },
-    {
-      "name": "cancelMutation",
-      "accounts": [],
-      "args": []
-    },
-    {
-      "name": "updateMutation",
-      "accounts": [],
       "args": []
     }
   ],
@@ -137,6 +199,12 @@ export type UtransmuterIDL =
           {
             "name": "paid",
             "type": "bool"
+          },
+          {
+            "name": "state",
+            "type": {
+              "defined": "MutationState"
+            }
           }
         ]
       }
@@ -199,6 +267,10 @@ export type UtransmuterIDL =
             }
           },
           {
+            "name": "price",
+            "type": "u64"
+          },
+          {
             "name": "payEveryTime",
             "type": "bool"
           },
@@ -223,7 +295,7 @@ export type UtransmuterIDL =
             "type": "publicKey"
           },
           {
-            "name": "count",
+            "name": "amount",
             "type": "u64"
           },
           {
@@ -253,8 +325,20 @@ export type UtransmuterIDL =
             }
           },
           {
-            "name": "count",
+            "name": "amount",
             "type": "u64"
+          },
+          {
+            "name": "candyMachine",
+            "type": {
+              "option": "publicKey"
+            }
+          },
+          {
+            "name": "mint",
+            "type": {
+              "option": "publicKey"
+            }
           }
         ]
       }
@@ -271,6 +355,20 @@ export type UtransmuterIDL =
           {
             "name": "cancelWindowSec",
             "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "MutationState",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Open"
+          },
+          {
+            "name": "Complete"
           }
         ]
       }
@@ -305,6 +403,23 @@ export type UtransmuterIDL =
           }
         ]
       }
+    }
+  ],
+  "errors": [
+    {
+      "code": 6000,
+      "name": "InvalidTokenIndex",
+      "msg": "Token index must be one of 1,2,3"
+    },
+    {
+      "code": 6001,
+      "name": "BankDoesNotMatch",
+      "msg": "Bank account passed != bank account in config"
+    },
+    {
+      "code": 6002,
+      "name": "MintDoesNotMatch",
+      "msg": "Mint account passed != mint account in config"
     }
   ]
 }
@@ -323,7 +438,7 @@ export const UtransmuterJSON: UtransmuterIDL =
           "isSigner": true
         },
         {
-          "name": "mutationOwner",
+          "name": "owner",
           "isMut": false,
           "isSigner": true
         },
@@ -353,19 +468,86 @@ export const UtransmuterJSON: UtransmuterIDL =
           "isSigner": false
         },
         {
+          "name": "tokenAEscrow",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenASource",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenAMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenBEscrow",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenBSource",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenBMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenCEscrow",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenCSource",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenCMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
           "name": "payer",
           "isMut": true,
           "isSigner": true
         },
         {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
           "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "rent",
           "isMut": false,
           "isSigner": false
         }
       ],
       "args": [
         {
-          "name": "bump",
+          "name": "bumpAuth",
+          "type": "u8"
+        },
+        {
+          "name": "bumpA",
+          "type": "u8"
+        },
+        {
+          "name": "bumpB",
+          "type": "u8"
+        },
+        {
+          "name": "bumpC",
           "type": "u8"
         },
         {
@@ -377,7 +559,17 @@ export const UtransmuterJSON: UtransmuterIDL =
       ]
     },
     {
-      "name": "beginMutation",
+      "name": "updateMutation",
+      "accounts": [],
+      "args": []
+    },
+    {
+      "name": "cancelMutation",
+      "accounts": [],
+      "args": []
+    },
+    {
+      "name": "executeMutation",
       "accounts": [
         {
           "name": "mutation",
@@ -390,21 +582,6 @@ export const UtransmuterJSON: UtransmuterIDL =
           "isSigner": false
         }
       ],
-      "args": []
-    },
-    {
-      "name": "completeMutation",
-      "accounts": [],
-      "args": []
-    },
-    {
-      "name": "cancelMutation",
-      "accounts": [],
-      "args": []
-    },
-    {
-      "name": "updateMutation",
-      "accounts": [],
       "args": []
     }
   ],
@@ -448,6 +625,12 @@ export const UtransmuterJSON: UtransmuterIDL =
           {
             "name": "paid",
             "type": "bool"
+          },
+          {
+            "name": "state",
+            "type": {
+              "defined": "MutationState"
+            }
           }
         ]
       }
@@ -510,6 +693,10 @@ export const UtransmuterJSON: UtransmuterIDL =
             }
           },
           {
+            "name": "price",
+            "type": "u64"
+          },
+          {
             "name": "payEveryTime",
             "type": "bool"
           },
@@ -534,7 +721,7 @@ export const UtransmuterJSON: UtransmuterIDL =
             "type": "publicKey"
           },
           {
-            "name": "count",
+            "name": "amount",
             "type": "u64"
           },
           {
@@ -564,8 +751,20 @@ export const UtransmuterJSON: UtransmuterIDL =
             }
           },
           {
-            "name": "count",
+            "name": "amount",
             "type": "u64"
+          },
+          {
+            "name": "candyMachine",
+            "type": {
+              "option": "publicKey"
+            }
+          },
+          {
+            "name": "mint",
+            "type": {
+              "option": "publicKey"
+            }
           }
         ]
       }
@@ -582,6 +781,20 @@ export const UtransmuterJSON: UtransmuterIDL =
           {
             "name": "cancelWindowSec",
             "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "MutationState",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Open"
+          },
+          {
+            "name": "Complete"
           }
         ]
       }
@@ -616,6 +829,23 @@ export const UtransmuterJSON: UtransmuterIDL =
           }
         ]
       }
+    }
+  ],
+  "errors": [
+    {
+      "code": 6000,
+      "name": "InvalidTokenIndex",
+      "msg": "Token index must be one of 1,2,3"
+    },
+    {
+      "code": 6001,
+      "name": "BankDoesNotMatch",
+      "msg": "Bank account passed != bank account in config"
+    },
+    {
+      "code": 6002,
+      "name": "MintDoesNotMatch",
+      "msg": "Mint account passed != mint account in config"
     }
   ]
 }

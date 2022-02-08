@@ -17,12 +17,21 @@ pub struct Mutation {
     pub config: MutationConfig,
 
     pub paid: bool,
+
+    pub state: MutationState,
 }
 
 impl Mutation {
     pub fn get_seeds(&self) -> [&[u8]; 2] {
         [self.authority_seed.as_ref(), &self.authority_bump_seed]
     }
+}
+
+#[repr(C)]
+#[derive(Debug, Copy, Clone, AnchorSerialize, AnchorDeserialize)]
+pub enum MutationState {
+    Open,
+    Complete,
 }
 
 #[repr(C)]
@@ -40,6 +49,8 @@ pub struct MutationConfig {
 
     pub time_settings: TimeSettings,
 
+    pub price: u64,
+
     pub pay_every_time: bool,
 
     pub update_metadata: bool,
@@ -53,7 +64,7 @@ pub struct InTokenConfig {
     /// each gem bank has a whitelist with mints/creators allowed / not allowed
     pub gem_bank: Pubkey,
 
-    pub count: u64,
+    pub amount: u64,
 
     pub action: SinkAction,
 
@@ -62,8 +73,9 @@ pub struct InTokenConfig {
 }
 
 #[repr(C)]
-#[derive(Debug, Copy, Clone, AnchorSerialize, AnchorDeserialize)]
+#[derive(Debug, Copy, Clone, AnchorSerialize, AnchorDeserialize, PartialEq)]
 pub enum OutTokenSource {
+    // todo this can either be CM directly or a custom 3rd party program that creates NFTs
     Mint,
     Prefunded,
 }
@@ -73,7 +85,13 @@ pub enum OutTokenSource {
 pub struct OutTokenConfig {
     pub source: OutTokenSource,
 
-    pub count: u64,
+    pub amount: u64,
+
+    // only if CM
+    pub candy_machine: Option<Pubkey>,
+
+    // only if prefunded
+    pub mint: Option<Pubkey>,
 }
 
 #[repr(C)]

@@ -11,7 +11,7 @@
           "isSigner": true
         },
         {
-          "name": "mutationOwner",
+          "name": "owner",
           "isMut": false,
           "isSigner": true
         },
@@ -41,19 +41,86 @@
           "isSigner": false
         },
         {
+          "name": "tokenAEscrow",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenASource",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenAMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenBEscrow",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenBSource",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenBMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenCEscrow",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenCSource",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenCMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
           "name": "payer",
           "isMut": true,
           "isSigner": true
         },
         {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
           "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "rent",
           "isMut": false,
           "isSigner": false
         }
       ],
       "args": [
         {
-          "name": "bump",
+          "name": "bumpAuth",
+          "type": "u8"
+        },
+        {
+          "name": "bumpA",
+          "type": "u8"
+        },
+        {
+          "name": "bumpB",
+          "type": "u8"
+        },
+        {
+          "name": "bumpC",
           "type": "u8"
         },
         {
@@ -65,7 +132,17 @@
       ]
     },
     {
-      "name": "beginMutation",
+      "name": "updateMutation",
+      "accounts": [],
+      "args": []
+    },
+    {
+      "name": "cancelMutation",
+      "accounts": [],
+      "args": []
+    },
+    {
+      "name": "executeMutation",
       "accounts": [
         {
           "name": "mutation",
@@ -78,21 +155,6 @@
           "isSigner": false
         }
       ],
-      "args": []
-    },
-    {
-      "name": "completeMutation",
-      "accounts": [],
-      "args": []
-    },
-    {
-      "name": "cancelMutation",
-      "accounts": [],
-      "args": []
-    },
-    {
-      "name": "updateMutation",
-      "accounts": [],
       "args": []
     }
   ],
@@ -136,6 +198,12 @@
           {
             "name": "paid",
             "type": "bool"
+          },
+          {
+            "name": "state",
+            "type": {
+              "defined": "MutationState"
+            }
           }
         ]
       }
@@ -198,6 +266,10 @@
             }
           },
           {
+            "name": "price",
+            "type": "u64"
+          },
+          {
             "name": "payEveryTime",
             "type": "bool"
           },
@@ -222,7 +294,7 @@
             "type": "publicKey"
           },
           {
-            "name": "count",
+            "name": "amount",
             "type": "u64"
           },
           {
@@ -252,8 +324,20 @@
             }
           },
           {
-            "name": "count",
+            "name": "amount",
             "type": "u64"
+          },
+          {
+            "name": "candyMachine",
+            "type": {
+              "option": "publicKey"
+            }
+          },
+          {
+            "name": "mint",
+            "type": {
+              "option": "publicKey"
+            }
           }
         ]
       }
@@ -270,6 +354,20 @@
           {
             "name": "cancelWindowSec",
             "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "MutationState",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Open"
+          },
+          {
+            "name": "Complete"
           }
         ]
       }
@@ -304,6 +402,23 @@
           }
         ]
       }
+    }
+  ],
+  "errors": [
+    {
+      "code": 6000,
+      "name": "InvalidTokenIndex",
+      "msg": "Token index must be one of 1,2,3"
+    },
+    {
+      "code": 6001,
+      "name": "BankDoesNotMatch",
+      "msg": "Bank account passed != bank account in config"
+    },
+    {
+      "code": 6002,
+      "name": "MintDoesNotMatch",
+      "msg": "Mint account passed != mint account in config"
     }
   ]
 }
