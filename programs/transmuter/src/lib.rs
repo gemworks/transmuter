@@ -28,21 +28,25 @@ pub mod transmuter {
         instructions::init_mutation::handler(ctx, bump_auth, config)
     }
 
-    // pub fn fund_mutation(ctx: Context<FundMutation>) -> ProgramResult {
-    //     instructions::fund_mutation::handler(ctx)
-    // }
-
     pub fn update_mutation(ctx: Context<UpdateMutation>) -> ProgramResult {
+        msg!("update mutation");
         instructions::update_mutation::handler(ctx)
+    }
+
+    pub fn destroy_mutation(ctx: Context<DestroyMutation>) -> ProgramResult {
+        msg!("destroy mutation");
+        instructions::destroy_mutation::handler(ctx)
     }
 
     // --------------------------------------- taker
 
-    pub fn cancel_mutation(ctx: Context<CancelMutation>) -> ProgramResult {
-        instructions::cancel_mutation::handler(ctx)
+    pub fn execute_mutation(ctx: Context<ExecuteMutation>) -> ProgramResult {
+        msg!("execute mutation");
+        instructions::execute_mutation::handler(ctx)
     }
 
-    pub fn execute_mutation(ctx: Context<ExecuteMutation>) -> ProgramResult {
-        instructions::execute_mutation::handler(ctx)
+    pub fn abort_mutation(ctx: Context<AbortMutation>) -> ProgramResult {
+        msg!("abort mutation");
+        instructions::abort_mutation::handler(ctx)
     }
 }
