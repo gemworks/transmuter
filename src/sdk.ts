@@ -32,16 +32,9 @@ export interface TakerTokenConfig {
   destination: PublicKey | null;
 }
 
-export const MakerTokenSource = {
-  Mint: { mint: {} },
-  Prefunded: { prefunded: {} },
-};
-
 export interface MakerTokenConfig {
-  source: any; //MakerTokenSource
+  mint: PublicKey;
   amount: BN;
-  candyMachine: PublicKey | null;
-  mint: PublicKey | null;
 }
 
 export const SinkAction = {

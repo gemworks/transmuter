@@ -44,10 +44,8 @@ describe("transmuter", () => {
       takerTokenB: null,
       takerTokenC: null,
       makerTokenA: {
-        source: MakerTokenSource.Prefunded,
-        amount: toBN(1),
         mint: makerMint,
-        candyMachine: null,
+        amount: toBN(1),
       },
       makerTokenB: null,
       makerTokenC: null,

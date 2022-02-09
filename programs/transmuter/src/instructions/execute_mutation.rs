@@ -84,133 +84,121 @@ pub struct ExecuteMutation<'info> {
 }
 
 impl<'info> ExecuteMutation<'info> {
-    // fn set_lock_vault_ctx(
-    //     &self,
-    //     bank: AccountInfo<'info>,
-    //     vault: AccountInfo<'info>,
-    // ) -> CpiContext<'_, '_, '_, 'info, SetVaultLock<'info>> {
-    //     CpiContext::new(
-    //         self.gem_bank.to_account_info(),
-    //         SetVaultLock {
-    //             bank,
-    //             vault,
-    //             bank_manager: self.authority.clone(),
-    //         },
-    //     )
-    // }
-    //
-    // fn transfer_ctx(
-    //     &self,
-    //     token_escrow: AccountInfo<'info>,
-    //     token_destination: AccountInfo<'info>,
-    // ) -> CpiContext<'_, '_, '_, 'info, Transfer<'info>> {
-    //     CpiContext::new(
-    //         self.token_program.to_account_info(),
-    //         Transfer {
-    //             from: token_escrow,
-    //             to: token_destination,
-    //             authority: self.authority.clone(),
-    //         },
-    //     )
-    // }
+    fn set_lock_vault_ctx(
+        &self,
+        bank: AccountInfo<'info>,
+        vault: AccountInfo<'info>,
+    ) -> CpiContext<'_, '_, '_, 'info, SetVaultLock<'info>> {
+        CpiContext::new(
+            self.gem_bank.to_account_info(),
+            SetVaultLock {
+                bank,
+                vault,
+                bank_manager: self.authority.clone(),
+            },
+        )
+    }
+
+    fn transfer_ctx(
+        &self,
+        token_escrow: AccountInfo<'info>,
+        token_destination: AccountInfo<'info>,
+    ) -> CpiContext<'_, '_, '_, 'info, Transfer<'info>> {
+        CpiContext::new(
+            self.token_program.to_account_info(),
+            Transfer {
+                from: token_escrow,
+                to: token_destination,
+                authority: self.authority.clone(),
+            },
+        )
+    }
 }
 
 // todo can be DRYed up
 pub fn handler(ctx: Context<ExecuteMutation>) -> ProgramResult {
-    // let mutation = &mut ctx.accounts.mutation;
-    // let config = mutation.config;
-    //
-    // mutation.state = MutationState::Closed;
-    //
-    // // --------------------------------------- lock taker banks
-    //
-    // // lock first bank
-    // let bank_a = ctx.accounts.bank_a.to_account_info();
-    // let vault_a = ctx.accounts.vault_a.to_account_info();
-    // require!(
-    //     bank_a.key() == config.taker_token_a.gem_bank,
-    //     BankDoesNotMatch
-    // );
-    // gem_bank::cpi::set_vault_lock(
-    //     ctx.accounts
-    //         .set_lock_vault_ctx(bank_a, vault_a)
-    //         .with_signer(&[&ctx.accounts.mutation.get_seeds()]),
-    //     true,
-    // )?;
-    //
-    // // lock second bank
-    // if let Some(taker_token_b) = config.taker_token_b {
-    //     let bank_b = ctx.accounts.bank_b.to_account_info();
-    //     let vault_b = ctx.accounts.vault_b.to_account_info();
-    //     require!(bank_b.key() == taker_token_b.gem_bank, BankDoesNotMatch);
-    //     gem_bank::cpi::set_vault_lock(
-    //         ctx.accounts
-    //             .set_lock_vault_ctx(bank_b, vault_b)
-    //             .with_signer(&[&ctx.accounts.mutation.get_seeds()]),
-    //         true,
-    //     )?;
-    // }
-    //
-    // // lock third bank
-    // if let Some(taker_token_c) = config.taker_token_c {
-    //     let bank_c = ctx.accounts.bank_c.to_account_info();
-    //     let vault_c = ctx.accounts.vault_c.to_account_info();
-    //     require!(bank_c.key() == taker_token_c.gem_bank, BankDoesNotMatch);
-    //     gem_bank::cpi::set_vault_lock(
-    //         ctx.accounts
-    //             .set_lock_vault_ctx(bank_c, vault_c)
-    //             .with_signer(&[&ctx.accounts.mutation.get_seeds()]),
-    //         true,
-    //     )?;
-    // }
-    //
-    // // --------------------------------------- send tokens to taker
-    //
-    // // send first token
-    // if config.maker_token_a.source == MakerTokenSource::Prefunded {
-    //     let escrow_a = ctx.accounts.token_a_escrow.to_account_info();
-    //     let destination_a = ctx.accounts.token_a_destination.to_account_info();
-    //     token::transfer(
-    //         ctx.accounts
-    //             .transfer_ctx(escrow_a, destination_a)
-    //             .with_signer(&[&ctx.accounts.mutation.get_seeds()]),
-    //         config.maker_token_a.amount,
-    //     )?;
-    // } else {
-    //     // todo CM
-    // }
-    //
-    // // send second token
-    // if let Some(maker_token_b) = config.maker_token_b {
-    //     if maker_token_b.source == MakerTokenSource::Prefunded {
-    //         let escrow_b = ctx.accounts.token_b_escrow.to_account_info();
-    //         let destination_b = ctx.accounts.token_b_destination.to_account_info();
-    //         token::transfer(
-    //             ctx.accounts
-    //                 .transfer_ctx(escrow_b, destination_b)
-    //                 .with_signer(&[&ctx.accounts.mutation.get_seeds()]),
-    //             maker_token_b.amount,
-    //         )?;
-    //     } else {
-    //         // todo CM
-    //     }
-    // }
-    //
-    // // send third token
-    // if let Some(maker_token_c) = config.maker_token_c {
-    //     if maker_token_c.source == MakerTokenSource::Prefunded {
-    //         let escrow_c = ctx.accounts.token_c_escrow.to_account_info();
-    //         let destination_c = ctx.accounts.token_c_destination.to_account_info();
-    //         token::transfer(
-    //             ctx.accounts
-    //                 .transfer_ctx(escrow_c, destination_c)
-    //                 .with_signer(&[&ctx.accounts.mutation.get_seeds()]),
-    //             maker_token_c.amount,
-    //         )?;
-    //     } else {
-    //         // todo CM
-    //     }
-    // }
+    let mutation = &mut ctx.accounts.mutation;
+    let config = mutation.config;
+
+    mutation.state = MutationState::Closed;
+
+    // --------------------------------------- lock taker banks
+
+    // lock first bank
+    let bank_a = ctx.accounts.bank_a.to_account_info();
+    let vault_a = ctx.accounts.vault_a.to_account_info();
+    require!(
+        bank_a.key() == config.taker_token_a.gem_bank,
+        BankDoesNotMatch
+    );
+    gem_bank::cpi::set_vault_lock(
+        ctx.accounts
+            .set_lock_vault_ctx(bank_a, vault_a)
+            .with_signer(&[&ctx.accounts.mutation.get_seeds()]),
+        true,
+    )?;
+
+    // lock second bank
+    if let Some(taker_token_b) = config.taker_token_b {
+        let bank_b = ctx.accounts.bank_b.to_account_info();
+        let vault_b = ctx.accounts.vault_b.to_account_info();
+        require!(bank_b.key() == taker_token_b.gem_bank, BankDoesNotMatch);
+        gem_bank::cpi::set_vault_lock(
+            ctx.accounts
+                .set_lock_vault_ctx(bank_b, vault_b)
+                .with_signer(&[&ctx.accounts.mutation.get_seeds()]),
+            true,
+        )?;
+    }
+
+    // lock third bank
+    if let Some(taker_token_c) = config.taker_token_c {
+        let bank_c = ctx.accounts.bank_c.to_account_info();
+        let vault_c = ctx.accounts.vault_c.to_account_info();
+        require!(bank_c.key() == taker_token_c.gem_bank, BankDoesNotMatch);
+        gem_bank::cpi::set_vault_lock(
+            ctx.accounts
+                .set_lock_vault_ctx(bank_c, vault_c)
+                .with_signer(&[&ctx.accounts.mutation.get_seeds()]),
+            true,
+        )?;
+    }
+
+    // --------------------------------------- send tokens to taker
+
+    // send first token
+    let escrow_a = ctx.accounts.token_a_escrow.to_account_info();
+    let destination_a = ctx.accounts.token_a_destination.to_account_info();
+    token::transfer(
+        ctx.accounts
+            .transfer_ctx(escrow_a, destination_a)
+            .with_signer(&[&ctx.accounts.mutation.get_seeds()]),
+        config.maker_token_a.amount,
+    )?;
+
+    // send second token
+    if let Some(maker_token_b) = config.maker_token_b {
+        let escrow_b = ctx.accounts.token_b_escrow.to_account_info();
+        let destination_b = ctx.accounts.token_b_destination.to_account_info();
+        token::transfer(
+            ctx.accounts
+                .transfer_ctx(escrow_b, destination_b)
+                .with_signer(&[&ctx.accounts.mutation.get_seeds()]),
+            maker_token_b.amount,
+        )?;
+    }
+
+    // send third token
+    if let Some(maker_token_c) = config.maker_token_c {
+        let escrow_c = ctx.accounts.token_c_escrow.to_account_info();
+        let destination_c = ctx.accounts.token_c_destination.to_account_info();
+        token::transfer(
+            ctx.accounts
+                .transfer_ctx(escrow_c, destination_c)
+                .with_signer(&[&ctx.accounts.mutation.get_seeds()]),
+            maker_token_c.amount,
+        )?;
+    }
 
     Ok(())
 }

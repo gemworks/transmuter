@@ -71,25 +71,11 @@ pub struct TakerTokenConfig {
 }
 
 #[repr(C)]
-#[derive(Debug, Copy, Clone, AnchorSerialize, AnchorDeserialize, PartialEq)]
-pub enum MakerTokenSource {
-    // todo this can either be CM directly or a custom 3rd party program that creates NFTs
-    Mint,
-    Prefunded,
-}
-
-#[repr(C)]
 #[derive(Debug, Copy, Clone, AnchorSerialize, AnchorDeserialize)]
 pub struct MakerTokenConfig {
-    pub source: MakerTokenSource,
+    pub mint: Pubkey,
 
     pub amount: u64,
-
-    // only if CM
-    pub candy_machine: Option<Pubkey>,
-
-    // only if prefunded
-    pub mint: Option<Pubkey>,
 }
 
 #[repr(C)]

@@ -165,65 +165,40 @@ pub fn handler(ctx: Context<InitMutation>, bump_auth: u8, config: MutationConfig
     let remaining_accs = &mut ctx.remaining_accounts.iter();
 
     // fund first escrow
-    if config.maker_token_a.source == MakerTokenSource::Prefunded {
-        let mint_a = ctx.accounts.token_a_mint.to_account_info();
-        // safe to .unwrap() because mint always specified for prefunded reward
-        require!(
-            mint_a.key() == config.maker_token_a.mint.unwrap(),
-            MintDoesNotMatch
-        );
-        let source_a = ctx.accounts.token_a_source.to_account_info();
-        let escrow_a = ctx.accounts.token_a_escrow.to_account_info();
+    let mint_a = ctx.accounts.token_a_mint.to_account_info();
+    require!(mint_a.key() == config.maker_token_a.mint, MintDoesNotMatch);
+    let source_a = ctx.accounts.token_a_source.to_account_info();
+    let escrow_a = ctx.accounts.token_a_escrow.to_account_info();
 
-        token::transfer(
-            ctx.accounts.transfer_ctx(source_a, escrow_a),
-            config.maker_token_a.amount,
-        )?;
-    } else {
-        // need to make sure CM is recorded if we're doing Minted reward
-        unwrap_or_err!(config.maker_token_a.candy_machine, CandyMachineMissing);
-    }
+    token::transfer(
+        ctx.accounts.transfer_ctx(source_a, escrow_a),
+        config.maker_token_a.amount,
+    )?;
 
     // fund second escrow
     if let Some(maker_token_b) = config.maker_token_b {
-        if maker_token_b.source == MakerTokenSource::Prefunded {
-            let mint_b = ctx.accounts.token_b_mint.to_account_info();
-            // safe to .unwrap() because mint always specified for prefunded reward
-            require!(
-                mint_b.key() == maker_token_b.mint.unwrap(),
-                MintDoesNotMatch
-            );
-            let source_b = ctx.accounts.token_b_source.to_account_info();
-            let escrow_b = ctx.accounts.token_b_escrow.to_account_info();
+        let mint_b = ctx.accounts.token_b_mint.to_account_info();
+        require!(mint_b.key() == maker_token_b.mint, MintDoesNotMatch);
+        let source_b = ctx.accounts.token_b_source.to_account_info();
+        let escrow_b = ctx.accounts.token_b_escrow.to_account_info();
 
-            token::transfer(
-                ctx.accounts.transfer_ctx(source_b, escrow_b),
-                maker_token_b.amount,
-            )?;
-        } else {
-            unwrap_or_err!(maker_token_b.candy_machine, CandyMachineMissing);
-        }
+        token::transfer(
+            ctx.accounts.transfer_ctx(source_b, escrow_b),
+            maker_token_b.amount,
+        )?;
     }
 
     // fund third escrow
     if let Some(maker_token_c) = config.maker_token_c {
-        if maker_token_c.source == MakerTokenSource::Prefunded {
-            let mint_c = ctx.accounts.token_c_mint.to_account_info();
-            // safe to .unwrap() because mint always specified for prefunded reward
-            require!(
-                mint_c.key() == maker_token_c.mint.unwrap(),
-                MintDoesNotMatch
-            );
-            let source_c = ctx.accounts.token_c_source.to_account_info();
-            let escrow_c = ctx.accounts.token_c_escrow.to_account_info();
+        let mint_c = ctx.accounts.token_c_mint.to_account_info();
+        require!(mint_c.key() == maker_token_c.mint, MintDoesNotMatch);
+        let source_c = ctx.accounts.token_c_source.to_account_info();
+        let escrow_c = ctx.accounts.token_c_escrow.to_account_info();
 
-            token::transfer(
-                ctx.accounts.transfer_ctx(source_c, escrow_c),
-                maker_token_c.amount,
-            )?;
-        } else {
-            unwrap_or_err!(maker_token_c.candy_machine, CandyMachineMissing);
-        }
+        token::transfer(
+            ctx.accounts.transfer_ctx(source_c, escrow_c),
+            maker_token_c.amount,
+        )?;
     }
 
     Ok(())

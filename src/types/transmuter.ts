@@ -450,26 +450,12 @@ export type Transmuter = {
         "kind": "struct",
         "fields": [
           {
-            "name": "source",
-            "type": {
-              "defined": "MakerTokenSource"
-            }
+            "name": "mint",
+            "type": "publicKey"
           },
           {
             "name": "amount",
             "type": "u64"
-          },
-          {
-            "name": "candyMachine",
-            "type": {
-              "option": "publicKey"
-            }
-          },
-          {
-            "name": "mint",
-            "type": {
-              "option": "publicKey"
-            }
           }
         ]
       }
@@ -500,20 +486,6 @@ export type Transmuter = {
           },
           {
             "name": "Closed"
-          }
-        ]
-      }
-    },
-    {
-      "name": "MakerTokenSource",
-      "type": {
-        "kind": "enum",
-        "variants": [
-          {
-            "name": "Mint"
-          },
-          {
-            "name": "Prefunded"
           }
         ]
       }
@@ -1012,26 +984,12 @@ export const IDL: Transmuter = {
         "kind": "struct",
         "fields": [
           {
-            "name": "source",
-            "type": {
-              "defined": "MakerTokenSource"
-            }
+            "name": "mint",
+            "type": "publicKey"
           },
           {
             "name": "amount",
             "type": "u64"
-          },
-          {
-            "name": "candyMachine",
-            "type": {
-              "option": "publicKey"
-            }
-          },
-          {
-            "name": "mint",
-            "type": {
-              "option": "publicKey"
-            }
           }
         ]
       }
@@ -1062,20 +1020,6 @@ export const IDL: Transmuter = {
           },
           {
             "name": "Closed"
-          }
-        ]
-      }
-    },
-    {
-      "name": "MakerTokenSource",
-      "type": {
-        "kind": "enum",
-        "variants": [
-          {
-            "name": "Mint"
-          },
-          {
-            "name": "Prefunded"
           }
         ]
       }
