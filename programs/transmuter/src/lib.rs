@@ -56,6 +56,15 @@ pub mod transmuter {
         instructions::execute_mutation::handler(ctx)
     }
 
+    // pub fn CM_execute_mutation(
+    //     ctx: Context<CMExecuteMutation>,
+    //     _bump_auth: u8,
+    //     creator_bump: u8,
+    // ) -> ProgramResult {
+    //     msg!("CM execute mutation");
+    //     instructions::CM_execute_mutation::handler(ctx, creator_bump)
+    // }
+
     pub fn abort_mutation(ctx: Context<AbortMutation>) -> ProgramResult {
         msg!("abort mutation");
         instructions::abort_mutation::handler(ctx)

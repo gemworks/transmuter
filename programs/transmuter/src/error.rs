@@ -10,4 +10,7 @@ pub enum ErrorCode {
 
     #[msg("Mint account passed != mint account in config")]
     MintDoesNotMatch,
+
+    #[msg("Minted mutations require a Candy Machine ID to be present")]
+    CandyMachineMissing,
 }

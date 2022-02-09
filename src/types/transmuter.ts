@@ -142,6 +142,11 @@ export type Transmuter = {
       "args": []
     },
     {
+      "name": "whitelistTokens",
+      "accounts": [],
+      "args": []
+    },
+    {
       "name": "executeMutation",
       "accounts": [
         {
@@ -546,6 +551,11 @@ export type Transmuter = {
       "code": 6002,
       "name": "MintDoesNotMatch",
       "msg": "Mint account passed != mint account in config"
+    },
+    {
+      "code": 6003,
+      "name": "CandyMachineMissing",
+      "msg": "Minted mutations require a Candy Machine ID to be present"
     }
   ]
 };
@@ -694,6 +704,11 @@ export const IDL: Transmuter = {
       "args": []
     },
     {
+      "name": "whitelistTokens",
+      "accounts": [],
+      "args": []
+    },
+    {
       "name": "executeMutation",
       "accounts": [
         {
@@ -1098,6 +1113,11 @@ export const IDL: Transmuter = {
       "code": 6002,
       "name": "MintDoesNotMatch",
       "msg": "Mint account passed != mint account in config"
+    },
+    {
+      "code": 6003,
+      "name": "CandyMachineMissing",
+      "msg": "Minted mutations require a Candy Machine ID to be present"
     }
   ]
 };

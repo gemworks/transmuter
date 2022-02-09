@@ -12,7 +12,7 @@ pub struct InitMutation<'info> {
     #[account(seeds = [mutation.key().as_ref()], bump = bump_auth)]
     pub authority: AccountInfo<'info>,
 
-    // taker banks
+    // taker banks (b & c are optional)
     #[account(mut)]
     pub bank_a: Signer<'info>,
     // todo can make optional
@@ -22,7 +22,7 @@ pub struct InitMutation<'info> {
     pub bank_c: Signer<'info>,
     pub gem_bank: Program<'info, GemBank>,
 
-    // maker escrows
+    // maker escrows (b & c are optional)
     // a
     #[account(init, seeds = [
             b"escrow".as_ref(),
@@ -162,6 +162,7 @@ pub fn handler(ctx: Context<InitMutation>, bump_auth: u8, config: MutationConfig
     }
 
     // --------------------------------------- fund maker escrow
+    let remaining_accs = &mut ctx.remaining_accounts.iter();
 
     // fund first escrow
     if config.maker_token_a.source == MakerTokenSource::Prefunded {
@@ -179,7 +180,8 @@ pub fn handler(ctx: Context<InitMutation>, bump_auth: u8, config: MutationConfig
             config.maker_token_a.amount,
         )?;
     } else {
-        //todo record CM ID
+        // need to make sure CM is recorded if we're doing Minted reward
+        unwrap_or_err!(config.maker_token_a.candy_machine, CandyMachineMissing);
     }
 
     // fund second escrow
@@ -199,7 +201,7 @@ pub fn handler(ctx: Context<InitMutation>, bump_auth: u8, config: MutationConfig
                 maker_token_b.amount,
             )?;
         } else {
-            // todo record CM ID
+            unwrap_or_err!(maker_token_b.candy_machine, CandyMachineMissing);
         }
     }
 
@@ -220,7 +222,7 @@ pub fn handler(ctx: Context<InitMutation>, bump_auth: u8, config: MutationConfig
                 maker_token_c.amount,
             )?;
         } else {
-            // todo record CM ID
+            unwrap_or_err!(maker_token_c.candy_machine, CandyMachineMissing);
         }
     }
 

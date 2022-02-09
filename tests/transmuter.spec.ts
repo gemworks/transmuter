@@ -112,6 +112,8 @@ describe("transmuter", () => {
     const tx = await mutationWrapper.execute(receiver.publicKey);
     tx.addSigners(receiver);
 
+    console.log("tx size is", tx.estimateSize());
+
     await expectTX(tx, "executes mutation").to.be.fulfilled;
 
     //verify tokens are indeed in user's wallet
