@@ -40,6 +40,7 @@ pub struct InitMutation<'info> {
     pub token_a_mint: Box<Account<'info, Mint>>,
     // b
     // todo can make optional
+    // todo currently we're init'ing 3 escrow accs when we might only need 1 - switch to manual
     #[account(init, seeds = [
             b"escrow".as_ref(),
             mutation.key().as_ref(),

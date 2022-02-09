@@ -28,47 +28,50 @@ pub struct ExecuteMutation<'info> {
 
     // maker escrows
     // a
-    #[account(seeds = [
+    // intentionally not checking if it's a TokenAccount - in some cases it'll be empty
+    #[account(mut, seeds = [
             b"escrow".as_ref(),
             mutation.key().as_ref(),
             token_a_mint.key().as_ref(),
         ],
         bump = bump_a)]
-    pub token_a_escrow: Box<Account<'info, TokenAccount>>,
+    pub token_a_escrow: AccountInfo<'info>,
+    // intentionally not checking if it's a TokenAccount - in some cases it'll be empty
     #[account(init_if_needed,
         associated_token::mint = token_a_mint,
         associated_token::authority = receiver,
         payer = receiver)]
-    pub token_a_destination: Box<Account<'info, TokenAccount>>,
+    pub token_a_destination: AccountInfo<'info>,
     pub token_a_mint: Box<Account<'info, Mint>>,
     // b
     // todo can make optional
-    #[account(seeds = [
+    #[account(mut, seeds = [
             b"escrow".as_ref(),
             mutation.key().as_ref(),
             token_b_mint.key().as_ref(),
         ],
-        bump = bump_a)]
-    pub token_b_escrow: Box<Account<'info, TokenAccount>>,
+        bump = bump_b)]
+    pub token_b_escrow: AccountInfo<'info>,
+    // todo currently creating 3 dest token accs even if we only need 1 - can take offchain
     #[account(init_if_needed,
         associated_token::mint = token_b_mint,
         associated_token::authority = receiver,
         payer = receiver)]
-    pub token_b_destination: Box<Account<'info, TokenAccount>>,
+    pub token_b_destination: AccountInfo<'info>,
     pub token_b_mint: Box<Account<'info, Mint>>,
     // c
-    #[account(seeds = [
+    #[account(mut, seeds = [
             b"escrow".as_ref(),
             mutation.key().as_ref(),
             token_c_mint.key().as_ref(),
         ],
-        bump = bump_a)]
-    pub token_c_escrow: Box<Account<'info, TokenAccount>>,
+        bump = bump_c)]
+    pub token_c_escrow: AccountInfo<'info>,
     #[account(init_if_needed,
         associated_token::mint = token_c_mint,
         associated_token::authority = receiver,
         payer = receiver)]
-    pub token_c_destination: Box<Account<'info, TokenAccount>>,
+    pub token_c_destination: AccountInfo<'info>,
     pub token_c_mint: Box<Account<'info, Mint>>,
 
     // misc
@@ -106,7 +109,7 @@ impl<'info> ExecuteMutation<'info> {
             Transfer {
                 from: token_escrow,
                 to: token_destination,
-                authority: self.authority.to_account_info(),
+                authority: self.authority.clone(),
             },
         )
     }
@@ -166,7 +169,9 @@ pub fn handler(ctx: Context<ExecuteMutation>) -> ProgramResult {
     let escrow_a = ctx.accounts.token_a_escrow.to_account_info();
     let destination_a = ctx.accounts.token_a_destination.to_account_info();
     token::transfer(
-        ctx.accounts.transfer_ctx(escrow_a, destination_a),
+        ctx.accounts
+            .transfer_ctx(escrow_a, destination_a)
+            .with_signer(&[&ctx.accounts.mutation.get_seeds()]),
         config.maker_token_a.amount,
     )?;
 
@@ -175,7 +180,9 @@ pub fn handler(ctx: Context<ExecuteMutation>) -> ProgramResult {
         let escrow_b = ctx.accounts.token_b_escrow.to_account_info();
         let destination_b = ctx.accounts.token_b_destination.to_account_info();
         token::transfer(
-            ctx.accounts.transfer_ctx(escrow_b, destination_b),
+            ctx.accounts
+                .transfer_ctx(escrow_b, destination_b)
+                .with_signer(&[&ctx.accounts.mutation.get_seeds()]),
             maker_token_b.amount,
         )?;
     }
@@ -185,7 +192,9 @@ pub fn handler(ctx: Context<ExecuteMutation>) -> ProgramResult {
         let escrow_c = ctx.accounts.token_c_escrow.to_account_info();
         let destination_c = ctx.accounts.token_c_destination.to_account_info();
         token::transfer(
-            ctx.accounts.transfer_ctx(escrow_c, destination_c),
+            ctx.accounts
+                .transfer_ctx(escrow_c, destination_c)
+                .with_signer(&[&ctx.accounts.mutation.get_seeds()]),
             maker_token_c.amount,
         )?;
     }

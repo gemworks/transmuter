@@ -10,7 +10,7 @@ import {
   TransactionEnvelope,
 } from "@saberhq/solana-contrib";
 import { MutationData, MutationProgram } from "../constants";
-import { GEM_BANK_PROG_ID } from "@gemworks/gem-farm-ts";
+import { GEM_BANK_PROG_ID, stringifyPKsAndBNs } from "@gemworks/gem-farm-ts";
 import {
   ASSOCIATED_TOKEN_PROGRAM_ID,
   TOKEN_PROGRAM_ID,
@@ -134,6 +134,34 @@ export class MutationWrapper {
         },
       }
     );
+
+    const toPrint = {
+      mutation: this.key,
+      authority,
+      vaultA,
+      bankA,
+      vaultB,
+      bankB,
+      vaultC,
+      bankC,
+      gemBank: GEM_BANK_PROG_ID,
+      tokenAEscrow,
+      tokenADestination,
+      tokenAMint,
+      tokenBEscrow,
+      tokenBDestination,
+      tokenBMint,
+      tokenCEscrow,
+      tokenCDestination,
+      tokenCMint,
+      receiver,
+      tokenProgram: TOKEN_PROGRAM_ID,
+      associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
+      systemProgram: SystemProgram.programId,
+      rent: SYSVAR_RENT_PUBKEY,
+    };
+
+    console.log(stringifyPKsAndBNs(toPrint));
 
     return new TransactionEnvelope(this.sdk.provider, [ix]);
   }

@@ -191,7 +191,7 @@ export type Transmuter = {
         },
         {
           "name": "tokenAEscrow",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
@@ -206,7 +206,7 @@ export type Transmuter = {
         },
         {
           "name": "tokenBEscrow",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
@@ -221,7 +221,7 @@ export type Transmuter = {
         },
         {
           "name": "tokenCEscrow",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
@@ -743,7 +743,7 @@ export const IDL: Transmuter = {
         },
         {
           "name": "tokenAEscrow",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
@@ -758,7 +758,7 @@ export const IDL: Transmuter = {
         },
         {
           "name": "tokenBEscrow",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
@@ -773,7 +773,7 @@ export const IDL: Transmuter = {
         },
         {
           "name": "tokenCEscrow",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
