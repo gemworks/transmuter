@@ -63,8 +63,6 @@ export interface MutationConfig {
 
   payEveryTime: boolean;
 
-  updateMetadata: boolean;
-
   reversible: boolean;
 }
 

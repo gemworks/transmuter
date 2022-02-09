@@ -51,8 +51,6 @@ pub struct MutationConfig {
 
     pub pay_every_time: bool,
 
-    pub update_metadata: bool,
-
     pub reversible: bool,
 }
 

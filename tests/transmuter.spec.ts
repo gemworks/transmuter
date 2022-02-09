@@ -1,10 +1,5 @@
 import { makeSDK } from "./workspace";
-import {
-  MakerTokenSource,
-  MutationConfig,
-  MutationWrapper,
-  SinkAction,
-} from "../src";
+import { MutationConfig, MutationWrapper, SinkAction } from "../src";
 import { expectTX } from "@saberhq/chai-solana";
 
 import "chai-bn";
@@ -55,7 +50,6 @@ describe("transmuter", () => {
       },
       price: toBN(0),
       payEveryTime: false,
-      updateMetadata: false,
       reversible: false,
     };
 

@@ -406,10 +406,6 @@ export type Transmuter = {
             "type": "bool"
           },
           {
-            "name": "updateMetadata",
-            "type": "bool"
-          },
-          {
             "name": "reversible",
             "type": "bool"
           }
@@ -937,10 +933,6 @@ export const IDL: Transmuter = {
           },
           {
             "name": "payEveryTime",
-            "type": "bool"
-          },
-          {
-            "name": "updateMetadata",
             "type": "bool"
           },
           {
