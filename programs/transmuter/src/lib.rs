@@ -38,6 +38,11 @@ pub mod transmuter {
         instructions::destroy_mutation::handler(ctx)
     }
 
+    pub fn whitelist_tokens(ctx: Context<WhitelistTokens>) -> ProgramResult {
+        msg!("whitelist tokens");
+        instructions::whitelist_tokens::handler(ctx)
+    }
+
     // --------------------------------------- taker
 
     pub fn execute_mutation(
