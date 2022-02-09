@@ -28,7 +28,7 @@ import { TOKEN_PROGRAM_ID, u64 } from "@solana/spl-token";
 export interface TakerTokenConfig {
   gemBank: PublicKey;
   amount: BN;
-  action: any; //SinkAction
+  vaultAction: any; //SinkAction
   destination: PublicKey | null;
 }
 
@@ -37,10 +37,10 @@ export interface MakerTokenConfig {
   amount: BN;
 }
 
-export const SinkAction = {
-  Burn: { burn: {} },
-  Transfer: { transfer: {} },
-  Preserve: { preserve: {} },
+export const VaultAction = {
+  ChangeOwner: { changeOwner: {} },
+  Lock: { lock: {} },
+  DoNothing: { doNothing: {} },
 };
 
 export interface TimeSettings {

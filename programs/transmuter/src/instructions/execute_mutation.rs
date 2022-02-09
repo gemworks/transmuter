@@ -1,7 +1,9 @@
 use crate::*;
 use anchor_spl::associated_token::AssociatedToken;
 use anchor_spl::token::{self, Mint, Token, TokenAccount, Transfer};
-use gem_bank::{self, cpi::accounts::SetVaultLock, program::GemBank};
+use gem_bank::{
+    self, cpi::accounts::SetVaultLock, cpi::accounts::UpdateVaultOwner, program::GemBank,
+};
 
 #[derive(Accounts)]
 #[instruction(bump_auth: u8, bump_a: u8, bump_b: u8, bump_c: u8)]
@@ -84,7 +86,7 @@ pub struct ExecuteMutation<'info> {
 }
 
 impl<'info> ExecuteMutation<'info> {
-    fn set_lock_vault_ctx(
+    fn set_vault_lock_ctx(
         &self,
         bank: AccountInfo<'info>,
         vault: AccountInfo<'info>,
@@ -95,6 +97,21 @@ impl<'info> ExecuteMutation<'info> {
                 bank,
                 vault,
                 bank_manager: self.authority.clone(),
+            },
+        )
+    }
+
+    fn change_vault_owner_ctx(
+        &self,
+        bank: AccountInfo<'info>,
+        vault: AccountInfo<'info>,
+    ) -> CpiContext<'_, '_, '_, 'info, UpdateVaultOwner<'info>> {
+        CpiContext::new(
+            self.gem_bank.to_account_info(),
+            UpdateVaultOwner {
+                bank,
+                vault,
+                owner: self.receiver.to_account_info(),
             },
         )
     }
@@ -113,60 +130,68 @@ impl<'info> ExecuteMutation<'info> {
             },
         )
     }
+
+    fn take_vault_action(
+        &self,
+        bank: AccountInfo<'info>,
+        vault: AccountInfo<'info>,
+        taker_token: TakerTokenConfig,
+    ) -> ProgramResult {
+        require!(bank.key() == taker_token.gem_bank, BankDoesNotMatch);
+        match taker_token.vault_action {
+            VaultAction::ChangeOwner => {
+                gem_bank::cpi::update_vault_owner(
+                    self.change_vault_owner_ctx(bank, vault),
+                    self.mutation.owner,
+                )?;
+            }
+            VaultAction::Lock => {
+                gem_bank::cpi::set_vault_lock(
+                    self.set_vault_lock_ctx(bank, vault)
+                        .with_signer(&[&self.mutation.get_seeds()]),
+                    true,
+                )?;
+            }
+            VaultAction::DoNothing => {}
+        }
+        Ok(())
+    }
 }
 
-// todo can be DRYed up
 pub fn handler(ctx: Context<ExecuteMutation>) -> ProgramResult {
     let mutation = &mut ctx.accounts.mutation;
     let config = mutation.config;
 
     mutation.state = MutationState::Closed;
 
-    // --------------------------------------- lock taker banks
+    // --------------------------------------- take action on taker banks
 
-    // lock first bank
+    // first bank
     let bank_a = ctx.accounts.bank_a.to_account_info();
     let vault_a = ctx.accounts.vault_a.to_account_info();
-    require!(
-        bank_a.key() == config.taker_token_a.gem_bank,
-        BankDoesNotMatch
-    );
-    gem_bank::cpi::set_vault_lock(
-        ctx.accounts
-            .set_lock_vault_ctx(bank_a, vault_a)
-            .with_signer(&[&ctx.accounts.mutation.get_seeds()]),
-        true,
-    )?;
+    let taker_token_a = mutation.config.taker_token_a;
+    ctx.accounts
+        .take_vault_action(bank_a, vault_a, taker_token_a)?;
 
-    // lock second bank
+    // second bank
     if let Some(taker_token_b) = config.taker_token_b {
         let bank_b = ctx.accounts.bank_b.to_account_info();
         let vault_b = ctx.accounts.vault_b.to_account_info();
-        require!(bank_b.key() == taker_token_b.gem_bank, BankDoesNotMatch);
-        gem_bank::cpi::set_vault_lock(
-            ctx.accounts
-                .set_lock_vault_ctx(bank_b, vault_b)
-                .with_signer(&[&ctx.accounts.mutation.get_seeds()]),
-            true,
-        )?;
+        ctx.accounts
+            .take_vault_action(bank_b, vault_b, taker_token_b)?;
     }
 
-    // lock third bank
+    // third bank
     if let Some(taker_token_c) = config.taker_token_c {
         let bank_c = ctx.accounts.bank_c.to_account_info();
         let vault_c = ctx.accounts.vault_c.to_account_info();
-        require!(bank_c.key() == taker_token_c.gem_bank, BankDoesNotMatch);
-        gem_bank::cpi::set_vault_lock(
-            ctx.accounts
-                .set_lock_vault_ctx(bank_c, vault_c)
-                .with_signer(&[&ctx.accounts.mutation.get_seeds()]),
-            true,
-        )?;
+        ctx.accounts
+            .take_vault_action(bank_c, vault_c, taker_token_c)?;
     }
 
     // --------------------------------------- send tokens to taker
 
-    // send first token
+    // first token
     let escrow_a = ctx.accounts.token_a_escrow.to_account_info();
     let destination_a = ctx.accounts.token_a_destination.to_account_info();
     token::transfer(
@@ -176,7 +201,7 @@ pub fn handler(ctx: Context<ExecuteMutation>) -> ProgramResult {
         config.maker_token_a.amount,
     )?;
 
-    // send second token
+    // second token
     if let Some(maker_token_b) = config.maker_token_b {
         let escrow_b = ctx.accounts.token_b_escrow.to_account_info();
         let destination_b = ctx.accounts.token_b_destination.to_account_info();
@@ -188,7 +213,7 @@ pub fn handler(ctx: Context<ExecuteMutation>) -> ProgramResult {
         )?;
     }
 
-    // send third token
+    // third token
     if let Some(maker_token_c) = config.maker_token_c {
         let escrow_c = ctx.accounts.token_c_escrow.to_account_info();
         let destination_c = ctx.accounts.token_c_destination.to_account_info();

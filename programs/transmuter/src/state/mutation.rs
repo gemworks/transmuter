@@ -62,7 +62,7 @@ pub struct TakerTokenConfig {
 
     pub amount: u64,
 
-    pub action: SinkAction,
+    pub vault_action: VaultAction,
 
     // in case we need to transfer somewhere, this will record where
     pub destination: Option<Pubkey>,
@@ -78,10 +78,10 @@ pub struct MakerTokenConfig {
 
 #[repr(C)]
 #[derive(Debug, Copy, Clone, AnchorSerialize, AnchorDeserialize)]
-pub enum SinkAction {
-    Burn,
-    Transfer,
-    Preserve,
+pub enum VaultAction {
+    ChangeOwner,
+    Lock,
+    DoNothing,
 }
 
 #[repr(C)]

@@ -426,9 +426,9 @@ export type Transmuter = {
             "type": "u64"
           },
           {
-            "name": "action",
+            "name": "vaultAction",
             "type": {
-              "defined": "SinkAction"
+              "defined": "VaultAction"
             }
           },
           {
@@ -487,18 +487,18 @@ export type Transmuter = {
       }
     },
     {
-      "name": "SinkAction",
+      "name": "VaultAction",
       "type": {
         "kind": "enum",
         "variants": [
           {
-            "name": "Burn"
+            "name": "ChangeOwner"
           },
           {
-            "name": "Transfer"
+            "name": "Lock"
           },
           {
-            "name": "Preserve"
+            "name": "DoNothing"
           }
         ]
       }
@@ -956,9 +956,9 @@ export const IDL: Transmuter = {
             "type": "u64"
           },
           {
-            "name": "action",
+            "name": "vaultAction",
             "type": {
-              "defined": "SinkAction"
+              "defined": "VaultAction"
             }
           },
           {
@@ -1017,18 +1017,18 @@ export const IDL: Transmuter = {
       }
     },
     {
-      "name": "SinkAction",
+      "name": "VaultAction",
       "type": {
         "kind": "enum",
         "variants": [
           {
-            "name": "Burn"
+            "name": "ChangeOwner"
           },
           {
-            "name": "Transfer"
+            "name": "Lock"
           },
           {
-            "name": "Preserve"
+            "name": "DoNothing"
           }
         ]
       }
