@@ -11,6 +11,7 @@ import "chai-bn";
 import { Keypair, LAMPORTS_PER_SOL } from "@solana/web3.js";
 import { GEM_BANK_PROG_ID, GemBankClient, toBN } from "@gemworks/gem-farm-ts";
 import NodeWallet from "@project-serum/anchor/dist/cjs/nodewallet";
+import { expect } from "chai";
 
 describe("transmuter", () => {
   const sdk = makeSDK();
@@ -112,6 +113,13 @@ describe("transmuter", () => {
     tx.addSigners(receiver);
 
     await expectTX(tx, "executes mutation").to.be.fulfilled;
+
+    //verify tokens are indeed in user's wallet
+    const result = parseInt(
+      (await sdk.provider.connection.getTokenAccountBalance(takerAcc)).value
+        .amount
+    );
+    expect(result).to.eq(5);
 
     console.log("happy path works");
   });

@@ -76,8 +76,6 @@ export class MutationWrapper {
 
     // ----------------- prep escrows
 
-    //todo ok this design doesn't work - we don't want to be creating empty token accs
-
     const tokenAMint =
       config.makerTokenA.mint ?? (await createMint(this.provider));
     const [tokenAEscrow, tokenAEscrowBump, tokenADestination] =
@@ -134,34 +132,6 @@ export class MutationWrapper {
         },
       }
     );
-
-    const toPrint = {
-      mutation: this.key,
-      authority,
-      vaultA,
-      bankA,
-      vaultB,
-      bankB,
-      vaultC,
-      bankC,
-      gemBank: GEM_BANK_PROG_ID,
-      tokenAEscrow,
-      tokenADestination,
-      tokenAMint,
-      tokenBEscrow,
-      tokenBDestination,
-      tokenBMint,
-      tokenCEscrow,
-      tokenCDestination,
-      tokenCMint,
-      receiver,
-      tokenProgram: TOKEN_PROGRAM_ID,
-      associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
-      systemProgram: SystemProgram.programId,
-      rent: SYSVAR_RENT_PUBKEY,
-    };
-
-    console.log(stringifyPKsAndBNs(toPrint));
 
     return new TransactionEnvelope(this.sdk.provider, [ix]);
   }
