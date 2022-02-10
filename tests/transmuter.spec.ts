@@ -1,5 +1,6 @@
 import { makeSDK } from "./workspace";
 import {
+  MakerTokenConfig,
   MutationConfig,
   MutationWrapper,
   RequiredUnits,
@@ -56,11 +57,15 @@ describe("transmuter", () => {
     mutationTimeSec = toBN(0),
     takerTokenB = null,
     takerTokenC = null,
+    makerTokenB = null,
+    makerTokenC = null,
   }: {
     vaultAction?: any;
     mutationTimeSec?: BN;
     takerTokenB?: TakerTokenConfig;
     takerTokenC?: TakerTokenConfig;
+    makerTokenB?: MakerTokenConfig;
+    makerTokenC?: MakerTokenConfig;
   }) => {
     const [makerMint] = await sdk.createMintAndATA(toBN(makerTokenAmount));
 
@@ -78,8 +83,8 @@ describe("transmuter", () => {
         totalFunding: toBN(makerTokenAmount),
         amountPerUse: toBN(makerTokenAmount),
       },
-      makerTokenB: null,
-      makerTokenC: null,
+      makerTokenB,
+      makerTokenC,
       timeConfig: {
         mutationTimeSec,
         cancelWindowSec: toBN(0),
@@ -253,8 +258,12 @@ describe("transmuter", () => {
     await verifyTakerReceivedTokens(makerMint);
   });
 
-  it("happy path (mutation time > 0)", async () => {
-    await prepareTransmuter(3); //test 3
+  //using max maker tokens and max taker tokens to test out compute budget
+  it.only("happy path (mutation time > 0, 3 maker, 3 taker))", async () => {
+    await prepareTransmuter(3);
+
+    const [makerMintB] = await sdk.createMintAndATA(toBN(makerTokenAmount));
+    const [makerMintC] = await sdk.createMintAndATA(toBN(makerTokenAmount));
     const { makerMint } = await prepareMutation({
       mutationTimeSec: toBN(5),
       takerTokenB: {
@@ -269,12 +278,19 @@ describe("transmuter", () => {
         requiredUnits: RequiredUnits.RarityPoints,
         vaultAction: VaultAction.Lock,
       },
+      makerTokenB: {
+        mint: makerMintB,
+        totalFunding: toBN(makerTokenAmount),
+        amountPerUse: toBN(makerTokenAmount),
+      },
+      makerTokenC: {
+        mint: makerMintC,
+        totalFunding: toBN(makerTokenAmount),
+        amountPerUse: toBN(makerTokenAmount),
+      },
     });
 
-    //creating max vaults to test compute budget
-    const { vault: vaultA, takerMint: takerMintA } = await prepareTakerVaults(
-      transmuter.bankA
-    );
+    const { vault, takerMint } = await prepareTakerVaults(transmuter.bankA);
     await prepareTakerVaults(transmuter.bankB);
     await prepareTakerVaults(transmuter.bankC);
 
@@ -285,7 +301,7 @@ describe("transmuter", () => {
     await expectTX(tx, "executes mutation").to.be.fulfilled;
 
     //verify vault is locked and owned by taker
-    const vaultAcc = await gb.fetchVaultAcc(vaultA);
+    const vaultAcc = await gb.fetchVaultAcc(vault);
     expect(vaultAcc.owner.toBase58()).to.be.eq(taker.publicKey.toBase58());
     expect(vaultAcc.locked).to.be.true;
 
@@ -293,10 +309,10 @@ describe("transmuter", () => {
     await expect(
       gb.withdrawGem(
         transmuter.bankA,
-        vaultA,
+        vault,
         taker,
         toBN(takerTokenAmount),
-        takerMintA,
+        takerMint,
         Keypair.generate().publicKey
       )
     ).to.be.rejectedWith("0x1784");
