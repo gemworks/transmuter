@@ -1,26 +1,17 @@
 use crate::*;
 use anchor_spl::token::{self, Mint, Token, TokenAccount, Transfer};
-use gem_bank::{self, cpi::accounts::InitBank, program::GemBank};
 
 #[derive(Accounts)]
 #[instruction(bump_auth: u8, bump_a: u8, bump_b: u8, bump_c: u8)]
 pub struct InitMutation<'info> {
     // mutation
+    #[account(has_one = authority)]
+    pub transmuter: Box<Account<'info, Transmuter>>,
     #[account(init, payer = payer, space = 8 + std::mem::size_of::<Mutation>())]
     pub mutation: Box<Account<'info, Mutation>>,
     pub owner: Signer<'info>,
-    #[account(seeds = [mutation.key().as_ref()], bump = bump_auth)]
+    #[account(seeds = [transmuter.key().as_ref()], bump = bump_auth)]
     pub authority: AccountInfo<'info>,
-
-    // taker banks (b & c are optional)
-    #[account(mut)]
-    pub bank_a: Signer<'info>,
-    // todo can make optional
-    #[account(mut)]
-    pub bank_b: Signer<'info>,
-    #[account(mut)]
-    pub bank_c: Signer<'info>,
-    pub gem_bank: Program<'info, GemBank>,
 
     // maker escrows (b & c are optional)
     // a
@@ -78,22 +69,6 @@ pub struct InitMutation<'info> {
 }
 
 impl<'info> InitMutation<'info> {
-    fn init_bank_ctx(
-        &self,
-        bank: AccountInfo<'info>,
-    ) -> CpiContext<'_, '_, '_, 'info, InitBank<'info>> {
-        CpiContext::new(
-            self.gem_bank.to_account_info(),
-            InitBank {
-                bank,
-                // can't use mutation owner
-                bank_manager: self.authority.clone(),
-                payer: self.payer.to_account_info(),
-                system_program: self.system_program.to_account_info(),
-            },
-        )
-    }
-
     fn transfer_ctx(
         &self,
         token_source: AccountInfo<'info>,
@@ -111,58 +86,14 @@ impl<'info> InitMutation<'info> {
 }
 
 // todo can be DRYed up
-pub fn handler(ctx: Context<InitMutation>, bump_auth: u8, config: MutationConfig) -> ProgramResult {
+pub fn handler(ctx: Context<InitMutation>, config: MutationConfig, uses: u64) -> ProgramResult {
     let mutation = &mut ctx.accounts.mutation;
-    let mutation_key = mutation.key();
 
-    mutation.version = LATEST_MUTATION_VERSION;
-    mutation.owner = ctx.accounts.owner.key();
-    mutation.authority = ctx.accounts.authority.key();
-    mutation.authority_seed = mutation_key;
-    mutation.authority_bump_seed = [bump_auth];
+    mutation.transmuter = ctx.accounts.transmuter.key();
     mutation.config = config;
-    mutation.paid = false;
-    mutation.state = MutationState::Open;
-
-    let full_seeds = [mutation_key.as_ref(), &[bump_auth]];
-
-    // --------------------------------------- init taker banks
-    // init first bank
-    let bank_a = ctx.accounts.bank_a.to_account_info();
-    require!(
-        bank_a.key() == config.taker_token_a.gem_bank,
-        BankDoesNotMatch
-    );
-    gem_bank::cpi::init_bank(
-        ctx.accounts
-            .init_bank_ctx(bank_a)
-            .with_signer(&[&full_seeds]),
-    )?;
-
-    // init second bank
-    if let Some(taker_token_b) = config.taker_token_b {
-        let bank_b = ctx.accounts.bank_b.to_account_info();
-        require!(bank_b.key() == taker_token_b.gem_bank, BankDoesNotMatch);
-        gem_bank::cpi::init_bank(
-            ctx.accounts
-                .init_bank_ctx(bank_b)
-                .with_signer(&[&full_seeds]),
-        )?;
-    }
-
-    // init third bank
-    if let Some(taker_token_c) = config.taker_token_c {
-        let bank_c = ctx.accounts.bank_c.to_account_info();
-        require!(bank_c.key() == taker_token_c.gem_bank, BankDoesNotMatch);
-        gem_bank::cpi::init_bank(
-            ctx.accounts
-                .init_bank_ctx(bank_c)
-                .with_signer(&[&full_seeds]),
-        )?;
-    }
+    mutation.init_uses(uses);
 
     // --------------------------------------- fund maker escrow
-    let remaining_accs = &mut ctx.remaining_accounts.iter();
 
     // fund first escrow
     let mint_a = ctx.accounts.token_a_mint.to_account_info();

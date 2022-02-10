@@ -6,7 +6,7 @@ import {
 } from "@saberhq/solana-contrib";
 import { Programs, TRANSMUTER_ADDRESSES, TRANSMUTER_IDLS } from "./constants";
 import { newProgramMap } from "@saberhq/anchor-contrib";
-import { MutationWrapper } from "./wrappers";
+import { MutationWrapper, TransmuterWrapper } from "./wrappers";
 import {
   Keypair,
   PublicKey,
@@ -27,9 +27,9 @@ import { TOKEN_PROGRAM_ID, u64 } from "@solana/spl-token";
 
 export interface TakerTokenConfig {
   gemBank: PublicKey;
-  amount: BN;
-  vaultAction: any; //SinkAction
-  destination: PublicKey | null;
+  requiredRarityPoints: BN | null;
+  requiredGemCount: BN | null;
+  vaultAction: any;
 }
 
 export interface MakerTokenConfig {
@@ -43,9 +43,15 @@ export const VaultAction = {
   DoNothing: { doNothing: {} },
 };
 
-export interface TimeSettings {
+export interface TimeConfig {
   mutationTimeSec: BN;
   cancelWindowSec: BN;
+}
+
+export interface PriceConfig {
+  price: BN;
+  payEveryTime: boolean;
+  paid: boolean;
 }
 
 export interface MutationConfig {
@@ -57,11 +63,9 @@ export interface MutationConfig {
   makerTokenB: MakerTokenConfig | null;
   makerTokenC: MakerTokenConfig | null;
 
-  timeSettings: TimeSettings;
+  timeConfig: TimeConfig;
 
-  price: BN;
-
-  payEveryTime: boolean;
+  priceConfig: PriceConfig;
 
   reversible: boolean;
 }
@@ -74,11 +78,11 @@ export class TransmuterSDK {
 
   // --------------------------------------- pda derivations
 
-  async findMutationAuthorityPDA(
-    mutation: PublicKey
+  async findTransmuterAuthorityPDA(
+    transmuter: PublicKey
   ): Promise<[PublicKey, number]> {
     return PublicKey.findProgramAddress(
-      [mutation.toBytes()],
+      [transmuter.toBytes()],
       this.programs.Transmuter.programId
     );
   }
@@ -106,60 +110,94 @@ export class TransmuterSDK {
 
   // --------------------------------------- initializers
 
-  async initMutation(
-    config: MutationConfig,
-    mutation: PublicKey,
+  async initTransmuter(
+    bankCount: number, //1-3
     payer?: PublicKey
   ) {
-    // ----------------- prep banks
-    const bankA = config.takerTokenA.gemBank;
-    let bankB: PublicKey;
-    let bankC: PublicKey;
+    const transmuter = Keypair.generate();
+    const bankA = Keypair.generate();
+    let bankB;
+    let bankC;
 
-    const signers: Keypair[] = [];
+    const signers: Keypair[] = [transmuter, bankA];
+    const remainingAccounts = [];
 
-    if (config.takerTokenB) {
-      bankB = config.takerTokenB.gemBank;
-    } else {
-      const fakeBankB = Keypair.generate();
-      bankB = fakeBankB.publicKey;
-      signers.push(fakeBankB);
+    if (bankCount >= 2) {
+      bankB = Keypair.generate();
+      signers.push(bankB);
+      remainingAccounts.push({
+        pubkey: bankB.publicKey,
+        isWritable: true,
+        isSigner: true,
+      });
+    }
+    if (bankCount >= 3) {
+      bankC = Keypair.generate();
+      signers.push(bankC);
+      remainingAccounts.push({
+        pubkey: bankC.publicKey,
+        isWritable: true,
+        isSigner: true,
+      });
     }
 
-    if (config.takerTokenC) {
-      bankC = config.takerTokenC.gemBank;
-    } else {
-      const fakeBankC = Keypair.generate();
-      bankC = fakeBankC.publicKey;
-      signers.push(fakeBankC);
-    }
+    const [authority, bump] = await this.findTransmuterAuthorityPDA(
+      transmuter.publicKey
+    );
 
-    // ----------------- prep escrows
+    const ix = this.programs.Transmuter.instruction.initTransmuter(bump, {
+      accounts: {
+        transmuter: transmuter.publicKey,
+        owner: this.provider.wallet.publicKey,
+        authority,
+        bankA: bankA.publicKey,
+        gemBank: GEM_BANK_PROG_ID,
+        payer: payer ?? this.provider.wallet.publicKey,
+        systemProgram: SystemProgram.programId,
+      },
+      remainingAccounts,
+    });
 
-    //todo CM logic
+    return {
+      transmuterWrapper: new TransmuterWrapper(
+        this,
+        transmuter.publicKey,
+        bankA.publicKey,
+        bankB ? bankB.publicKey : undefined,
+        bankC ? bankC.publicKey : undefined
+      ),
+      tx: new TransactionEnvelope(this.provider, [ix], signers),
+    };
+  }
+
+  async initMutation(
+    config: MutationConfig,
+    transmuter: PublicKey,
+    uses: BN,
+    payer?: PublicKey
+  ) {
+    const mutation = Keypair.generate();
 
     const tokenAMint =
       config.makerTokenA.mint ?? (await createMint(this.provider));
     const [tokenAEscrow, tokenAEscrowBump, tokenASource] =
-      await this.prepTokenAccounts(mutation, tokenAMint);
+      await this.prepTokenAccounts(mutation.publicKey, tokenAMint);
 
     const tokenBMint =
       config.makerTokenB && config.makerTokenB.mint
         ? config.makerTokenB.mint
         : await createMint(this.provider);
     const [tokenBEscrow, tokenBEscrowBump, tokenBSource] =
-      await this.prepTokenAccounts(mutation, tokenBMint);
+      await this.prepTokenAccounts(mutation.publicKey, tokenBMint);
 
     const tokenCMint =
       config.makerTokenC && config.makerTokenC.mint
         ? config.makerTokenC.mint
         : await createMint(this.provider);
     const [tokenCEscrow, tokenCEscrowBump, tokenCSource] =
-      await this.prepTokenAccounts(mutation, tokenCMint);
+      await this.prepTokenAccounts(mutation.publicKey, tokenCMint);
 
-    // ----------------- prep ix
-
-    const [authority, bump] = await this.findMutationAuthorityPDA(mutation);
+    const [authority, bump] = await this.findTransmuterAuthorityPDA(transmuter);
 
     const ix = this.programs.Transmuter.instruction.initMutation(
       bump,
@@ -167,15 +205,13 @@ export class TransmuterSDK {
       tokenBEscrowBump,
       tokenCEscrowBump,
       config as any,
+      uses,
       {
         accounts: {
-          mutation,
+          transmuter,
+          mutation: mutation.publicKey,
           owner: this.provider.wallet.publicKey,
           authority,
-          bankA,
-          bankB,
-          bankC,
-          gemBank: GEM_BANK_PROG_ID,
           tokenAEscrow,
           tokenASource,
           tokenAMint,
@@ -194,8 +230,12 @@ export class TransmuterSDK {
     );
 
     return {
-      mutationWrapper: new MutationWrapper(this, mutation),
-      tx: new TransactionEnvelope(this.provider, [ix], signers),
+      mutationWrapper: new MutationWrapper(
+        this,
+        mutation.publicKey,
+        transmuter
+      ),
+      tx: new TransactionEnvelope(this.provider, [ix], [mutation]),
     };
   }
 

@@ -9,7 +9,7 @@ import {
   AugmentedProvider,
   TransactionEnvelope,
 } from "@saberhq/solana-contrib";
-import { MutationData, MutationProgram } from "../constants";
+import { MutationData, TransmuterProgram } from "../constants";
 import { GEM_BANK_PROG_ID, stringifyPKsAndBNs } from "@gemworks/gem-farm-ts";
 import {
   ASSOCIATED_TOKEN_PROGRAM_ID,
@@ -23,8 +23,9 @@ export class MutationWrapper {
   constructor(
     readonly sdk: TransmuterSDK,
     readonly key: PublicKey,
+    readonly transmuter: PublicKey,
     _data?: MutationData,
-    readonly program: MutationProgram = sdk.programs.Transmuter
+    readonly program: TransmuterProgram = sdk.programs.Transmuter
   ) {}
 
   get provider(): AugmentedProvider {
@@ -97,7 +98,9 @@ export class MutationWrapper {
 
     // ----------------- prep ix
 
-    const [authority, bump] = await this.sdk.findMutationAuthorityPDA(this.key);
+    const [authority, bump] = await this.sdk.findTransmuterAuthorityPDA(
+      this.transmuter
+    );
 
     const ix = this.program.instruction.executeMutation(
       bump,
@@ -106,6 +109,7 @@ export class MutationWrapper {
       tokenCEscrowBump,
       {
         accounts: {
+          transmuter: this.transmuter,
           mutation: this.key,
           authority,
           vaultA,
@@ -140,11 +144,12 @@ export class MutationWrapper {
 
   static async load(
     sdk: TransmuterSDK,
-    key: PublicKey
+    key: PublicKey,
+    transmuter: PublicKey
   ): Promise<MutationWrapper> {
     const data = (await sdk.programs.Transmuter.account.mutation.fetch(
       key
     )) as any;
-    return new MutationWrapper(sdk, key, data);
+    return new MutationWrapper(sdk, key, transmuter, data);
   }
 }

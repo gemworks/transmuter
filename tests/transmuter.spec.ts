@@ -1,9 +1,14 @@
 import { makeSDK } from "./workspace";
-import { MutationConfig, MutationWrapper, VaultAction } from "../src";
+import {
+  MutationConfig,
+  MutationWrapper,
+  TransmuterWrapper,
+  VaultAction,
+} from "../src";
 import { expectTX } from "@saberhq/chai-solana";
 
 import "chai-bn";
-import { Keypair, LAMPORTS_PER_SOL } from "@solana/web3.js";
+import { Keypair, LAMPORTS_PER_SOL, PublicKey } from "@solana/web3.js";
 import { GEM_BANK_PROG_ID, GemBankClient, toBN } from "@gemworks/gem-farm-ts";
 import { expect } from "chai";
 
@@ -18,54 +23,59 @@ describe("transmuter", () => {
     GEM_BANK_PROG_ID
   );
 
-  let gemBank: Keypair;
-  let mutation: Keypair;
+  let transmuter: TransmuterWrapper;
+  let mutation: MutationWrapper;
   let receiver: Keypair;
 
-  let mutationWrapper: MutationWrapper;
-
   beforeEach("prep", () => {
-    gemBank = Keypair.generate();
-    mutation = Keypair.generate();
     receiver = Keypair.generate();
   });
+
+  const prepareTransmuter = async (bankCount: number) => {
+    const { transmuterWrapper, tx } = await sdk.initTransmuter(bankCount);
+    await expectTX(tx, "init new transmuter").to.be.fulfilled;
+    transmuter = transmuterWrapper;
+
+    console.log("transmuter ready");
+  };
 
   const prepareMutation = async (vaultAction: any) => {
     const [makerMint] = await sdk.createMintAndATA(toBN(10));
 
     const config: MutationConfig = {
       takerTokenA: {
-        gemBank: gemBank.publicKey,
-        amount: toBN(5),
+        gemBank: transmuter.bankA,
+        requiredRarityPoints: toBN(5),
+        requiredGemCount: null,
         vaultAction,
-        destination: Keypair.generate().publicKey,
       },
       takerTokenB: null,
       takerTokenC: null,
       makerTokenA: {
         mint: makerMint,
-        amount: toBN(1),
+        amount: toBN(3),
       },
       makerTokenB: null,
       makerTokenC: null,
-      timeSettings: {
+      timeConfig: {
         mutationTimeSec: toBN(1),
         cancelWindowSec: toBN(1),
       },
-      price: toBN(0),
-      payEveryTime: false,
+      priceConfig: {
+        price: toBN(0),
+        payEveryTime: false,
+        paid: false,
+      },
       reversible: false,
     };
 
-    const { mutationWrapper: wrapper, tx } = await sdk.initMutation(
+    const { mutationWrapper, tx } = await sdk.initMutation(
       config,
-      mutation.publicKey
+      transmuter.key,
+      toBN(1)
     );
-    tx.addSigners(gemBank);
-    tx.addSigners(mutation);
-
     await expectTX(tx, "init new mutation").to.be.fulfilled;
-    mutationWrapper = wrapper;
+    mutation = mutationWrapper;
 
     console.log("mutation ready");
   };
@@ -80,7 +90,7 @@ describe("transmuter", () => {
 
     //create vaults
     const { vault } = await gb.initVault(
-      gemBank.publicKey,
+      transmuter.bankA,
       receiver,
       receiver,
       receiver.publicKey,
@@ -95,7 +105,7 @@ describe("transmuter", () => {
 
     //deposit tokens
     await gb.depositGem(
-      gemBank.publicKey,
+      transmuter.bankA,
       vault,
       receiver,
       toBN(5),
@@ -107,11 +117,12 @@ describe("transmuter", () => {
   };
 
   it("happy path (lock vault)", async () => {
+    await prepareTransmuter(3); //test 3
     await prepareMutation(VaultAction.Lock);
     const { vault, takerAcc, takerMint } = await prepareReceiverVaults();
 
     //call execute
-    const tx = await mutationWrapper.execute(receiver.publicKey);
+    const tx = await mutation.execute(receiver.publicKey);
     tx.addSigners(receiver);
 
     await expectTX(tx, "executes mutation").to.be.fulfilled;
@@ -124,7 +135,7 @@ describe("transmuter", () => {
     //verify taker can't withdraw gems
     await expect(
       gb.withdrawGem(
-        gemBank.publicKey,
+        transmuter.bankA,
         vault,
         receiver,
         toBN(5),
@@ -142,11 +153,12 @@ describe("transmuter", () => {
   });
 
   it("happy path (change owner)", async () => {
+    await prepareTransmuter(1); //test 2
     await prepareMutation(VaultAction.ChangeOwner);
     const { vault, takerAcc, takerMint } = await prepareReceiverVaults();
 
     //call execute
-    const tx = await mutationWrapper.execute(receiver.publicKey);
+    const tx = await mutation.execute(receiver.publicKey);
     tx.addSigners(receiver);
 
     await expectTX(tx, "executes mutation").to.be.fulfilled;
@@ -160,7 +172,7 @@ describe("transmuter", () => {
 
     //verify mutation maker can withdraw tokens
     await gb.withdrawGem(
-      gemBank.publicKey,
+      transmuter.bankA,
       vault,
       sdk.provider.wallet.publicKey,
       toBN(5),
@@ -177,11 +189,12 @@ describe("transmuter", () => {
   });
 
   it("happy path (do nothing)", async () => {
+    await prepareTransmuter(1); //test 1
     await prepareMutation(VaultAction.DoNothing);
     const { vault, takerAcc, takerMint } = await prepareReceiverVaults();
 
     //call execute
-    const tx = await mutationWrapper.execute(receiver.publicKey);
+    const tx = await mutation.execute(receiver.publicKey);
     tx.addSigners(receiver);
 
     await expectTX(tx, "executes mutation").to.be.fulfilled;
@@ -193,7 +206,7 @@ describe("transmuter", () => {
 
     //verify taker can withdraw tokens
     await gb.withdrawGem(
-      gemBank.publicKey,
+      transmuter.bankA,
       vault,
       receiver,
       toBN(5),

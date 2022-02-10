@@ -4,28 +4,39 @@ pub use vipers::*;
 pub mod error;
 pub mod instructions;
 pub mod state;
+pub mod try_math;
 
 pub use error::*;
 pub use instructions::*;
 pub use state::*;
+pub use try_math::*;
 
 declare_id!("4c5WjWPmecCLHMSo8bQESo26VCotSKtjiUpCPnfEPL2p");
 
 #[program]
-pub mod transmuter {
+pub mod transmuter_v0 {
     use super::*;
 
     // --------------------------------------- maker
+    pub fn init_transmuter<'a, 'b, 'c, 'info>(
+        ctx: Context<'a, 'b, 'c, 'info, InitTransmuter<'info>>,
+        bump_auth: u8,
+    ) -> ProgramResult {
+        msg!("init new transmuter");
+        instructions::init_transmuter::handler(ctx, bump_auth)
+    }
+
     pub fn init_mutation(
         ctx: Context<InitMutation>,
-        bump_auth: u8,
+        _bump_auth: u8,
         _bump_a: u8,
         _bump_b: u8,
         _bump_c: u8,
         config: MutationConfig,
+        uses: u64,
     ) -> ProgramResult {
         msg!("init new mutation");
-        instructions::init_mutation::handler(ctx, bump_auth, config)
+        instructions::init_mutation::handler(ctx, config, uses)
     }
 
     pub fn update_mutation(ctx: Context<UpdateMutation>) -> ProgramResult {

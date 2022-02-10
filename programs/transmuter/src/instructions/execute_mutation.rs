@@ -10,8 +10,10 @@ use gem_bank::{
 pub struct ExecuteMutation<'info> {
     // mutation
     #[account(has_one = authority)]
+    pub transmuter: Box<Account<'info, Transmuter>>,
+    #[account(mut)]
     pub mutation: Box<Account<'info, Mutation>>,
-    #[account(seeds = [mutation.key().as_ref()], bump = bump_auth)]
+    #[account(seeds = [transmuter.key().as_ref()], bump = bump_auth)]
     pub authority: AccountInfo<'info>,
 
     // taker banks + vaults
@@ -142,13 +144,13 @@ impl<'info> ExecuteMutation<'info> {
             VaultAction::ChangeOwner => {
                 gem_bank::cpi::update_vault_owner(
                     self.change_vault_owner_ctx(bank, vault),
-                    self.mutation.owner,
+                    self.transmuter.owner,
                 )?;
             }
             VaultAction::Lock => {
                 gem_bank::cpi::set_vault_lock(
                     self.set_vault_lock_ctx(bank, vault)
-                        .with_signer(&[&self.mutation.get_seeds()]),
+                        .with_signer(&[&self.transmuter.get_seeds()]),
                     true,
                 )?;
             }
@@ -162,7 +164,7 @@ pub fn handler(ctx: Context<ExecuteMutation>) -> ProgramResult {
     let mutation = &mut ctx.accounts.mutation;
     let config = mutation.config;
 
-    mutation.state = MutationState::Closed;
+    mutation.decrement_uses()?;
 
     // --------------------------------------- take action on taker banks
 
@@ -197,7 +199,7 @@ pub fn handler(ctx: Context<ExecuteMutation>) -> ProgramResult {
     token::transfer(
         ctx.accounts
             .transfer_ctx(escrow_a, destination_a)
-            .with_signer(&[&ctx.accounts.mutation.get_seeds()]),
+            .with_signer(&[&ctx.accounts.transmuter.get_seeds()]),
         config.maker_token_a.amount,
     )?;
 
@@ -208,7 +210,7 @@ pub fn handler(ctx: Context<ExecuteMutation>) -> ProgramResult {
         token::transfer(
             ctx.accounts
                 .transfer_ctx(escrow_b, destination_b)
-                .with_signer(&[&ctx.accounts.mutation.get_seeds()]),
+                .with_signer(&[&ctx.accounts.transmuter.get_seeds()]),
             maker_token_b.amount,
         )?;
     }
@@ -220,7 +222,7 @@ pub fn handler(ctx: Context<ExecuteMutation>) -> ProgramResult {
         token::transfer(
             ctx.accounts
                 .transfer_ctx(escrow_c, destination_c)
-                .with_signer(&[&ctx.accounts.mutation.get_seeds()]),
+                .with_signer(&[&ctx.accounts.transmuter.get_seeds()]),
             maker_token_c.amount,
         )?;
     }

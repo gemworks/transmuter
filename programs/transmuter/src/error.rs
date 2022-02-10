@@ -13,4 +13,7 @@ pub enum ErrorCode {
 
     #[msg("Minted mutations require a Candy Machine ID to be present")]
     CandyMachineMissing,
+
+    #[msg("Arithmetic error (likely under/overflow)")]
+    ArithmeticError,
 }

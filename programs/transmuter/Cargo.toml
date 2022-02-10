@@ -20,3 +20,4 @@ anchor-lang = "0.19.0"
 anchor-spl = "0.19.0"
 vipers = "1.5.9"
 gem_bank = {git = "https://github.com/gemworks/gem-farm", features = ["no-entrypoint", "cpi"]}
+spl-math = { version = "0.1.0", features = ["no-entrypoint"] }
