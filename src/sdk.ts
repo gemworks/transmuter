@@ -114,6 +114,16 @@ export class TransmuterSDK {
     );
   }
 
+  async findExecutionReceiptPDA(
+    mutation: PublicKey,
+    taker: PublicKey
+  ): Promise<[PublicKey, number]> {
+    return PublicKey.findProgramAddress(
+      [Buffer.from("receipt"), mutation.toBytes(), taker.toBytes()],
+      this.programs.Transmuter.programId
+    );
+  }
+
   // --------------------------------------- initializers
 
   async initTransmuter(

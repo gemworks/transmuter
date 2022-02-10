@@ -260,9 +260,14 @@ export type TransmuterV0 = {
           "isSigner": false
         },
         {
-          "name": "receiver",
+          "name": "taker",
           "isMut": true,
           "isSigner": true
+        },
+        {
+          "name": "executionReceipt",
+          "isMut": true,
+          "isSigner": false
         },
         {
           "name": "tokenProgram",
@@ -301,6 +306,10 @@ export type TransmuterV0 = {
         {
           "name": "bumpC",
           "type": "u8"
+        },
+        {
+          "name": "bumpReceipt",
+          "type": "u8"
         }
       ]
     },
@@ -311,6 +320,18 @@ export type TransmuterV0 = {
     }
   ],
   "accounts": [
+    {
+      "name": "executionReceipt",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "mutationCompleteTs",
+            "type": "u64"
+          }
+        ]
+      }
+    },
     {
       "name": "mutation",
       "type": {
@@ -642,6 +663,11 @@ export type TransmuterV0 = {
       "code": 6009,
       "name": "VaultDoesNotBelongToBank",
       "msg": "Passed vault doesn't belong to passed bank"
+    },
+    {
+      "code": 6010,
+      "name": "MutationNotComplete",
+      "msg": "Mutation hasn't completed yet - need more time"
     }
   ]
 };
@@ -908,9 +934,14 @@ export const IDL: TransmuterV0 = {
           "isSigner": false
         },
         {
-          "name": "receiver",
+          "name": "taker",
           "isMut": true,
           "isSigner": true
+        },
+        {
+          "name": "executionReceipt",
+          "isMut": true,
+          "isSigner": false
         },
         {
           "name": "tokenProgram",
@@ -949,6 +980,10 @@ export const IDL: TransmuterV0 = {
         {
           "name": "bumpC",
           "type": "u8"
+        },
+        {
+          "name": "bumpReceipt",
+          "type": "u8"
         }
       ]
     },
@@ -959,6 +994,18 @@ export const IDL: TransmuterV0 = {
     }
   ],
   "accounts": [
+    {
+      "name": "executionReceipt",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "mutationCompleteTs",
+            "type": "u64"
+          }
+        ]
+      }
+    },
     {
       "name": "mutation",
       "type": {
@@ -1290,6 +1337,11 @@ export const IDL: TransmuterV0 = {
       "code": 6009,
       "name": "VaultDoesNotBelongToBank",
       "msg": "Passed vault doesn't belong to passed bank"
+    },
+    {
+      "code": 6010,
+      "name": "MutationNotComplete",
+      "msg": "Mutation hasn't completed yet - need more time"
     }
   ]
 };

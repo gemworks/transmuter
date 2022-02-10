@@ -3,6 +3,7 @@ import {
   MutationConfig,
   MutationWrapper,
   RequiredUnits,
+  TakerTokenConfig,
   TransmuterWrapper,
   VaultAction,
 } from "../src";
@@ -10,8 +11,15 @@ import { expectTX } from "@saberhq/chai-solana";
 
 import "chai-bn";
 import { Keypair, LAMPORTS_PER_SOL, PublicKey } from "@solana/web3.js";
-import { GEM_BANK_PROG_ID, GemBankClient, toBN } from "@gemworks/gem-farm-ts";
+import {
+  GEM_BANK_PROG_ID,
+  GemBankClient,
+  pause,
+  toBN,
+} from "@gemworks/gem-farm-ts";
 import { expect } from "chai";
+import { BN } from "@project-serum/anchor";
+import { getATAAddress } from "@saberhq/token-utils";
 
 describe("transmuter", () => {
   const sdk = makeSDK();
@@ -24,12 +32,15 @@ describe("transmuter", () => {
     GEM_BANK_PROG_ID
   );
 
+  const makerTokenAmount = toBN(3);
+  const takerTokenAmount = toBN(5);
+
   let transmuter: TransmuterWrapper;
   let mutation: MutationWrapper;
-  let receiver: Keypair;
+  let taker: Keypair;
 
   beforeEach("prep", () => {
-    receiver = Keypair.generate();
+    taker = Keypair.generate();
   });
 
   const prepareTransmuter = async (bankCount: number) => {
@@ -40,28 +51,38 @@ describe("transmuter", () => {
     console.log("transmuter ready");
   };
 
-  const prepareMutation = async (vaultAction: any) => {
-    const [makerMint] = await sdk.createMintAndATA(toBN(10));
+  const prepareMutation = async ({
+    vaultAction = VaultAction.Lock,
+    mutationTimeSec = toBN(0),
+    takerTokenB = null,
+    takerTokenC = null,
+  }: {
+    vaultAction?: any;
+    mutationTimeSec?: BN;
+    takerTokenB?: TakerTokenConfig;
+    takerTokenC?: TakerTokenConfig;
+  }) => {
+    const [makerMint] = await sdk.createMintAndATA(toBN(makerTokenAmount));
 
     const config: MutationConfig = {
       takerTokenA: {
         gemBank: transmuter.bankA,
-        requiredAmount: toBN(5),
+        requiredAmount: toBN(takerTokenAmount),
         requiredUnits: RequiredUnits.RarityPoints,
         vaultAction,
       },
-      takerTokenB: null,
-      takerTokenC: null,
+      takerTokenB,
+      takerTokenC,
       makerTokenA: {
         mint: makerMint,
-        totalFunding: toBN(3),
-        amountPerUse: toBN(3),
+        totalFunding: toBN(makerTokenAmount),
+        amountPerUse: toBN(makerTokenAmount),
       },
       makerTokenB: null,
       makerTokenC: null,
       timeConfig: {
-        mutationTimeSec: toBN(1),
-        cancelWindowSec: toBN(1),
+        mutationTimeSec,
+        cancelWindowSec: toBN(0),
       },
       priceConfig: {
         price: toBN(0),
@@ -80,37 +101,39 @@ describe("transmuter", () => {
     mutation = mutationWrapper;
 
     console.log("mutation ready");
+
+    return { makerMint };
   };
 
-  const prepareReceiverVaults = async () => {
-    //fund receiver
+  const prepareTakerVaults = async (bank?: PublicKey) => {
+    //fund taker
     await sdk.provider.connection
-      .requestAirdrop(receiver.publicKey, LAMPORTS_PER_SOL)
+      .requestAirdrop(taker.publicKey, LAMPORTS_PER_SOL)
       .then((sig) =>
         sdk.provider.connection.confirmTransaction(sig, "confirmed")
       );
 
     //create vaults
     const { vault } = await gb.initVault(
-      transmuter.bankA,
-      receiver,
-      receiver,
-      receiver.publicKey,
+      bank ?? transmuter.bankA,
+      taker,
+      taker,
+      taker.publicKey,
       "abc"
     );
 
     //create tokens
     const [takerMint, takerAcc] = await sdk.createMintAndATA(
-      toBN(10),
-      receiver
+      toBN(takerTokenAmount),
+      taker
     );
 
     //deposit tokens
     await gb.depositGem(
-      transmuter.bankA,
+      bank ?? transmuter.bankA,
       vault,
-      receiver,
-      toBN(5),
+      taker,
+      toBN(takerTokenAmount),
       takerMint,
       takerAcc
     );
@@ -118,20 +141,34 @@ describe("transmuter", () => {
     return { vault, takerMint, takerAcc };
   };
 
+  const verifyTakerReceivedTokens = async (
+    makerMint: PublicKey,
+    amount?: BN
+  ) => {
+    const makerATA = await getATAAddress({
+      mint: makerMint,
+      owner: taker.publicKey,
+    });
+    expect(
+      (await sdk.provider.connection.getTokenAccountBalance(makerATA)).value
+        .amount
+    ).to.eq(amount ? amount.toString() : makerTokenAmount.toString());
+  };
+
   it("happy path (lock vault)", async () => {
     await prepareTransmuter(3); //test 3
-    await prepareMutation(VaultAction.Lock);
-    const { vault, takerAcc, takerMint } = await prepareReceiverVaults();
+    const { makerMint } = await prepareMutation({});
+    const { vault, takerMint } = await prepareTakerVaults();
 
     //call execute
-    const tx = await mutation.execute(receiver.publicKey);
-    tx.addSigners(receiver);
+    const tx = await mutation.execute(taker.publicKey);
+    tx.addSigners(taker);
 
     await expectTX(tx, "executes mutation").to.be.fulfilled;
 
     //verify vault is locked and owned by taker
     const vaultAcc = await gb.fetchVaultAcc(vault);
-    expect(vaultAcc.owner.toBase58()).to.be.eq(receiver.publicKey.toBase58());
+    expect(vaultAcc.owner.toBase58()).to.be.eq(taker.publicKey.toBase58());
     expect(vaultAcc.locked).to.be.true;
 
     //verify taker can't withdraw gems
@@ -139,29 +176,27 @@ describe("transmuter", () => {
       gb.withdrawGem(
         transmuter.bankA,
         vault,
-        receiver,
-        toBN(5),
+        taker,
+        toBN(takerTokenAmount),
         takerMint,
         Keypair.generate().publicKey
       )
     ).to.be.rejectedWith("0x1784");
 
     //verify tokens are indeed in taker's wallet
-    const result = parseInt(
-      (await sdk.provider.connection.getTokenAccountBalance(takerAcc)).value
-        .amount
-    );
-    expect(result).to.eq(5);
+    await verifyTakerReceivedTokens(makerMint);
   });
 
   it("happy path (change owner)", async () => {
     await prepareTransmuter(1); //test 2
-    await prepareMutation(VaultAction.ChangeOwner);
-    const { vault, takerAcc, takerMint } = await prepareReceiverVaults();
+    const { makerMint } = await prepareMutation({
+      vaultAction: VaultAction.ChangeOwner,
+    });
+    const { vault, takerMint } = await prepareTakerVaults();
 
     //call execute
-    const tx = await mutation.execute(receiver.publicKey);
-    tx.addSigners(receiver);
+    const tx = await mutation.execute(taker.publicKey);
+    tx.addSigners(taker);
 
     await expectTX(tx, "executes mutation").to.be.fulfilled;
 
@@ -177,50 +212,115 @@ describe("transmuter", () => {
       transmuter.bankA,
       vault,
       sdk.provider.wallet.publicKey,
-      toBN(5),
+      toBN(takerTokenAmount),
       takerMint,
       Keypair.generate().publicKey
     );
 
     //verify tokens are indeed in taker's wallet
-    const result = parseInt(
-      (await sdk.provider.connection.getTokenAccountBalance(takerAcc)).value
-        .amount
-    );
-    expect(result).to.eq(5);
+    await verifyTakerReceivedTokens(makerMint);
   });
 
   it("happy path (do nothing)", async () => {
     await prepareTransmuter(1); //test 1
-    await prepareMutation(VaultAction.DoNothing);
-    const { vault, takerAcc, takerMint } = await prepareReceiverVaults();
+    const { makerMint } = await prepareMutation({
+      vaultAction: VaultAction.DoNothing,
+    });
+    const { vault, takerMint } = await prepareTakerVaults();
 
     //call execute
-    const tx = await mutation.execute(receiver.publicKey);
-    tx.addSigners(receiver);
+    const tx = await mutation.execute(taker.publicKey);
+    tx.addSigners(taker);
 
     await expectTX(tx, "executes mutation").to.be.fulfilled;
 
     //verify vault is unlocked and owned by taker
     const vaultAcc = await gb.fetchVaultAcc(vault);
-    expect(vaultAcc.owner.toBase58()).to.be.eq(receiver.publicKey.toBase58());
+    expect(vaultAcc.owner.toBase58()).to.be.eq(taker.publicKey.toBase58());
     expect(vaultAcc.locked).to.be.false;
 
     //verify taker can withdraw tokens
     await gb.withdrawGem(
       transmuter.bankA,
       vault,
-      receiver,
-      toBN(5),
+      taker,
+      toBN(takerTokenAmount),
       takerMint,
       Keypair.generate().publicKey
     );
 
     //verify tokens are indeed in taker's wallet
-    const result = parseInt(
-      (await sdk.provider.connection.getTokenAccountBalance(takerAcc)).value
-        .amount
+    await verifyTakerReceivedTokens(makerMint);
+  });
+
+  it("happy path (mutation time > 0)", async () => {
+    await prepareTransmuter(3); //test 3
+    const { makerMint } = await prepareMutation({
+      mutationTimeSec: toBN(5),
+      takerTokenB: {
+        gemBank: transmuter.bankB,
+        requiredAmount: toBN(takerTokenAmount),
+        requiredUnits: RequiredUnits.RarityPoints,
+        vaultAction: VaultAction.Lock,
+      },
+      takerTokenC: {
+        gemBank: transmuter.bankC,
+        requiredAmount: toBN(takerTokenAmount),
+        requiredUnits: RequiredUnits.RarityPoints,
+        vaultAction: VaultAction.Lock,
+      },
+    });
+
+    //creating max vaults to test compute budget
+    const { vault: vaultA, takerMint: takerMintA } = await prepareTakerVaults(
+      transmuter.bankA
     );
-    expect(result).to.eq(5);
+    await prepareTakerVaults(transmuter.bankB);
+    await prepareTakerVaults(transmuter.bankC);
+
+    //call execute
+    const tx = await mutation.execute(taker.publicKey);
+    tx.addSigners(taker);
+
+    await expectTX(tx, "executes mutation").to.be.fulfilled;
+
+    //verify vault is locked and owned by taker
+    const vaultAcc = await gb.fetchVaultAcc(vaultA);
+    expect(vaultAcc.owner.toBase58()).to.be.eq(taker.publicKey.toBase58());
+    expect(vaultAcc.locked).to.be.true;
+
+    //verify taker can't withdraw gems
+    await expect(
+      gb.withdrawGem(
+        transmuter.bankA,
+        vaultA,
+        taker,
+        toBN(takerTokenAmount),
+        takerMintA,
+        Keypair.generate().publicKey
+      )
+    ).to.be.rejectedWith("0x1784");
+
+    //verify no tokens in taker's wallet after first call
+    await verifyTakerReceivedTokens(makerMint, toBN(0));
+
+    //try to call immediately again - will fail, since not enough time passed
+    await expect(tx.confirm()).to.be.rejected;
+
+    // todo
+    // try {
+    //   await tx.confirm();
+    // } catch (e) {
+    //   expect(e.message).to.include("0x177a");
+    // }
+
+    console.log("pausing for mutation duration");
+    await pause(5000);
+
+    //call again
+    await expectTX(tx, "executes mutation").to.be.fulfilled;
+
+    //this time tokens present
+    await verifyTakerReceivedTokens(makerMint);
   });
 });

@@ -26,7 +26,7 @@ impl Mutation {
 
     // todo test
     pub fn try_decrement_uses(&mut self) -> ProgramResult {
-        self.remaining_uses.try_sub(1).map_err(|e| NoMoreUsesLeft)?;
+        self.remaining_uses.try_sub(1).map_err(|_| NoMoreUsesLeft)?;
         self.try_mark_exhausted();
         Ok(())
     }
@@ -151,6 +151,7 @@ pub enum VaultAction {
 #[repr(C)]
 #[derive(Debug, Copy, Clone, AnchorSerialize, AnchorDeserialize)]
 pub struct TimeConfig {
+    /// setting to anything >0 will force the user to execute twice
     pub mutation_time_sec: u64,
 
     pub cancel_window_sec: u64,

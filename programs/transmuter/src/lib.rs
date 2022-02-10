@@ -5,11 +5,13 @@ pub mod error;
 pub mod instructions;
 pub mod state;
 pub mod try_math;
+pub mod util;
 
 pub use error::*;
 pub use instructions::*;
 pub use state::*;
 pub use try_math::*;
+pub use util::*;
 
 declare_id!("4c5WjWPmecCLHMSo8bQESo26VCotSKtjiUpCPnfEPL2p");
 
@@ -62,9 +64,10 @@ pub mod transmuter_v0 {
         _bump_a: u8,
         _bump_b: u8,
         _bump_c: u8,
+        bump_receipt: u8,
     ) -> ProgramResult {
         msg!("execute mutation");
-        instructions::execute_mutation::handler(ctx)
+        instructions::execute_mutation::handler(ctx, bump_receipt)
     }
 
     pub fn abort_mutation(ctx: Context<AbortMutation>) -> ProgramResult {

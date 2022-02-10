@@ -1,4 +1,5 @@
 use crate::*;
+use anchor_lang::solana_program::hash::hash;
 use anchor_spl::associated_token::AssociatedToken;
 use anchor_spl::token::{self, Mint, Token, TokenAccount, Transfer};
 use gem_bank::state::Vault;
@@ -7,7 +8,7 @@ use gem_bank::{
 };
 
 #[derive(Accounts)]
-#[instruction(bump_auth: u8, bump_a: u8, bump_b: u8, bump_c: u8)]
+#[instruction(bump_auth: u8, bump_a: u8, bump_b: u8, bump_c: u8, bump_receipt: u8)]
 pub struct ExecuteMutation<'info> {
     // mutation
     #[account(has_one = authority)]
@@ -36,8 +37,8 @@ pub struct ExecuteMutation<'info> {
     // intentionally not checking if it's a TokenAccount - in some cases it'll be empty
     #[account(init_if_needed,
         associated_token::mint = token_a_mint,
-        associated_token::authority = receiver,
-        payer = receiver)]
+        associated_token::authority = taker,
+        payer = taker)]
     pub token_a_destination: Box<Account<'info, TokenAccount>>,
     pub token_a_mint: Box<Account<'info, Mint>>,
     // b
@@ -52,8 +53,8 @@ pub struct ExecuteMutation<'info> {
     // todo currently creating 3 dest token accs even if we only need 1 - can take offchain & thus avoid doing it
     #[account(init_if_needed,
         associated_token::mint = token_b_mint,
-        associated_token::authority = receiver,
-        payer = receiver)]
+        associated_token::authority = taker,
+        payer = taker)]
     pub token_b_destination: Box<Account<'info, TokenAccount>>,
     pub token_b_mint: Box<Account<'info, Mint>>,
     // c
@@ -66,14 +67,17 @@ pub struct ExecuteMutation<'info> {
     pub token_c_escrow: AccountInfo<'info>,
     #[account(init_if_needed,
         associated_token::mint = token_c_mint,
-        associated_token::authority = receiver,
-        payer = receiver)]
+        associated_token::authority = taker,
+        payer = taker)]
     pub token_c_destination: Box<Account<'info, TokenAccount>>,
     pub token_c_mint: Box<Account<'info, Mint>>,
 
     // misc
     #[account(mut)]
-    pub receiver: Signer<'info>,
+    pub taker: Signer<'info>,
+    // have to deserialize manually, since we don't always need it
+    #[account(mut)]
+    pub execution_receipt: AccountInfo<'info>,
     pub token_program: Program<'info, Token>,
     pub associated_token_program: Program<'info, AssociatedToken>,
     pub system_program: Program<'info, System>,
@@ -112,7 +116,7 @@ impl<'info> ExecuteMutation<'info> {
             UpdateVaultOwner {
                 bank,
                 vault,
-                owner: self.receiver.to_account_info(),
+                owner: self.taker.to_account_info(),
             },
         )
     }
@@ -167,6 +171,7 @@ impl<'info> ExecuteMutation<'info> {
 
 pub fn handler<'a, 'b, 'c, 'info>(
     ctx: Context<'a, 'b, 'c, 'info, ExecuteMutation<'info>>,
+    bump_receipt: u8,
 ) -> ProgramResult {
     let mutation = &mut ctx.accounts.mutation;
     let remaining_accs = &mut ctx.remaining_accounts.iter();
@@ -199,6 +204,48 @@ pub fn handler<'a, 'b, 'c, 'info>(
         let vault_c_acc: Account<'_, Vault> = Account::try_from(vault_c)?;
         ctx.accounts
             .perform_vault_action(bank_c.clone(), &vault_c_acc, taker_token_c)?;
+    }
+
+    // --------------------------------------- if mutation time > 0, verify sufficient time passed
+
+    if config.time_config.mutation_time_sec > 0 {
+        let execution_receipt = &mut ctx.accounts.execution_receipt;
+        let execution_receipt_result: std::result::Result<
+            Account<'_, ExecutionReceipt>,
+            ProgramError,
+        > = Account::try_from(execution_receipt);
+
+        // try deserialize the PDA - if succeeds, means we're calling a 2nd+ time
+        if let Ok(execution_receipt_acc) = execution_receipt_result {
+            // if not enough time has passed this will throw an error and terminate the prog
+            execution_receipt_acc.assert_mutation_complete()?;
+        } else {
+            // else, if fails, means we're calling the 1st time and need to create the PDA
+            create_pda_with_space(
+                &[
+                    b"receipt".as_ref(),
+                    ctx.accounts.mutation.key().as_ref(),
+                    ctx.accounts.taker.key().as_ref(),
+                    &[bump_receipt], //todo is this a security vulnerability?
+                ],
+                execution_receipt,
+                8 + std::mem::size_of::<ExecutionReceipt>(),
+                ctx.program_id,
+                &ctx.accounts.taker.to_account_info(),
+                &ctx.accounts.system_program.to_account_info(),
+            )?;
+
+            let disc = hash("account:ExecutionReceipt".as_bytes());
+            let mutation_complete_ts =
+                ExecutionReceipt::calc_mutation_complete_ts(config.time_config.mutation_time_sec)?;
+
+            let mut execution_receipt_raw = execution_receipt.data.borrow_mut();
+            execution_receipt_raw[..8].clone_from_slice(&disc.to_bytes()[..8]);
+            execution_receipt_raw[8..16].clone_from_slice(&mutation_complete_ts.to_le_bytes());
+
+            msg!("This mutation will take time. Pls come back later.");
+            return Ok(());
+        };
     }
 
     // --------------------------------------- send tokens to taker

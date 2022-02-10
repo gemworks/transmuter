@@ -46,55 +46,71 @@ export class MutationWrapper {
 
   // --------------------------------------- ixs
 
-  async execute(receiver: PublicKey) {
+  async execute(taker: PublicKey) {
     await this.reloadData();
     let config = this._data.config;
 
-    // ----------------- prep banks
+    // ----------------- prep banks & vaults
+
     const bankA = config.takerTokenA.gemBank;
+    const [vaultA] = await this.sdk.findVaultPDA(bankA, taker);
     let bankB: PublicKey;
+    let vaultB: PublicKey;
     let bankC: PublicKey;
+    let vaultC: PublicKey;
+
+    const remainingAccounts = [];
 
     if (config.takerTokenB) {
       bankB = config.takerTokenB.gemBank;
-    } else {
-      const fakeBankB = Keypair.generate();
-      bankB = fakeBankB.publicKey;
+      [vaultB] = await this.sdk.findVaultPDA(bankB, taker);
+      remainingAccounts.push({
+        pubkey: bankB,
+        isWritable: false,
+        isSigner: false,
+      });
+      remainingAccounts.push({
+        pubkey: vaultB,
+        isWritable: true,
+        isSigner: false,
+      });
     }
 
     if (config.takerTokenC) {
       bankC = config.takerTokenC.gemBank;
-    } else {
-      const fakeBankC = Keypair.generate();
-      bankC = fakeBankC.publicKey;
+      [vaultC] = await this.sdk.findVaultPDA(bankC, taker);
+      remainingAccounts.push({
+        pubkey: bankC,
+        isWritable: false,
+        isSigner: false,
+      });
+      remainingAccounts.push({
+        pubkey: vaultC,
+        isWritable: true,
+        isSigner: false,
+      });
     }
-
-    // ----------------- prep vaults
-
-    const [vaultA] = await this.sdk.findVaultPDA(bankA, receiver);
-    const [vaultB] = await this.sdk.findVaultPDA(bankB, receiver);
-    const [vaultC] = await this.sdk.findVaultPDA(bankC, receiver);
 
     // ----------------- prep escrows
 
     const tokenAMint =
       config.makerTokenA.mint ?? (await createMint(this.provider));
     const [tokenAEscrow, tokenAEscrowBump, tokenADestination] =
-      await this.sdk.prepTokenAccounts(this.key, tokenAMint, receiver);
+      await this.sdk.prepTokenAccounts(this.key, tokenAMint, taker);
 
     const tokenBMint =
       config.makerTokenB && config.makerTokenB.mint
         ? config.makerTokenB.mint
         : await createMint(this.provider);
     const [tokenBEscrow, tokenBEscrowBump, tokenBDestination] =
-      await this.sdk.prepTokenAccounts(this.key, tokenBMint, receiver);
+      await this.sdk.prepTokenAccounts(this.key, tokenBMint, taker);
 
     const tokenCMint =
       config.makerTokenC && config.makerTokenC.mint
         ? config.makerTokenC.mint
         : await createMint(this.provider);
     const [tokenCEscrow, tokenCEscrowBump, tokenCDestination] =
-      await this.sdk.prepTokenAccounts(this.key, tokenCMint, receiver);
+      await this.sdk.prepTokenAccounts(this.key, tokenCMint, taker);
 
     // ----------------- prep ix
 
@@ -102,11 +118,15 @@ export class MutationWrapper {
       this.transmuter
     );
 
+    const [executionReceipt, receiptBump] =
+      await this.sdk.findExecutionReceiptPDA(this.key, taker);
+
     const ix = this.program.instruction.executeMutation(
       bump,
       tokenAEscrowBump,
       tokenBEscrowBump,
       tokenCEscrowBump,
+      receiptBump,
       {
         accounts: {
           transmuter: this.transmuter,
@@ -114,10 +134,6 @@ export class MutationWrapper {
           authority,
           vaultA,
           bankA,
-          vaultB,
-          bankB,
-          vaultC,
-          bankC,
           gemBank: GEM_BANK_PROG_ID,
           tokenAEscrow,
           tokenADestination,
@@ -128,12 +144,14 @@ export class MutationWrapper {
           tokenCEscrow,
           tokenCDestination,
           tokenCMint,
-          receiver,
+          taker,
+          executionReceipt,
           tokenProgram: TOKEN_PROGRAM_ID,
           associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
           systemProgram: SystemProgram.programId,
           rent: SYSVAR_RENT_PUBKEY,
         },
+        remainingAccounts,
       }
     );
 

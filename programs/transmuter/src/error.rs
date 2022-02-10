@@ -31,4 +31,7 @@ pub enum ErrorCode {
 
     #[msg("Passed vault doesn't belong to passed bank")]
     VaultDoesNotBelongToBank,
+
+    #[msg("Mutation hasn't completed yet - need more time")]
+    MutationNotComplete, //10
 }
