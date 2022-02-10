@@ -83,9 +83,22 @@ impl<'info> InitMutation<'info> {
             },
         )
     }
+
+    fn fund_escrow(
+        &self,
+        mint: Pubkey,
+        uses: u64,
+        source: AccountInfo<'info>,
+        escrow: AccountInfo<'info>,
+        maker_token: MakerTokenConfig,
+    ) -> ProgramResult {
+        maker_token.assert_correct_mint(mint)?;
+        maker_token.assert_sufficient_funding(uses)?;
+
+        token::transfer(self.transfer_ctx(source, escrow), maker_token.total_funding)
+    }
 }
 
-// todo can be DRYed up
 pub fn handler(ctx: Context<InitMutation>, config: MutationConfig, uses: u64) -> ProgramResult {
     let mutation = &mut ctx.accounts.mutation;
 
@@ -93,43 +106,30 @@ pub fn handler(ctx: Context<InitMutation>, config: MutationConfig, uses: u64) ->
     mutation.config = config;
     mutation.init_uses(uses);
 
-    // --------------------------------------- fund maker escrow
-
-    // fund first escrow
+    // first escrow
     let mint_a = ctx.accounts.token_a_mint.to_account_info();
-    require!(mint_a.key() == config.maker_token_a.mint, MintDoesNotMatch);
     let source_a = ctx.accounts.token_a_source.to_account_info();
     let escrow_a = ctx.accounts.token_a_escrow.to_account_info();
-
-    token::transfer(
-        ctx.accounts.transfer_ctx(source_a, escrow_a),
-        config.maker_token_a.amount,
-    )?;
+    let maker_token_a = config.maker_token_a;
+    ctx.accounts
+        .fund_escrow(mint_a.key(), uses, source_a, escrow_a, maker_token_a)?;
 
     // fund second escrow
     if let Some(maker_token_b) = config.maker_token_b {
         let mint_b = ctx.accounts.token_b_mint.to_account_info();
-        require!(mint_b.key() == maker_token_b.mint, MintDoesNotMatch);
         let source_b = ctx.accounts.token_b_source.to_account_info();
         let escrow_b = ctx.accounts.token_b_escrow.to_account_info();
-
-        token::transfer(
-            ctx.accounts.transfer_ctx(source_b, escrow_b),
-            maker_token_b.amount,
-        )?;
+        ctx.accounts
+            .fund_escrow(mint_b.key(), uses, source_b, escrow_b, maker_token_b)?;
     }
 
     // fund third escrow
     if let Some(maker_token_c) = config.maker_token_c {
         let mint_c = ctx.accounts.token_c_mint.to_account_info();
-        require!(mint_c.key() == maker_token_c.mint, MintDoesNotMatch);
         let source_c = ctx.accounts.token_c_source.to_account_info();
         let escrow_c = ctx.accounts.token_c_escrow.to_account_info();
-
-        token::transfer(
-            ctx.accounts.transfer_ctx(source_c, escrow_c),
-            maker_token_c.amount,
-        )?;
+        ctx.accounts
+            .fund_escrow(mint_c.key(), uses, source_c, escrow_c, maker_token_c)?;
     }
 
     Ok(())

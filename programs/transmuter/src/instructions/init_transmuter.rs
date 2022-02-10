@@ -59,9 +59,6 @@ pub fn handler<'a, 'b, 'c, 'info>(
     transmuter.authority_bump_seed = [bump_auth];
 
     let full_seeds = [key.as_ref(), &[bump_auth]];
-
-    // --------------------------------------- init taker banks
-
     let remaining_accs = &mut ctx.remaining_accounts.iter();
 
     // init first bank

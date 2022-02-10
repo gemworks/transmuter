@@ -1,3 +1,4 @@
+use crate::ErrorCode::NoMoreUsesLeft;
 use crate::*;
 
 #[repr(C)]
@@ -22,13 +23,15 @@ impl Mutation {
         self.state = MutationState::Available;
     }
 
-    pub fn decrement_uses(&mut self) -> ProgramResult {
-        self.remaining_uses.try_sub(1)?;
-        self.verify_remaining_uses();
+    // todo test
+    pub fn try_decrement_uses(&mut self) -> ProgramResult {
+        self.remaining_uses.try_sub(1).map_err(|e| NoMoreUsesLeft)?;
+        self.try_mark_exhausted();
         Ok(())
     }
 
-    pub fn verify_remaining_uses(&mut self) {
+    // todo test
+    fn try_mark_exhausted(&mut self) {
         if self.remaining_uses == 0 {
             self.state = MutationState::Exhausted;
         }
@@ -62,14 +65,20 @@ pub struct MutationConfig {
 
 #[repr(C)]
 #[derive(Debug, Copy, Clone, AnchorSerialize, AnchorDeserialize)]
+pub enum RequiredUnits {
+    RarityPoints,
+    Gems,
+}
+
+#[repr(C)]
+#[derive(Debug, Copy, Clone, AnchorSerialize, AnchorDeserialize)]
 pub struct TakerTokenConfig {
     /// each gem bank has a whitelist with mints/creators allowed / not allowed
     pub gem_bank: Pubkey,
 
-    /// req rarity points checked first, if None, amount is used. One of 2 must be present
-    pub required_rarity_points: Option<u64>,
+    pub required_amount: u64,
 
-    pub required_gem_count: Option<u64>,
+    pub required_units: RequiredUnits,
 
     pub vault_action: VaultAction,
 }
@@ -79,7 +88,27 @@ pub struct TakerTokenConfig {
 pub struct MakerTokenConfig {
     pub mint: Pubkey,
 
-    pub amount: u64,
+    pub total_funding: u64,
+
+    /// in theory could be backcalculated, but making the user specify this upfront
+    /// makes it more robust and prevents errors
+    pub amount_per_use: u64,
+}
+
+impl MakerTokenConfig {
+    pub fn assert_correct_mint(&self, mint: Pubkey) -> ProgramResult {
+        require!(mint == self.mint, MintDoesNotMatch);
+        Ok(())
+    }
+
+    // todo test
+    pub fn assert_sufficient_funding(&self, uses: u64) -> ProgramResult {
+        require!(
+            self.total_funding == uses.try_mul(self.amount_per_use)?,
+            IncorrectFunding
+        );
+        Ok(())
+    }
 }
 
 #[repr(C)]

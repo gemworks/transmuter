@@ -27,15 +27,21 @@ import { TOKEN_PROGRAM_ID, u64 } from "@solana/spl-token";
 
 export interface TakerTokenConfig {
   gemBank: PublicKey;
-  requiredRarityPoints: BN | null;
-  requiredGemCount: BN | null;
+  requiredAmount: BN;
+  requiredUnits: any;
   vaultAction: any;
 }
 
 export interface MakerTokenConfig {
   mint: PublicKey;
-  amount: BN;
+  totalFunding: BN;
+  amountPerUse: BN;
 }
+
+export const RequiredUnits = {
+  RarityPoints: { rarityPoints: {} },
+  Gems: { gems: {} },
+};
 
 export const VaultAction = {
   ChangeOwner: { changeOwner: {} },

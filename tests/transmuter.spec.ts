@@ -2,6 +2,7 @@ import { makeSDK } from "./workspace";
 import {
   MutationConfig,
   MutationWrapper,
+  RequiredUnits,
   TransmuterWrapper,
   VaultAction,
 } from "../src";
@@ -45,15 +46,16 @@ describe("transmuter", () => {
     const config: MutationConfig = {
       takerTokenA: {
         gemBank: transmuter.bankA,
-        requiredRarityPoints: toBN(5),
-        requiredGemCount: null,
+        requiredAmount: toBN(5),
+        requiredUnits: RequiredUnits.RarityPoints,
         vaultAction,
       },
       takerTokenB: null,
       takerTokenC: null,
       makerTokenA: {
         mint: makerMint,
-        amount: toBN(3),
+        totalFunding: toBN(3),
+        amountPerUse: toBN(3),
       },
       makerTokenB: null,
       makerTokenC: null,

@@ -164,7 +164,7 @@ pub fn handler(ctx: Context<ExecuteMutation>) -> ProgramResult {
     let mutation = &mut ctx.accounts.mutation;
     let config = mutation.config;
 
-    mutation.decrement_uses()?;
+    mutation.try_decrement_uses()?;
 
     // --------------------------------------- take action on taker banks
 
@@ -200,7 +200,7 @@ pub fn handler(ctx: Context<ExecuteMutation>) -> ProgramResult {
         ctx.accounts
             .transfer_ctx(escrow_a, destination_a)
             .with_signer(&[&ctx.accounts.transmuter.get_seeds()]),
-        config.maker_token_a.amount,
+        config.maker_token_a.total_funding,
     )?;
 
     // second token
@@ -211,7 +211,7 @@ pub fn handler(ctx: Context<ExecuteMutation>) -> ProgramResult {
             ctx.accounts
                 .transfer_ctx(escrow_b, destination_b)
                 .with_signer(&[&ctx.accounts.transmuter.get_seeds()]),
-            maker_token_b.amount,
+            maker_token_b.total_funding,
         )?;
     }
 
@@ -223,7 +223,7 @@ pub fn handler(ctx: Context<ExecuteMutation>) -> ProgramResult {
             ctx.accounts
                 .transfer_ctx(escrow_c, destination_c)
                 .with_signer(&[&ctx.accounts.transmuter.get_seeds()]),
-            maker_token_c.amount,
+            maker_token_c.total_funding,
         )?;
     }
 

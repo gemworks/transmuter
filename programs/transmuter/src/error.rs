@@ -16,4 +16,10 @@ pub enum ErrorCode {
 
     #[msg("Arithmetic error (likely under/overflow)")]
     ArithmeticError,
+
+    #[msg("This mutation has exhausted all of its uses")]
+    NoMoreUsesLeft,
+
+    #[msg("Funding amount doesn't added up to uses * amount per use")]
+    IncorrectFunding,
 }

@@ -492,15 +492,13 @@ export type TransmuterV0 = {
             "type": "publicKey"
           },
           {
-            "name": "requiredRarityPoints",
-            "type": {
-              "option": "u64"
-            }
+            "name": "requiredAmount",
+            "type": "u64"
           },
           {
-            "name": "requiredGemCount",
+            "name": "requiredUnits",
             "type": {
-              "option": "u64"
+              "defined": "RequiredUnits"
             }
           },
           {
@@ -522,7 +520,11 @@ export type TransmuterV0 = {
             "type": "publicKey"
           },
           {
-            "name": "amount",
+            "name": "totalFunding",
+            "type": "u64"
+          },
+          {
+            "name": "amountPerUse",
             "type": "u64"
           }
         ]
@@ -579,6 +581,20 @@ export type TransmuterV0 = {
       }
     },
     {
+      "name": "RequiredUnits",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "RarityPoints"
+          },
+          {
+            "name": "Gems"
+          }
+        ]
+      }
+    },
+    {
       "name": "VaultAction",
       "type": {
         "kind": "enum",
@@ -621,6 +637,16 @@ export type TransmuterV0 = {
       "code": 6004,
       "name": "ArithmeticError",
       "msg": "Arithmetic error (likely under/overflow)"
+    },
+    {
+      "code": 6005,
+      "name": "NoMoreUsesLeft",
+      "msg": "This mutation has exhausted all of its uses"
+    },
+    {
+      "code": 6006,
+      "name": "IncorrectFunding",
+      "msg": "Funding amount doesn't added up to uses * amount per use"
     }
   ]
 };
@@ -1119,15 +1145,13 @@ export const IDL: TransmuterV0 = {
             "type": "publicKey"
           },
           {
-            "name": "requiredRarityPoints",
-            "type": {
-              "option": "u64"
-            }
+            "name": "requiredAmount",
+            "type": "u64"
           },
           {
-            "name": "requiredGemCount",
+            "name": "requiredUnits",
             "type": {
-              "option": "u64"
+              "defined": "RequiredUnits"
             }
           },
           {
@@ -1149,7 +1173,11 @@ export const IDL: TransmuterV0 = {
             "type": "publicKey"
           },
           {
-            "name": "amount",
+            "name": "totalFunding",
+            "type": "u64"
+          },
+          {
+            "name": "amountPerUse",
             "type": "u64"
           }
         ]
@@ -1206,6 +1234,20 @@ export const IDL: TransmuterV0 = {
       }
     },
     {
+      "name": "RequiredUnits",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "RarityPoints"
+          },
+          {
+            "name": "Gems"
+          }
+        ]
+      }
+    },
+    {
       "name": "VaultAction",
       "type": {
         "kind": "enum",
@@ -1248,6 +1290,16 @@ export const IDL: TransmuterV0 = {
       "code": 6004,
       "name": "ArithmeticError",
       "msg": "Arithmetic error (likely under/overflow)"
+    },
+    {
+      "code": 6005,
+      "name": "NoMoreUsesLeft",
+      "msg": "This mutation has exhausted all of its uses"
+    },
+    {
+      "code": 6006,
+      "name": "IncorrectFunding",
+      "msg": "Funding amount doesn't added up to uses * amount per use"
     }
   ]
 };
