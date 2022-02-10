@@ -1,5 +1,6 @@
 use crate::ErrorCode::NoMoreUsesLeft;
 use crate::*;
+use gem_bank::state::Vault;
 
 #[repr(C)]
 #[account]
@@ -83,6 +84,33 @@ pub struct TakerTokenConfig {
     pub vault_action: VaultAction,
 }
 
+impl TakerTokenConfig {
+    // todo test
+    pub fn assert_correct_bank(&self, bank_key: Pubkey) -> ProgramResult {
+        require!(bank_key == self.gem_bank, BankDoesNotMatch);
+        Ok(())
+    }
+
+    // todo test
+    pub fn assert_sufficient_amount(&self, vault: &Account<Vault>) -> ProgramResult {
+        match self.required_units {
+            RequiredUnits::RarityPoints => {
+                let taker_rarity_points = vault.rarity_points;
+                require!(
+                    taker_rarity_points >= self.required_amount,
+                    InsufficientVaultRarityPoints
+                );
+            }
+            RequiredUnits::Gems => {
+                let taker_gems = vault.gem_count;
+                require!(taker_gems >= self.required_amount, InsufficientVaultGems);
+            }
+        }
+
+        Ok(())
+    }
+}
+
 #[repr(C)]
 #[derive(Debug, Copy, Clone, AnchorSerialize, AnchorDeserialize)]
 pub struct MakerTokenConfig {
@@ -96,6 +124,7 @@ pub struct MakerTokenConfig {
 }
 
 impl MakerTokenConfig {
+    // todo test
     pub fn assert_correct_mint(&self, mint: Pubkey) -> ProgramResult {
         require!(mint == self.mint, MintDoesNotMatch);
         Ok(())

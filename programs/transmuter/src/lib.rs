@@ -56,8 +56,8 @@ pub mod transmuter_v0 {
 
     // --------------------------------------- taker
 
-    pub fn execute_mutation(
-        ctx: Context<ExecuteMutation>,
+    pub fn execute_mutation<'a, 'b, 'c, 'info>(
+        ctx: Context<'a, 'b, 'c, 'info, ExecuteMutation<'info>>,
         _bump_auth: u8,
         _bump_a: u8,
         _bump_b: u8,

@@ -200,33 +200,13 @@ export type TransmuterV0 = {
           "isSigner": false
         },
         {
-          "name": "vaultA",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
           "name": "bankA",
           "isMut": false,
           "isSigner": false
         },
         {
-          "name": "vaultB",
+          "name": "vaultA",
           "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "bankB",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "vaultC",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "bankC",
-          "isMut": false,
           "isSigner": false
         },
         {
@@ -647,6 +627,21 @@ export type TransmuterV0 = {
       "code": 6006,
       "name": "IncorrectFunding",
       "msg": "Funding amount doesn't added up to uses * amount per use"
+    },
+    {
+      "code": 6007,
+      "name": "InsufficientVaultGems",
+      "msg": "This taker's vault doesn't have enough gems"
+    },
+    {
+      "code": 6008,
+      "name": "InsufficientVaultRarityPoints",
+      "msg": "This taker's vault doesn't have enough rarity points"
+    },
+    {
+      "code": 6009,
+      "name": "VaultDoesNotBelongToBank",
+      "msg": "Passed vault doesn't belong to passed bank"
     }
   ]
 };
@@ -853,33 +848,13 @@ export const IDL: TransmuterV0 = {
           "isSigner": false
         },
         {
-          "name": "vaultA",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
           "name": "bankA",
           "isMut": false,
           "isSigner": false
         },
         {
-          "name": "vaultB",
+          "name": "vaultA",
           "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "bankB",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "vaultC",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "bankC",
-          "isMut": false,
           "isSigner": false
         },
         {
@@ -1300,6 +1275,21 @@ export const IDL: TransmuterV0 = {
       "code": 6006,
       "name": "IncorrectFunding",
       "msg": "Funding amount doesn't added up to uses * amount per use"
+    },
+    {
+      "code": 6007,
+      "name": "InsufficientVaultGems",
+      "msg": "This taker's vault doesn't have enough gems"
+    },
+    {
+      "code": 6008,
+      "name": "InsufficientVaultRarityPoints",
+      "msg": "This taker's vault doesn't have enough rarity points"
+    },
+    {
+      "code": 6009,
+      "name": "VaultDoesNotBelongToBank",
+      "msg": "Passed vault doesn't belong to passed bank"
     }
   ]
 };
