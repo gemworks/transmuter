@@ -64,6 +64,32 @@ pub struct MutationConfig {
     pub reversible: bool,
 }
 
+impl MutationConfig {
+    // todo test
+    /// for a mutation to be reversible all user's vaults must be Locked, and nothing else
+    pub fn assert_is_valid(&self) -> ProgramResult {
+        if self.reversible {
+            require!(
+                self.taker_token_a.vault_action == VaultAction::Lock,
+                CantBeReversible
+            );
+            if let Some(taker_token_b) = self.taker_token_b {
+                require!(
+                    taker_token_b.vault_action == VaultAction::Lock,
+                    CantBeReversible
+                );
+            }
+            if let Some(taker_token_c) = self.taker_token_c {
+                require!(
+                    taker_token_c.vault_action == VaultAction::Lock,
+                    CantBeReversible
+                );
+            }
+        }
+        Ok(())
+    }
+}
+
 #[repr(C)]
 #[derive(Debug, Copy, Clone, AnchorSerialize, AnchorDeserialize)]
 pub enum RequiredUnits {
@@ -141,7 +167,7 @@ impl MakerTokenConfig {
 }
 
 #[repr(C)]
-#[derive(Debug, Copy, Clone, AnchorSerialize, AnchorDeserialize)]
+#[derive(Debug, Copy, Clone, AnchorSerialize, AnchorDeserialize, PartialEq)]
 pub enum VaultAction {
     ChangeOwner,
     Lock,

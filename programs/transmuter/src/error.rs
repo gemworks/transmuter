@@ -34,4 +34,7 @@ pub enum ErrorCode {
 
     #[msg("Mutation hasn't completed yet - need more time")]
     MutationNotComplete, //10
+
+    #[msg("For a mutation to be reversible all of taker's vaults must be Locked")]
+    CantBeReversible,
 }

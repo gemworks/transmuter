@@ -105,6 +105,7 @@ pub fn handler(ctx: Context<InitMutation>, config: MutationConfig, uses: u64) ->
     mutation.transmuter = ctx.accounts.transmuter.key();
     mutation.config = config;
     mutation.init_uses(uses);
+    mutation.config.assert_is_valid()?;
 
     // first escrow
     let mint_a = ctx.accounts.token_a_mint.to_account_info();

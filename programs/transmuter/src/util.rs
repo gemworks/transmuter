@@ -1,6 +1,5 @@
 use std::convert::TryInto;
 
-use anchor_lang::solana_program::hash::hash;
 use anchor_lang::solana_program::program::invoke_signed;
 use anchor_lang::solana_program::system_instruction::create_account;
 use anchor_lang::{prelude::*, solana_program::clock};
