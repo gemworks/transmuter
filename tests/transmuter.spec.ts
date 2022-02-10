@@ -90,7 +90,7 @@ describe("transmuter", () => {
         cancelWindowSec: toBN(0),
       },
       priceConfig: {
-        price: toBN(0),
+        priceLamports: toBN(LAMPORTS_PER_SOL),
         payEveryTime: false,
         paid: false,
       },
@@ -113,7 +113,7 @@ describe("transmuter", () => {
   const prepareTakerVaults = async (bank?: PublicKey) => {
     //fund taker
     await sdk.provider.connection
-      .requestAirdrop(taker.publicKey, LAMPORTS_PER_SOL)
+      .requestAirdrop(taker.publicKey, 2 * LAMPORTS_PER_SOL)
       .then((sig) =>
         sdk.provider.connection.confirmTransaction(sig, "confirmed")
       );
@@ -170,6 +170,12 @@ describe("transmuter", () => {
     tx.addSigners(taker);
 
     await expectTX(tx, "executes mutation").to.be.fulfilled;
+
+    //new balance should be <1 sol (we had 2, paid 1 to owner and paid spent some on tx fees)
+    const newBalance = await sdk.provider.connection.getBalance(
+      taker.publicKey
+    );
+    expect(newBalance).to.be.lessThan(LAMPORTS_PER_SOL);
 
     //verify vault is locked and owned by taker
     const vaultAcc = await gb.fetchVaultAcc(vault);
@@ -259,7 +265,7 @@ describe("transmuter", () => {
   });
 
   //using max maker tokens and max taker tokens to test out compute budget
-  it.only("happy path (mutation time > 0, 3 maker, 3 taker))", async () => {
+  it("happy path (mutation time > 0, 3 maker, 3 taker))", async () => {
     await prepareTransmuter(3);
 
     const [makerMintB] = await sdk.createMintAndATA(toBN(makerTokenAmount));

@@ -195,6 +195,11 @@ export type TransmuterV0 = {
           "isSigner": false
         },
         {
+          "name": "owner",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
           "name": "authority",
           "isMut": false,
           "isSigner": false
@@ -553,7 +558,7 @@ export type TransmuterV0 = {
         "kind": "struct",
         "fields": [
           {
-            "name": "price",
+            "name": "priceLamports",
             "type": "u64"
           },
           {
@@ -668,6 +673,11 @@ export type TransmuterV0 = {
       "code": 6010,
       "name": "MutationNotComplete",
       "msg": "Mutation hasn't completed yet - need more time"
+    },
+    {
+      "code": 6011,
+      "name": "CantBeReversible",
+      "msg": "For a mutation to be reversible all of taker's vaults must be Locked"
     }
   ]
 };
@@ -869,6 +879,11 @@ export const IDL: TransmuterV0 = {
           "isSigner": false
         },
         {
+          "name": "owner",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
           "name": "authority",
           "isMut": false,
           "isSigner": false
@@ -1227,7 +1242,7 @@ export const IDL: TransmuterV0 = {
         "kind": "struct",
         "fields": [
           {
-            "name": "price",
+            "name": "priceLamports",
             "type": "u64"
           },
           {
@@ -1342,6 +1357,11 @@ export const IDL: TransmuterV0 = {
       "code": 6010,
       "name": "MutationNotComplete",
       "msg": "Mutation hasn't completed yet - need more time"
+    },
+    {
+      "code": 6011,
+      "name": "CantBeReversible",
+      "msg": "For a mutation to be reversible all of taker's vaults must be Locked"
     }
   ]
 };

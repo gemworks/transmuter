@@ -55,7 +55,7 @@ export interface TimeConfig {
 }
 
 export interface PriceConfig {
-  price: BN;
+  priceLamports: BN;
   payEveryTime: boolean;
   paid: boolean;
 }

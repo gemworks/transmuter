@@ -1,5 +1,5 @@
 use crate::*;
-use anchor_lang::solana_program::hash::hash;
+use anchor_lang::solana_program::{hash::hash, program::invoke, system_instruction};
 use anchor_spl::associated_token::AssociatedToken;
 use anchor_spl::token::{self, Mint, Token, TokenAccount, Transfer};
 use gem_bank::state::Vault;
@@ -11,10 +11,11 @@ use gem_bank::{
 #[instruction(bump_auth: u8, bump_a: u8, bump_b: u8, bump_c: u8, bump_receipt: u8)]
 pub struct ExecuteMutation<'info> {
     // mutation
-    #[account(has_one = authority)]
+    #[account(has_one = authority, has_one = owner)]
     pub transmuter: Box<Account<'info, Transmuter>>,
     #[account(mut)]
     pub mutation: Box<Account<'info, Mutation>>,
+    pub owner: AccountInfo<'info>,
     #[account(seeds = [transmuter.key().as_ref()], bump = bump_auth)]
     pub authority: AccountInfo<'info>,
 
@@ -136,6 +137,17 @@ impl<'info> ExecuteMutation<'info> {
         )
     }
 
+    fn pay_owner(&self, lamports: u64) -> ProgramResult {
+        invoke(
+            &system_instruction::transfer(self.taker.key, self.owner.key, lamports),
+            &[
+                self.taker.to_account_info(),
+                self.owner.clone(),
+                self.system_program.to_account_info(),
+            ],
+        )
+    }
+
     fn perform_vault_action(
         &self,
         bank: AccountInfo<'info>,
@@ -174,12 +186,21 @@ pub fn handler<'a, 'b, 'c, 'info>(
     bump_receipt: u8,
 ) -> ProgramResult {
     let mutation = &mut ctx.accounts.mutation;
-    let remaining_accs = &mut ctx.remaining_accounts.iter();
-    let config = mutation.config;
 
+    // decrement uses or throw an error if at 0
     mutation.try_decrement_uses()?;
 
+    // settle any payment
+    let amount_due = mutation.config.price_config.calc_and_record_payment();
+    if amount_due > 0 {
+        ctx.accounts.pay_owner(amount_due)?;
+    }
+
     // --------------------------------------- perform action on taker vaults
+
+    let mutation = &mut ctx.accounts.mutation;
+    let remaining_accs = &mut ctx.remaining_accounts.iter();
+    let config = mutation.config;
 
     // first bank
     let bank_a = ctx.accounts.bank_a.to_account_info();
@@ -243,7 +264,6 @@ pub fn handler<'a, 'b, 'c, 'info>(
             execution_receipt_raw[..8].clone_from_slice(&disc.to_bytes()[..8]);
             execution_receipt_raw[8..16].clone_from_slice(&mutation_complete_ts.to_le_bytes());
 
-            msg!("This mutation will take time. Pls come back later.");
             return Ok(());
         };
     }

@@ -93,22 +93,19 @@ export class MutationWrapper {
 
     // ----------------- prep escrows
 
-    const tokenAMint =
-      config.makerTokenA.mint ?? (await createMint(this.provider));
+    const tokenAMint = config.makerTokenA.mint;
     const [tokenAEscrow, tokenAEscrowBump, tokenADestination] =
       await this.sdk.prepTokenAccounts(this.key, tokenAMint, taker);
 
-    const tokenBMint =
-      config.makerTokenB && config.makerTokenB.mint
-        ? config.makerTokenB.mint
-        : await createMint(this.provider);
+    const tokenBMint = config.makerTokenB
+      ? config.makerTokenB.mint
+      : await createMint(this.provider);
     const [tokenBEscrow, tokenBEscrowBump, tokenBDestination] =
       await this.sdk.prepTokenAccounts(this.key, tokenBMint, taker);
 
-    const tokenCMint =
-      config.makerTokenC && config.makerTokenC.mint
-        ? config.makerTokenC.mint
-        : await createMint(this.provider);
+    const tokenCMint = config.makerTokenC
+      ? config.makerTokenC.mint
+      : await createMint(this.provider);
     const [tokenCEscrow, tokenCEscrowBump, tokenCDestination] =
       await this.sdk.prepTokenAccounts(this.key, tokenCMint, taker);
 
@@ -132,6 +129,7 @@ export class MutationWrapper {
           transmuter: this.transmuter,
           mutation: this.key,
           authority,
+          owner: this.sdk.provider.wallet.publicKey,
           vaultA,
           bankA,
           gemBank: GEM_BANK_PROG_ID,
