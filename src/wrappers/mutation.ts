@@ -46,7 +46,7 @@ export class MutationWrapper {
 
   // --------------------------------------- ixs
 
-  async execute(taker: PublicKey) {
+  async execute(taker: PublicKey, reverse: boolean = false) {
     await this.reloadData();
     let config = this._data.config;
 
@@ -94,19 +94,19 @@ export class MutationWrapper {
     // ----------------- prep escrows
 
     const tokenAMint = config.makerTokenA.mint;
-    const [tokenAEscrow, tokenAEscrowBump, tokenADestination] =
+    const [tokenAEscrow, tokenAEscrowBump, tokenATakerAta] =
       await this.sdk.prepTokenAccounts(this.key, tokenAMint, taker);
 
     const tokenBMint = config.makerTokenB
       ? config.makerTokenB.mint
       : await createMint(this.provider);
-    const [tokenBEscrow, tokenBEscrowBump, tokenBDestination] =
+    const [tokenBEscrow, tokenBEscrowBump, tokenBTakerAta] =
       await this.sdk.prepTokenAccounts(this.key, tokenBMint, taker);
 
     const tokenCMint = config.makerTokenC
       ? config.makerTokenC.mint
       : await createMint(this.provider);
-    const [tokenCEscrow, tokenCEscrowBump, tokenCDestination] =
+    const [tokenCEscrow, tokenCEscrowBump, tokenCTakerAta] =
       await this.sdk.prepTokenAccounts(this.key, tokenCMint, taker);
 
     // ----------------- prep ix
@@ -124,6 +124,7 @@ export class MutationWrapper {
       tokenBEscrowBump,
       tokenCEscrowBump,
       receiptBump,
+      reverse,
       {
         accounts: {
           transmuter: this.transmuter,
@@ -134,13 +135,13 @@ export class MutationWrapper {
           bankA,
           gemBank: GEM_BANK_PROG_ID,
           tokenAEscrow,
-          tokenADestination,
+          tokenATakerAta,
           tokenAMint,
           tokenBEscrow,
-          tokenBDestination,
+          tokenBTakerAta,
           tokenBMint,
           tokenCEscrow,
-          tokenCDestination,
+          tokenCTakerAta,
           tokenCMint,
           taker,
           executionReceipt,

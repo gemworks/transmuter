@@ -87,7 +87,7 @@ describe("transmuter", () => {
       makerTokenC,
       timeConfig: {
         mutationTimeSec,
-        cancelWindowSec: toBN(0),
+        abortWindowSec: toBN(0),
       },
       priceConfig: {
         priceLamports: toBN(LAMPORTS_PER_SOL),
@@ -265,7 +265,7 @@ describe("transmuter", () => {
   });
 
   //using max maker tokens and max taker tokens to test out compute budget
-  it("happy path (mutation time > 0, 3 maker, 3 taker))", async () => {
+  it.only("happy path (mutation time > 0, 3 maker, 3 taker))", async () => {
     await prepareTransmuter(3);
 
     const [makerMintB] = await sdk.createMintAndATA(toBN(makerTokenAmount));
@@ -337,12 +337,46 @@ describe("transmuter", () => {
     // }
 
     console.log("pausing for mutation duration");
-    await pause(5000);
+    await pause(6000);
 
     //call again
     await expectTX(tx, "executes mutation").to.be.fulfilled;
 
     //this time tokens present
     await verifyTakerReceivedTokens(makerMint);
+  });
+
+  it("happy path (reverse)", async () => {
+    await prepareTransmuter(3); //test 3
+    const { makerMint } = await prepareMutation({});
+    const { vault, takerMint } = await prepareTakerVaults();
+
+    //call execute
+    const tx = await mutation.execute(taker.publicKey);
+    tx.addSigners(taker);
+    await expectTX(tx, "executes mutation").to.be.fulfilled;
+
+    //call reverse
+    const reverseTx = await mutation.execute(taker.publicKey, true);
+    reverseTx.addSigners(taker);
+    await expectTX(reverseTx, "executes mutation").to.be.fulfilled;
+
+    //verify vault is UNlocked and owned by taker
+    const vaultAcc = await gb.fetchVaultAcc(vault);
+    expect(vaultAcc.owner.toBase58()).to.be.eq(taker.publicKey.toBase58());
+    expect(vaultAcc.locked).to.be.false;
+
+    //verify taker can withdraw gems
+    await gb.withdrawGem(
+      transmuter.bankA,
+      vault,
+      taker,
+      toBN(takerTokenAmount),
+      takerMint,
+      Keypair.generate().publicKey
+    );
+
+    //verify NO tokens are indeed in taker's wallet
+    await verifyTakerReceivedTokens(makerMint, toBN(0));
   });
 });

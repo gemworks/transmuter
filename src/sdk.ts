@@ -51,7 +51,7 @@ export const VaultAction = {
 
 export interface TimeConfig {
   mutationTimeSec: BN;
-  cancelWindowSec: BN;
+  abortWindowSec: BN;
 }
 
 export interface PriceConfig {

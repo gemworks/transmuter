@@ -225,7 +225,7 @@ export type TransmuterV0 = {
           "isSigner": false
         },
         {
-          "name": "tokenADestination",
+          "name": "tokenATakerAta",
           "isMut": true,
           "isSigner": false
         },
@@ -240,7 +240,7 @@ export type TransmuterV0 = {
           "isSigner": false
         },
         {
-          "name": "tokenBDestination",
+          "name": "tokenBTakerAta",
           "isMut": true,
           "isSigner": false
         },
@@ -255,7 +255,7 @@ export type TransmuterV0 = {
           "isSigner": false
         },
         {
-          "name": "tokenCDestination",
+          "name": "tokenCTakerAta",
           "isMut": true,
           "isSigner": false
         },
@@ -315,6 +315,10 @@ export type TransmuterV0 = {
         {
           "name": "bumpReceipt",
           "type": "u8"
+        },
+        {
+          "name": "reverse",
+          "type": "bool"
         }
       ]
     },
@@ -909,7 +913,7 @@ export const IDL: TransmuterV0 = {
           "isSigner": false
         },
         {
-          "name": "tokenADestination",
+          "name": "tokenATakerAta",
           "isMut": true,
           "isSigner": false
         },
@@ -924,7 +928,7 @@ export const IDL: TransmuterV0 = {
           "isSigner": false
         },
         {
-          "name": "tokenBDestination",
+          "name": "tokenBTakerAta",
           "isMut": true,
           "isSigner": false
         },
@@ -939,7 +943,7 @@ export const IDL: TransmuterV0 = {
           "isSigner": false
         },
         {
-          "name": "tokenCDestination",
+          "name": "tokenCTakerAta",
           "isMut": true,
           "isSigner": false
         },
@@ -999,6 +1003,10 @@ export const IDL: TransmuterV0 = {
         {
           "name": "bumpReceipt",
           "type": "u8"
+        },
+        {
+          "name": "reverse",
+          "type": "bool"
         }
       ]
     },

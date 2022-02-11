@@ -27,14 +27,22 @@ impl Mutation {
     // todo test
     pub fn try_decrement_uses(&mut self) -> ProgramResult {
         self.remaining_uses.try_sub(1).map_err(|_| NoMoreUsesLeft)?;
-        self.try_mark_exhausted();
+        self.update_state();
         Ok(())
     }
 
     // todo test
-    fn try_mark_exhausted(&mut self) {
+    pub fn increment_uses(&mut self) -> ProgramResult {
+        self.remaining_uses.try_add(1)?;
+        self.update_state();
+        Ok(())
+    }
+
+    fn update_state(&mut self) {
         if self.remaining_uses == 0 {
             self.state = MutationState::Exhausted;
+        } else {
+            self.state = MutationState::Available;
         }
     }
 }
@@ -180,7 +188,7 @@ pub struct TimeConfig {
     /// setting to anything >0 will force the user to execute twice
     pub mutation_time_sec: u64,
 
-    pub cancel_window_sec: u64,
+    pub abort_window_sec: u64,
 }
 
 #[repr(C)]

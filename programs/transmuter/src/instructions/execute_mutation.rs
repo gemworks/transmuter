@@ -25,7 +25,7 @@ pub struct ExecuteMutation<'info> {
     pub vault_a: Box<Account<'info, Vault>>,
     pub gem_bank: Program<'info, GemBank>,
 
-    // maker escrows
+    // token accs
     // a
     // intentionally not checking if it's a TokenAccount - in some cases it'll be empty
     #[account(mut, seeds = [
@@ -40,7 +40,7 @@ pub struct ExecuteMutation<'info> {
         associated_token::mint = token_a_mint,
         associated_token::authority = taker,
         payer = taker)]
-    pub token_a_destination: Box<Account<'info, TokenAccount>>,
+    pub token_a_taker_ata: Box<Account<'info, TokenAccount>>,
     pub token_a_mint: Box<Account<'info, Mint>>,
     // b
     // todo can make optional
@@ -56,7 +56,7 @@ pub struct ExecuteMutation<'info> {
         associated_token::mint = token_b_mint,
         associated_token::authority = taker,
         payer = taker)]
-    pub token_b_destination: Box<Account<'info, TokenAccount>>,
+    pub token_b_taker_ata: Box<Account<'info, TokenAccount>>,
     pub token_b_mint: Box<Account<'info, Mint>>,
     // c
     #[account(mut, seeds = [
@@ -70,13 +70,14 @@ pub struct ExecuteMutation<'info> {
         associated_token::mint = token_c_mint,
         associated_token::authority = taker,
         payer = taker)]
-    pub token_c_destination: Box<Account<'info, TokenAccount>>,
+    pub token_c_taker_ata: Box<Account<'info, TokenAccount>>,
     pub token_c_mint: Box<Account<'info, Mint>>,
 
     // misc
     #[account(mut)]
     pub taker: Signer<'info>,
     // have to deserialize manually, since we don't always need it
+    // todo to think how to handle this during reversals
     #[account(mut)]
     pub execution_receipt: AccountInfo<'info>,
     pub token_program: Program<'info, Token>,
@@ -124,15 +125,16 @@ impl<'info> ExecuteMutation<'info> {
 
     fn transfer_ctx(
         &self,
-        token_escrow: AccountInfo<'info>,
-        token_destination: AccountInfo<'info>,
+        from: AccountInfo<'info>,
+        to: AccountInfo<'info>,
+        authority: AccountInfo<'info>,
     ) -> CpiContext<'_, '_, '_, 'info, Transfer<'info>> {
         CpiContext::new(
             self.token_program.to_account_info(),
             Transfer {
-                from: token_escrow,
-                to: token_destination,
-                authority: self.authority.clone(),
+                from,
+                to,
+                authority,
             },
         )
     }
@@ -153,6 +155,7 @@ impl<'info> ExecuteMutation<'info> {
         bank: AccountInfo<'info>,
         vault: &Account<'info, Vault>,
         taker_token: TakerTokenConfig,
+        vault_lock: bool,
     ) -> ProgramResult {
         taker_token.assert_correct_bank(bank.key())?;
         taker_token.assert_sufficient_amount(vault)?;
@@ -169,7 +172,7 @@ impl<'info> ExecuteMutation<'info> {
                 gem_bank::cpi::set_vault_lock(
                     self.set_vault_lock_ctx(bank, vault.to_account_info())
                         .with_signer(&[&self.transmuter.get_seeds()]),
-                    true,
+                    vault_lock,
                 )?;
             }
             VaultAction::DoNothing => {
@@ -179,43 +182,78 @@ impl<'info> ExecuteMutation<'info> {
         }
         Ok(())
     }
+
+    fn perform_token_transfer(
+        &self,
+        escrow: AccountInfo<'info>,
+        taker_ata: AccountInfo<'info>,
+        maker_token: MakerTokenConfig,
+        reverse: bool,
+    ) -> ProgramResult {
+        if reverse {
+            token::transfer(
+                self.transfer_ctx(taker_ata, escrow, self.taker.to_account_info()),
+                maker_token.total_funding,
+            )
+        } else {
+            token::transfer(
+                self.transfer_ctx(escrow, taker_ata, self.authority.to_account_info())
+                    .with_signer(&[&self.transmuter.get_seeds()]),
+                maker_token.total_funding,
+            )
+        }
+    }
 }
 
 pub fn handler<'a, 'b, 'c, 'info>(
     ctx: Context<'a, 'b, 'c, 'info, ExecuteMutation<'info>>,
     bump_receipt: u8,
+    reverse: bool,
 ) -> ProgramResult {
     let mutation = &mut ctx.accounts.mutation;
 
-    // decrement uses or throw an error if at 0
-    mutation.try_decrement_uses()?;
-
-    // settle any payment
+    // collect payment
     let amount_due = mutation.config.price_config.calc_and_record_payment();
     if amount_due > 0 {
         ctx.accounts.pay_owner(amount_due)?;
     }
 
+    let mutation = &mut ctx.accounts.mutation;
+
+    // update uses
+    if reverse {
+        mutation.increment_uses()?;
+    } else {
+        mutation.try_decrement_uses()?;
+    }
     // --------------------------------------- perform action on taker vaults
 
-    let mutation = &mut ctx.accounts.mutation;
     let remaining_accs = &mut ctx.remaining_accounts.iter();
     let config = mutation.config;
+
+    // during reversal we want to UNlock vault
+    // not worried about other branches in perform_vault_action,
+    // since reversals only possible when all vaults set to Lock option (checked during init mut)
+    let lock_vault = !reverse;
 
     // first bank
     let bank_a = ctx.accounts.bank_a.to_account_info();
     let vault_a = &ctx.accounts.vault_a;
     let taker_token_a = mutation.config.taker_token_a;
     ctx.accounts
-        .perform_vault_action(bank_a, vault_a, taker_token_a)?;
+        .perform_vault_action(bank_a, vault_a, taker_token_a, lock_vault)?;
 
     // second bank
     if let Some(taker_token_b) = config.taker_token_b {
         let bank_b = next_account_info(remaining_accs)?;
         let vault_b = next_account_info(remaining_accs)?;
         let vault_b_acc: Account<'_, Vault> = Account::try_from(vault_b)?;
-        ctx.accounts
-            .perform_vault_action(bank_b.clone(), &vault_b_acc, taker_token_b)?;
+        ctx.accounts.perform_vault_action(
+            bank_b.clone(),
+            &vault_b_acc,
+            taker_token_b,
+            lock_vault,
+        )?;
     }
 
     // third bank
@@ -223,13 +261,17 @@ pub fn handler<'a, 'b, 'c, 'info>(
         let bank_c = next_account_info(remaining_accs)?;
         let vault_c = next_account_info(remaining_accs)?;
         let vault_c_acc: Account<'_, Vault> = Account::try_from(vault_c)?;
-        ctx.accounts
-            .perform_vault_action(bank_c.clone(), &vault_c_acc, taker_token_c)?;
+        ctx.accounts.perform_vault_action(
+            bank_c.clone(),
+            &vault_c_acc,
+            taker_token_c,
+            lock_vault,
+        )?;
     }
 
-    // --------------------------------------- if mutation time > 0, verify sufficient time passed
+    // --------------------------------------- verify sufficient time passed (not during reversals)
 
-    if config.time_config.mutation_time_sec > 0 {
+    if !reverse && config.time_config.mutation_time_sec > 0 {
         let execution_receipt = &mut ctx.accounts.execution_receipt;
         let execution_receipt_result: std::result::Result<
             Account<'_, ExecutionReceipt>,
@@ -268,40 +310,28 @@ pub fn handler<'a, 'b, 'c, 'info>(
         };
     }
 
-    // --------------------------------------- send tokens to taker
+    // --------------------------------------- move tokens
 
     // first token
     let escrow_a = ctx.accounts.token_a_escrow.to_account_info();
-    let destination_a = ctx.accounts.token_a_destination.to_account_info();
-    token::transfer(
-        ctx.accounts
-            .transfer_ctx(escrow_a, destination_a)
-            .with_signer(&[&ctx.accounts.transmuter.get_seeds()]),
-        config.maker_token_a.total_funding,
-    )?;
+    let taker_ata_a = ctx.accounts.token_a_taker_ata.to_account_info();
+    ctx.accounts
+        .perform_token_transfer(escrow_a, taker_ata_a, config.maker_token_a, reverse)?;
 
     // second token
     if let Some(maker_token_b) = config.maker_token_b {
         let escrow_b = ctx.accounts.token_b_escrow.to_account_info();
-        let destination_b = ctx.accounts.token_b_destination.to_account_info();
-        token::transfer(
-            ctx.accounts
-                .transfer_ctx(escrow_b, destination_b)
-                .with_signer(&[&ctx.accounts.transmuter.get_seeds()]),
-            maker_token_b.total_funding,
-        )?;
+        let taker_ata_b = ctx.accounts.token_b_taker_ata.to_account_info();
+        ctx.accounts
+            .perform_token_transfer(escrow_b, taker_ata_b, maker_token_b, reverse)?;
     }
 
     // third token
     if let Some(maker_token_c) = config.maker_token_c {
         let escrow_c = ctx.accounts.token_c_escrow.to_account_info();
-        let destination_c = ctx.accounts.token_c_destination.to_account_info();
-        token::transfer(
-            ctx.accounts
-                .transfer_ctx(escrow_c, destination_c)
-                .with_signer(&[&ctx.accounts.transmuter.get_seeds()]),
-            maker_token_c.total_funding,
-        )?;
+        let taker_ata_c = ctx.accounts.token_c_taker_ata.to_account_info();
+        ctx.accounts
+            .perform_token_transfer(escrow_c, taker_ata_c, maker_token_c, reverse)?;
     }
 
     Ok(())
