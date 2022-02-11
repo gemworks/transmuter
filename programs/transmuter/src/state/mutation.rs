@@ -185,22 +185,8 @@ pub enum VaultAction {
 #[repr(C)]
 #[derive(Debug, Copy, Clone, AnchorSerialize, AnchorDeserialize)]
 pub struct PriceConfig {
-    price_lamports: u64,
+    pub price_lamports: u64,
 
-    pay_every_time: bool,
-
-    paid: bool,
-}
-
-impl PriceConfig {
-    // todo test
-    pub fn calc_and_record_payment(&mut self) -> u64 {
-        if self.pay_every_time {
-            return self.price_lamports;
-        } else if !self.paid {
-            self.paid = true;
-            return self.price_lamports;
-        }
-        0
-    }
+    /// negative means refund
+    pub reversal_price_lamports: i64,
 }

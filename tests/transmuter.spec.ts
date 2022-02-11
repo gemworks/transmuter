@@ -89,8 +89,7 @@ describe("transmuter", () => {
       makerTokenC,
       price: {
         priceLamports: toBN(LAMPORTS_PER_SOL),
-        payEveryTime: false,
-        paid: false,
+        reversalPriceLamports: toBN(LAMPORTS_PER_SOL),
       },
       mutationTimeSec,
       reversible,
@@ -112,7 +111,7 @@ describe("transmuter", () => {
   const prepareTakerVaults = async (bank?: PublicKey) => {
     //fund taker
     await sdk.provider.connection
-      .requestAirdrop(taker.publicKey, 2 * LAMPORTS_PER_SOL)
+      .requestAirdrop(taker.publicKey, 3 * LAMPORTS_PER_SOL)
       .then((sig) =>
         sdk.provider.connection.confirmTransaction(sig, "confirmed")
       );
@@ -170,11 +169,10 @@ describe("transmuter", () => {
 
     await expectTX(tx, "executes mutation").to.be.fulfilled;
 
-    //new balance should be <1 sol (we had 2, paid 1 to owner and paid spent some on tx fees)
     const newBalance = await sdk.provider.connection.getBalance(
       taker.publicKey
     );
-    expect(newBalance).to.be.lessThan(LAMPORTS_PER_SOL);
+    expect(newBalance).to.be.lessThan(2 * LAMPORTS_PER_SOL);
 
     //verify vault is locked and owned by taker
     const vaultAcc = await gb.fetchVaultAcc(vault);
@@ -348,7 +346,7 @@ describe("transmuter", () => {
     await verifyTakerReceivedTokens(makerMint);
   });
 
-  it("happy path (reversible, 3x3))", async () => {
+  it.only("happy path (reversible, 3x3))", async () => {
     await prepareTransmuter(3);
 
     const [makerMintB] = await sdk.createMintAndATA(toBN(makerTokenAmount));
@@ -411,7 +409,7 @@ describe("transmuter", () => {
     await verifyTakerReceivedTokens(makerMint);
   });
 
-  it.only("happy path (reverse)", async () => {
+  it("happy path (reverse)", async () => {
     await prepareTransmuter(3); //test 3
     const { makerMint } = await prepareMutation({ reversible: true });
     const { vault, takerMint } = await prepareTakerVaults();
@@ -426,6 +424,12 @@ describe("transmuter", () => {
     const reverseTx = await mutation.reverse(taker.publicKey);
     reverseTx.addSigners(taker);
     await expectTX(reverseTx, "reverses mutation").to.be.fulfilled;
+
+    //will have paid TWICE
+    const newBalance = await sdk.provider.connection.getBalance(
+      taker.publicKey
+    );
+    expect(newBalance).to.be.lessThan(LAMPORTS_PER_SOL);
 
     //verify vault is UNlocked and owned by taker
     const vaultAcc = await gb.fetchVaultAcc(vault);

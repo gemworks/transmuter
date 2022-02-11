@@ -51,8 +51,7 @@ export const VaultAction = {
 
 export interface PriceConfig {
   priceLamports: BN;
-  payEveryTime: boolean;
-  paid: boolean;
+  reversalPriceLamports: BN;
 }
 
 export interface MutationConfig {

@@ -196,7 +196,7 @@ export type TransmuterV0 = {
         },
         {
           "name": "owner",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
@@ -329,7 +329,7 @@ export type TransmuterV0 = {
         },
         {
           "name": "owner",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
@@ -674,12 +674,8 @@ export type TransmuterV0 = {
             "type": "u64"
           },
           {
-            "name": "payEveryTime",
-            "type": "bool"
-          },
-          {
-            "name": "paid",
-            "type": "bool"
+            "name": "reversalPriceLamports",
+            "type": "i64"
           }
         ]
       }
@@ -1021,7 +1017,7 @@ export const IDL: TransmuterV0 = {
         },
         {
           "name": "owner",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
@@ -1154,7 +1150,7 @@ export const IDL: TransmuterV0 = {
         },
         {
           "name": "owner",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
@@ -1499,12 +1495,8 @@ export const IDL: TransmuterV0 = {
             "type": "u64"
           },
           {
-            "name": "payEveryTime",
-            "type": "bool"
-          },
-          {
-            "name": "paid",
-            "type": "bool"
+            "name": "reversalPriceLamports",
+            "type": "i64"
           }
         ]
       }

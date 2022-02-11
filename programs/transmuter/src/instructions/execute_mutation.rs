@@ -16,6 +16,7 @@ pub struct ExecuteMutation<'info> {
     pub transmuter: Box<Account<'info, Transmuter>>,
     #[account(mut, has_one = transmuter)]
     pub mutation: Box<Account<'info, Mutation>>,
+    #[account(mut)]
     pub owner: AccountInfo<'info>,
     // skipping validation to save compute, has_one = auth is enough
     pub authority: AccountInfo<'info>,
@@ -146,14 +147,15 @@ impl<'info> ExecuteMutation<'info> {
         )
     }
 
-    pub fn pay_owner(&self, lamports: u64) -> ProgramResult {
+    pub fn make_payment(
+        &self,
+        from: AccountInfo<'info>,
+        to: AccountInfo<'info>,
+        lamports: u64,
+    ) -> ProgramResult {
         invoke(
-            &system_instruction::transfer(self.taker.key, self.owner.key, lamports),
-            &[
-                self.taker.to_account_info(),
-                self.owner.clone(),
-                self.system_program.to_account_info(),
-            ],
+            &system_instruction::transfer(from.key, to.key, lamports),
+            &[from, to, self.system_program.to_account_info()],
         )
     }
 
@@ -245,10 +247,13 @@ pub fn handler<'a, 'b, 'c, 'info>(
     let mutation = &mut ctx.accounts.mutation;
     mutation.try_decrement_uses()?;
 
-    // todo ouch this actually need to be done per user
-    let amount_due = mutation.config.price.calc_and_record_payment();
-    if amount_due > 0 {
-        ctx.accounts.pay_owner(amount_due)?;
+    let price = mutation.config.price.price_lamports;
+    if price > 0 {
+        ctx.accounts.make_payment(
+            ctx.accounts.taker.to_account_info(),
+            ctx.accounts.owner.to_account_info(),
+            price,
+        )?;
     }
 
     // --------------------------------------- taker vaults

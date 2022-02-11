@@ -34,9 +34,20 @@ pub fn handler<'a, 'b, 'c, 'info>(
     let mutation = &mut ctx.accounts.mutation;
     mutation.increment_uses()?;
 
-    let amount_due = mutation.config.price.calc_and_record_payment();
-    if amount_due > 0 {
-        ctx.accounts.pay_owner(amount_due)?;
+    // todo test
+    let price = mutation.config.price.reversal_price_lamports;
+    if price < 0 {
+        ctx.accounts.make_payment(
+            ctx.accounts.owner.to_account_info(),
+            ctx.accounts.taker.to_account_info(),
+            price as u64,
+        )?;
+    } else if price > 0 {
+        ctx.accounts.make_payment(
+            ctx.accounts.taker.to_account_info(),
+            ctx.accounts.owner.to_account_info(),
+            price as u64,
+        )?;
     }
 
     // --------------------------------------- unlock taker vaults
