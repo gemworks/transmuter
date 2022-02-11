@@ -64,7 +64,7 @@ export interface MutationConfig {
   makerTokenB: MakerTokenConfig | null;
   makerTokenC: MakerTokenConfig | null;
 
-  priceConfig: PriceConfig;
+  price: PriceConfig;
 
   mutationTimeSec: BN;
 

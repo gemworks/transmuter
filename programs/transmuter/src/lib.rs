@@ -64,9 +64,8 @@ pub mod transmuter_v0 {
         _bump_b: u8,
         _bump_c: u8,
         bump_receipt: u8,
-        reverse: bool,
     ) -> ProgramResult {
         // msg!("execute mutation"); //not enough compute
-        instructions::execute_mutation::handler(ctx, bump_receipt, reverse)
+        instructions::execute_mutation::handler(ctx, bump_receipt)
     }
 }

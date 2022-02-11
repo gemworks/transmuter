@@ -311,10 +311,6 @@ export type TransmuterV0 = {
         {
           "name": "bumpReceipt",
           "type": "u8"
-        },
-        {
-          "name": "reverse",
-          "type": "bool"
         }
       ]
     }
@@ -680,6 +676,11 @@ export type TransmuterV0 = {
       "code": 6012,
       "name": "MutationAlreadyComplete",
       "msg": "Mutation execution already finished in the past"
+    },
+    {
+      "code": 6013,
+      "name": "MutationNotReversible",
+      "msg": "Mutation isn't configured to be reversible"
     }
   ]
 };
@@ -997,10 +998,6 @@ export const IDL: TransmuterV0 = {
         {
           "name": "bumpReceipt",
           "type": "u8"
-        },
-        {
-          "name": "reverse",
-          "type": "bool"
         }
       ]
     }
@@ -1366,6 +1363,11 @@ export const IDL: TransmuterV0 = {
       "code": 6012,
       "name": "MutationAlreadyComplete",
       "msg": "Mutation execution already finished in the past"
+    },
+    {
+      "code": 6013,
+      "name": "MutationNotReversible",
+      "msg": "Mutation isn't configured to be reversible"
     }
   ]
 };

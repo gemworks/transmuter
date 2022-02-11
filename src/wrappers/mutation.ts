@@ -46,7 +46,7 @@ export class MutationWrapper {
 
   // --------------------------------------- ixs
 
-  async execute(taker: PublicKey, reverse: boolean = false) {
+  async execute(taker: PublicKey) {
     await this.reloadData();
     let config = this._data.config;
 
@@ -123,7 +123,6 @@ export class MutationWrapper {
       tokenBEscrowBump,
       tokenCEscrowBump,
       receiptBump,
-      reverse,
       {
         accounts: {
           transmuter: this.transmuter,
