@@ -111,7 +111,7 @@ export class MutationWrapper {
 
     // ----------------- prep ix
 
-    const [authority, bump] = await this.sdk.findTransmuterAuthorityPDA(
+    const [authority] = await this.sdk.findTransmuterAuthorityPDA(
       this.transmuter
     );
 
@@ -119,7 +119,6 @@ export class MutationWrapper {
       await this.sdk.findExecutionReceiptPDA(this.key, taker);
 
     const ix = this.program.instruction.executeMutation(
-      bump,
       tokenAEscrowBump,
       tokenBEscrowBump,
       tokenCEscrowBump,

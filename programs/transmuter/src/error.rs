@@ -47,6 +47,9 @@ pub enum ErrorCode {
     #[msg("Ths mutation doesn't support aborts")]
     AbortNotSupported,
 
-    #[msg("Execution Receipt account not initialized, means you're calling 1st time")]
-    ExecutionReceiptMissing, //15
+    #[msg("Execution hasn't completed yet (reversal not possible")]
+    ExecutionNotComplete,
+
+    #[msg("Execution already finished in the past (abort not possible)")]
+    ExecutionAlreadyComplete,
 }

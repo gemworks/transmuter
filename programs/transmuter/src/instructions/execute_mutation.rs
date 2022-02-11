@@ -1,5 +1,5 @@
 use crate::*;
-use anchor_lang::solana_program::{hash::hash, program::invoke, system_instruction};
+use anchor_lang::solana_program::{program::invoke, system_instruction};
 use anchor_spl::associated_token::AssociatedToken;
 use anchor_spl::token::{self, Mint, Token, TokenAccount, Transfer};
 use gem_bank::state::Vault;
@@ -8,15 +8,15 @@ use gem_bank::{
 };
 
 #[derive(Accounts)]
-#[instruction(bump_auth: u8, bump_a: u8, bump_b: u8, bump_c: u8, bump_receipt: u8)]
+#[instruction(bump_a: u8, bump_b: u8, bump_c: u8, bump_receipt: u8)]
 pub struct ExecuteMutation<'info> {
     // mutation
     #[account(has_one = authority, has_one = owner)]
     pub transmuter: Box<Account<'info, Transmuter>>,
-    #[account(mut)]
+    #[account(mut, has_one = transmuter)]
     pub mutation: Box<Account<'info, Mutation>>,
     pub owner: AccountInfo<'info>,
-    #[account(seeds = [transmuter.key().as_ref()], bump = bump_auth)]
+    // skipping validation to save compute, has_one = auth is enough
     pub authority: AccountInfo<'info>,
 
     // taker banks + vaults (2 more in optional accs)
@@ -27,15 +27,13 @@ pub struct ExecuteMutation<'info> {
 
     // token accs
     // a
-    // intentionally not checking if it's a TokenAccount - in some cases it'll be empty
     #[account(mut, seeds = [
             b"escrow".as_ref(),
             mutation.key().as_ref(),
             token_a_mint.key().as_ref(),
         ],
         bump = bump_a)]
-    pub token_a_escrow: AccountInfo<'info>,
-    // intentionally not checking if it's a TokenAccount - in some cases it'll be empty
+    pub token_a_escrow: AccountInfo<'info>, //not deserializing intentionally
     #[account(init_if_needed,
         associated_token::mint = token_a_mint,
         associated_token::authority = taker,
@@ -76,10 +74,15 @@ pub struct ExecuteMutation<'info> {
     // misc
     #[account(mut)]
     pub taker: Signer<'info>,
-    // have to deserialize manually, since we don't always need it
-    // todo to think how to handle this during reversals
-    #[account(mut)]
-    pub execution_receipt: AccountInfo<'info>,
+    #[account(init_if_needed, seeds = [
+        b"receipt".as_ref(),
+        mutation.key().as_ref(),
+        taker.key().as_ref(),
+    ],
+    bump = bump_receipt,
+    payer = taker,
+    space = 8 + std::mem::size_of::<ExecutionReceipt>())]
+    pub execution_receipt: Box<Account<'info, ExecutionReceipt>>,
     pub token_program: Program<'info, Token>,
     pub associated_token_program: Program<'info, AssociatedToken>,
     pub system_program: Program<'info, System>,
@@ -207,16 +210,11 @@ impl<'info> ExecuteMutation<'info> {
 
 pub fn handler<'a, 'b, 'c, 'info>(
     ctx: Context<'a, 'b, 'c, 'info, ExecuteMutation<'info>>,
-    bump_receipt: u8,
-    reverse: bool, //todo what happens if they call reverse fist before execution?
+    reverse: bool,
 ) -> ProgramResult {
-    let mutation = &mut ctx.accounts.mutation;
-
-    // collect payment
-    let amount_due = mutation.config.price_config.calc_and_record_payment();
-    if amount_due > 0 {
-        ctx.accounts.pay_owner(amount_due)?;
-    }
+    // --------------------------------------- uses & payment
+    // this section must go first, or we can have 10 ppl triggering a mutation with 1 use
+    // if it has mutation time > 0
 
     let mutation = &mut ctx.accounts.mutation;
 
@@ -226,9 +224,42 @@ pub fn handler<'a, 'b, 'c, 'info>(
     } else {
         mutation.try_decrement_uses()?;
     }
+
+    // collect payment
+    let amount_due = mutation.config.price_config.calc_and_record_payment();
+    if amount_due > 0 {
+        ctx.accounts.pay_owner(amount_due)?;
+    }
+
+    // --------------------------------------- execution receipt
+
+    // todo if no reversals or abortions we can skip this part
+
+    let mut execution_receipt = &mut ctx.accounts.execution_receipt;
+
+    // todo test
+    if execution_receipt.is_complete() {
+        return Err(ErrorCode::ExecutionAlreadyComplete.into());
+    }
+
+    // todo test
+    if reverse && !execution_receipt.is_complete() {
+        return Err(ErrorCode::ExecutionNotComplete.into());
+    }
+
+    // if no execution receipt, we're running for the 1st time = init one
+    if execution_receipt.is_empty() {
+        let time_config = ctx.accounts.mutation.config.time_config;
+        execution_receipt.init_receipt(time_config)?;
+    // if one exists and is pending, we're running 2nd+ time = try move to completed
+    } else if execution_receipt.state == ExecutionState::Pending {
+        execution_receipt.try_mark_complete()?;
+    }
+
     // --------------------------------------- perform action on taker vaults
 
     let remaining_accs = &mut ctx.remaining_accounts.iter();
+    let mutation = &mut ctx.accounts.mutation;
     let config = mutation.config;
 
     // during reversal we want to UNlock vault
@@ -269,51 +300,13 @@ pub fn handler<'a, 'b, 'c, 'info>(
         )?;
     }
 
-    // --------------------------------------- verify sufficient time passed (not during reversals)
-
-    if !reverse && config.time_config.mutation_time_sec > 0 {
-        let execution_receipt = &mut ctx.accounts.execution_receipt;
-        let execution_receipt_result: std::result::Result<
-            Account<'_, ExecutionReceipt>,
-            ProgramError,
-        > = Account::try_from(execution_receipt);
-
-        // try deserialize the PDA - if succeeds, means we're calling a 2nd+ time
-        if let Ok(execution_receipt_acc) = execution_receipt_result {
-            // if not enough time has passed this will throw an error and terminate the prog
-            execution_receipt_acc.assert_mutation_complete()?;
-        } else {
-            // else, if fails, means we're calling the 1st time and need to create the PDA
-            create_pda_with_space(
-                &[
-                    b"receipt".as_ref(),
-                    ctx.accounts.mutation.key().as_ref(),
-                    ctx.accounts.taker.key().as_ref(),
-                    &[bump_receipt], //todo is this a security vulnerability?
-                ],
-                execution_receipt,
-                8 + std::mem::size_of::<ExecutionReceipt>(),
-                ctx.program_id,
-                &ctx.accounts.taker.to_account_info(),
-                &ctx.accounts.system_program.to_account_info(),
-            )?;
-
-            let disc = hash("account:ExecutionReceipt".as_bytes());
-            let mutation_complete_ts =
-                ExecutionReceipt::calc_final_ts(config.time_config.mutation_time_sec)?;
-            let abort_window_closes_ts =
-                ExecutionReceipt::calc_final_ts(config.time_config.abort_window_sec)?;
-
-            let mut execution_receipt_raw = execution_receipt.data.borrow_mut();
-            execution_receipt_raw[..8].clone_from_slice(&disc.to_bytes()[..8]);
-            execution_receipt_raw[8..16].clone_from_slice(&mutation_complete_ts.to_le_bytes());
-            execution_receipt_raw[16..24].clone_from_slice(&abort_window_closes_ts.to_le_bytes());
-
-            return Ok(());
-        };
-    }
-
     // --------------------------------------- move tokens
+
+    // todo test
+    // if we got this far but execution is pending, we don't transfer tokens
+    if ctx.accounts.execution_receipt.is_pending() {
+        return Ok(());
+    }
 
     // first token
     let escrow_a = ctx.accounts.token_a_escrow.to_account_info();

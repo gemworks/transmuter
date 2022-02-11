@@ -12,13 +12,10 @@ pub fn handler(ctx: Context<ExecuteMutation>) -> ProgramResult {
     }
 
     // todo test
-    // if execution receipt is missing, means we've not called "execute" before -> err
-    let execution_receipt_info = &mut ctx.accounts.execution_receipt;
-    let execution_receipt: Account<'_, ExecutionReceipt> =
-        Account::try_from(execution_receipt_info)
-            .map_err(|_| ErrorCode::ExecutionReceiptMissing)?;
-
-    execution_receipt.assert_can_abort()?;
+    let execution_receipt = &mut ctx.accounts.execution_receipt;
+    if !execution_receipt.is_pending() {
+        return Err(ErrorCode::ExecutionAlreadyComplete.into());
+    }
 
     // return payment
 

@@ -467,6 +467,12 @@ export type TransmuterV0 = {
         "kind": "struct",
         "fields": [
           {
+            "name": "state",
+            "type": {
+              "defined": "ExecutionState"
+            }
+          },
+          {
             "name": "mutationCompleteTs",
             "type": "u64"
           },
@@ -713,6 +719,23 @@ export type TransmuterV0 = {
       }
     },
     {
+      "name": "ExecutionState",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "None"
+          },
+          {
+            "name": "Pending"
+          },
+          {
+            "name": "Complete"
+          }
+        ]
+      }
+    },
+    {
       "name": "MutationState",
       "type": {
         "kind": "enum",
@@ -816,8 +839,8 @@ export type TransmuterV0 = {
     },
     {
       "code": 6011,
-      "name": "CantBeReversible",
-      "msg": "For a mutation to be reversible all of taker's vaults must be Locked"
+      "name": "VaultsNotSetToLock",
+      "msg": "Reversals & abortions require all vaults to be set to Lock"
     },
     {
       "code": 6012,
@@ -836,8 +859,13 @@ export type TransmuterV0 = {
     },
     {
       "code": 6015,
-      "name": "ExecutionReceiptMissing",
-      "msg": "Execution Receipt account not initialized, means you're calling 1st time"
+      "name": "ExecutionNotComplete",
+      "msg": "Execution hasn't completed yet (reversal not possible"
+    },
+    {
+      "code": 6016,
+      "name": "ExecutionAlreadyComplete",
+      "msg": "Execution already finished in the past (abort not possible)"
     }
   ]
 };
@@ -1311,6 +1339,12 @@ export const IDL: TransmuterV0 = {
         "kind": "struct",
         "fields": [
           {
+            "name": "state",
+            "type": {
+              "defined": "ExecutionState"
+            }
+          },
+          {
             "name": "mutationCompleteTs",
             "type": "u64"
           },
@@ -1557,6 +1591,23 @@ export const IDL: TransmuterV0 = {
       }
     },
     {
+      "name": "ExecutionState",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "None"
+          },
+          {
+            "name": "Pending"
+          },
+          {
+            "name": "Complete"
+          }
+        ]
+      }
+    },
+    {
       "name": "MutationState",
       "type": {
         "kind": "enum",
@@ -1660,8 +1711,8 @@ export const IDL: TransmuterV0 = {
     },
     {
       "code": 6011,
-      "name": "CantBeReversible",
-      "msg": "For a mutation to be reversible all of taker's vaults must be Locked"
+      "name": "VaultsNotSetToLock",
+      "msg": "Reversals & abortions require all vaults to be set to Lock"
     },
     {
       "code": 6012,
@@ -1680,8 +1731,13 @@ export const IDL: TransmuterV0 = {
     },
     {
       "code": 6015,
-      "name": "ExecutionReceiptMissing",
-      "msg": "Execution Receipt account not initialized, means you're calling 1st time"
+      "name": "ExecutionNotComplete",
+      "msg": "Execution hasn't completed yet (reversal not possible"
+    },
+    {
+      "code": 6016,
+      "name": "ExecutionAlreadyComplete",
+      "msg": "Execution already finished in the past (abort not possible)"
     }
   ]
 };
