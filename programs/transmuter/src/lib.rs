@@ -65,7 +65,18 @@ pub mod transmuter_v0 {
         _bump_c: u8,
         bump_receipt: u8,
     ) -> ProgramResult {
-        // msg!("execute mutation"); //not enough compute
+        // msg!("execute mutation"); //save compute
         instructions::execute_mutation::handler(ctx, bump_receipt)
+    }
+
+    pub fn reverse_mutation<'a, 'b, 'c, 'info>(
+        ctx: Context<'a, 'b, 'c, 'info, ExecuteMutation<'info>>,
+        _bump_a: u8,
+        _bump_b: u8,
+        _bump_c: u8,
+        _bump_receipt: u8,
+    ) -> ProgramResult {
+        // msg!("reverse mutation"); //save compute
+        instructions::reverse_mutation::handler(ctx)
     }
 }

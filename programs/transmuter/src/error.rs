@@ -43,4 +43,7 @@ pub enum ErrorCode {
 
     #[msg("Mutation isn't configured to be reversible")]
     MutationNotReversible,
+
+    #[msg("Anchor serialization issue")]
+    AnchorSerializationIssue,
 }

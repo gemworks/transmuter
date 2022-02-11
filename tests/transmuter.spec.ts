@@ -411,37 +411,38 @@ describe("transmuter", () => {
     await verifyTakerReceivedTokens(makerMint);
   });
 
-  // it("happy path (reverse)", async () => {
-  //   await prepareTransmuter(3); //test 3
-  //   const { makerMint } = await prepareMutation({ reversible: true });
-  //   const { vault, takerMint } = await prepareTakerVaults();
-  //
-  //   //call execute
-  //   const tx = await mutation.execute(taker.publicKey);
-  //   tx.addSigners(taker);
-  //   await expectTX(tx, "executes mutation").to.be.fulfilled;
-  //
-  //   //call reverse
-  //   const reverseTx = await mutation.execute(taker.publicKey, true);
-  //   reverseTx.addSigners(taker);
-  //   await expectTX(reverseTx, "executes mutation").to.be.fulfilled;
-  //
-  //   //verify vault is UNlocked and owned by taker
-  //   const vaultAcc = await gb.fetchVaultAcc(vault);
-  //   expect(vaultAcc.owner.toBase58()).to.be.eq(taker.publicKey.toBase58());
-  //   expect(vaultAcc.locked).to.be.false;
-  //
-  //   //verify taker can withdraw gems
-  //   await gb.withdrawGem(
-  //     transmuter.bankA,
-  //     vault,
-  //     taker,
-  //     toBN(takerTokenAmount),
-  //     takerMint,
-  //     Keypair.generate().publicKey
-  //   );
-  //
-  //   //verify NO tokens are indeed in taker's wallet
-  //   await verifyTakerReceivedTokens(makerMint, toBN(0));
-  // });
+  it.only("happy path (reverse)", async () => {
+    await prepareTransmuter(3); //test 3
+    const { makerMint } = await prepareMutation({ reversible: true });
+    const { vault, takerMint } = await prepareTakerVaults();
+
+    //call execute
+    const tx = await mutation.execute(taker.publicKey);
+    tx.addSigners(taker);
+    await expectTX(tx, "executes mutation").to.be.fulfilled;
+    console.log("executed");
+
+    //call reverse
+    const reverseTx = await mutation.reverse(taker.publicKey);
+    reverseTx.addSigners(taker);
+    await expectTX(reverseTx, "reverses mutation").to.be.fulfilled;
+
+    //verify vault is UNlocked and owned by taker
+    const vaultAcc = await gb.fetchVaultAcc(vault);
+    expect(vaultAcc.owner.toBase58()).to.be.eq(taker.publicKey.toBase58());
+    expect(vaultAcc.locked).to.be.false;
+
+    //verify taker can withdraw gems
+    await gb.withdrawGem(
+      transmuter.bankA,
+      vault,
+      taker,
+      toBN(takerTokenAmount),
+      takerMint,
+      Keypair.generate().publicKey
+    );
+
+    //verify NO tokens are indeed in taker's wallet
+    await verifyTakerReceivedTokens(makerMint, toBN(0));
+  });
 });

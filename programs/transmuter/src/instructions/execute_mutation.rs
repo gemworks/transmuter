@@ -243,11 +243,9 @@ pub fn handler<'a, 'b, 'c, 'info>(
     // if it has mutation time > 0
 
     let mutation = &mut ctx.accounts.mutation;
-
-    // update uses, fails if 0 uses left
     mutation.try_decrement_uses()?;
 
-    // collect payment
+    // todo ouch this actually need to be done per user
     let amount_due = mutation.config.price.calc_and_record_payment();
     if amount_due > 0 {
         ctx.accounts.pay_owner(amount_due)?;
@@ -331,11 +329,11 @@ pub fn handler<'a, 'b, 'c, 'info>(
             execution_receipt_raw[..8].clone_from_slice(&disc.to_bytes()[..8]);
             execution_receipt_raw[8..16].clone_from_slice(&mutation_complete_ts.to_le_bytes());
 
-            // because first state (pending) = all 0s, we can skip the below & save compute
-            // execution_receipt_raw[16..20].clone_from_slice(&[0, 0, 0, 0]); //2nd would be 1000
-
             if config.mutation_time_sec > 0 {
                 return Ok(());
+            } else {
+                // if no extra wait is required, mark as complete (little endian)
+                execution_receipt_raw[16..20].clone_from_slice(&[1, 0, 0, 0]);
             }
         };
     }

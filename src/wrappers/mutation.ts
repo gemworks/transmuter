@@ -47,6 +47,14 @@ export class MutationWrapper {
   // --------------------------------------- ixs
 
   async execute(taker: PublicKey) {
+    return this._executeOrReverse(taker, false);
+  }
+
+  async reverse(taker: PublicKey) {
+    return this._executeOrReverse(taker, true);
+  }
+
+  async _executeOrReverse(taker: PublicKey, reverse = false) {
     await this.reloadData();
     let config = this._data.config;
 
@@ -118,39 +126,76 @@ export class MutationWrapper {
     const [executionReceipt, receiptBump] =
       await this.sdk.findExecutionReceiptPDA(this.key, taker);
 
-    const ix = this.program.instruction.executeMutation(
-      tokenAEscrowBump,
-      tokenBEscrowBump,
-      tokenCEscrowBump,
-      receiptBump,
-      {
-        accounts: {
-          transmuter: this.transmuter,
-          mutation: this.key,
-          authority,
-          owner: this.sdk.provider.wallet.publicKey,
-          vaultA,
-          bankA,
-          gemBank: GEM_BANK_PROG_ID,
-          tokenAEscrow,
-          tokenATakerAta,
-          tokenAMint,
-          tokenBEscrow,
-          tokenBTakerAta,
-          tokenBMint,
-          tokenCEscrow,
-          tokenCTakerAta,
-          tokenCMint,
-          taker,
-          executionReceipt,
-          tokenProgram: TOKEN_PROGRAM_ID,
-          associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
-          systemProgram: SystemProgram.programId,
-          rent: SYSVAR_RENT_PUBKEY,
-        },
-        remainingAccounts,
-      }
-    );
+    let ix;
+    if (!reverse) {
+      ix = this.program.instruction.executeMutation(
+        tokenAEscrowBump,
+        tokenBEscrowBump,
+        tokenCEscrowBump,
+        receiptBump,
+        {
+          accounts: {
+            transmuter: this.transmuter,
+            mutation: this.key,
+            authority,
+            owner: this.sdk.provider.wallet.publicKey,
+            vaultA,
+            bankA,
+            gemBank: GEM_BANK_PROG_ID,
+            tokenAEscrow,
+            tokenATakerAta,
+            tokenAMint,
+            tokenBEscrow,
+            tokenBTakerAta,
+            tokenBMint,
+            tokenCEscrow,
+            tokenCTakerAta,
+            tokenCMint,
+            taker,
+            executionReceipt,
+            tokenProgram: TOKEN_PROGRAM_ID,
+            associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
+            systemProgram: SystemProgram.programId,
+            rent: SYSVAR_RENT_PUBKEY,
+          },
+          remainingAccounts,
+        }
+      );
+    } else {
+      ix = this.program.instruction.reverseMutation(
+        tokenAEscrowBump,
+        tokenBEscrowBump,
+        tokenCEscrowBump,
+        receiptBump,
+        {
+          accounts: {
+            transmuter: this.transmuter,
+            mutation: this.key,
+            authority,
+            owner: this.sdk.provider.wallet.publicKey,
+            vaultA,
+            bankA,
+            gemBank: GEM_BANK_PROG_ID,
+            tokenAEscrow,
+            tokenATakerAta,
+            tokenAMint,
+            tokenBEscrow,
+            tokenBTakerAta,
+            tokenBMint,
+            tokenCEscrow,
+            tokenCTakerAta,
+            tokenCMint,
+            taker,
+            executionReceipt,
+            tokenProgram: TOKEN_PROGRAM_ID,
+            associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
+            systemProgram: SystemProgram.programId,
+            rent: SYSVAR_RENT_PUBKEY,
+          },
+          remainingAccounts,
+        }
+      );
+    }
 
     return new TransactionEnvelope(this.sdk.provider, [ix]);
   }

@@ -1,5 +1,8 @@
 use std::convert::TryInto;
+use std::io::Write;
 
+use crate::{ErrorCode, TryAdd};
+use anchor_lang::__private::CLOSED_ACCOUNT_DISCRIMINATOR;
 use anchor_lang::solana_program::program::invoke_signed;
 use anchor_lang::solana_program::system_instruction::create_account;
 use anchor_lang::{prelude::*, solana_program::clock};
@@ -35,4 +38,25 @@ pub fn create_pda_with_space<'info>(
         ],
         &[pda_seeds], //this is the part you can't do outside the program
     )
+}
+
+pub fn close_account(
+    pda_to_close: &mut AccountInfo,
+    sol_destination: &mut AccountInfo,
+) -> ProgramResult {
+    // Transfer tokens from the account to the sol_destination.
+    let dest_starting_lamports = sol_destination.lamports();
+    **sol_destination.lamports.borrow_mut() =
+        dest_starting_lamports.try_add(pda_to_close.lamports())?;
+    **pda_to_close.lamports.borrow_mut() = 0;
+
+    // Mark the account discriminator as closed.
+    let mut data = pda_to_close.try_borrow_mut_data()?;
+    let dst: &mut [u8] = &mut data;
+    let mut cursor = std::io::Cursor::new(dst);
+    cursor
+        .write_all(&CLOSED_ACCOUNT_DISCRIMINATOR)
+        .map_err(|_| ErrorCode::AnchorSerializationIssue)?;
+
+    Ok(())
 }
