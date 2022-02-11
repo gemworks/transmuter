@@ -35,6 +35,18 @@ pub enum ErrorCode {
     #[msg("Mutation hasn't completed yet - need more time")]
     MutationNotComplete, //10
 
-    #[msg("For a mutation to be reversible all of taker's vaults must be Locked")]
-    CantBeReversible,
+    #[msg("Reversals & abortions require all vaults to be set to Lock")]
+    VaultsNotSetToLock,
+
+    #[msg("Abortion time specified muse be <= mutation time")]
+    AbortTimeTooLarge,
+
+    #[msg("Abortion window has closed")]
+    AbortWindowClosed,
+
+    #[msg("Ths mutation doesn't support aborts")]
+    AbortNotSupported,
+
+    #[msg("Execution Receipt account not initialized, means you're calling 1st time")]
+    ExecutionReceiptMissing, //15
 }

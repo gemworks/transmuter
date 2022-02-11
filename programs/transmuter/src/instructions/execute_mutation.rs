@@ -139,7 +139,7 @@ impl<'info> ExecuteMutation<'info> {
         )
     }
 
-    fn pay_owner(&self, lamports: u64) -> ProgramResult {
+    pub fn pay_owner(&self, lamports: u64) -> ProgramResult {
         invoke(
             &system_instruction::transfer(self.taker.key, self.owner.key, lamports),
             &[
@@ -150,7 +150,7 @@ impl<'info> ExecuteMutation<'info> {
         )
     }
 
-    fn perform_vault_action(
+    pub fn perform_vault_action(
         &self,
         bank: AccountInfo<'info>,
         vault: &Account<'info, Vault>,
@@ -208,7 +208,7 @@ impl<'info> ExecuteMutation<'info> {
 pub fn handler<'a, 'b, 'c, 'info>(
     ctx: Context<'a, 'b, 'c, 'info, ExecuteMutation<'info>>,
     bump_receipt: u8,
-    reverse: bool,
+    reverse: bool, //todo what happens if they call reverse fist before execution?
 ) -> ProgramResult {
     let mutation = &mut ctx.accounts.mutation;
 
@@ -300,11 +300,14 @@ pub fn handler<'a, 'b, 'c, 'info>(
 
             let disc = hash("account:ExecutionReceipt".as_bytes());
             let mutation_complete_ts =
-                ExecutionReceipt::calc_mutation_complete_ts(config.time_config.mutation_time_sec)?;
+                ExecutionReceipt::calc_final_ts(config.time_config.mutation_time_sec)?;
+            let abort_window_closes_ts =
+                ExecutionReceipt::calc_final_ts(config.time_config.abort_window_sec)?;
 
             let mut execution_receipt_raw = execution_receipt.data.borrow_mut();
             execution_receipt_raw[..8].clone_from_slice(&disc.to_bytes()[..8]);
             execution_receipt_raw[8..16].clone_from_slice(&mutation_complete_ts.to_le_bytes());
+            execution_receipt_raw[16..24].clone_from_slice(&abort_window_closes_ts.to_le_bytes());
 
             return Ok(());
         };

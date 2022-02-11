@@ -74,23 +74,24 @@ pub struct MutationConfig {
 
 impl MutationConfig {
     // todo test
-    /// for a mutation to be reversible all user's vaults must be Locked, and nothing else
+    /// for a mutation to be reversible / abortable
+    /// all user's vaults must be Locked, and nothing else
     pub fn assert_is_valid(&self) -> ProgramResult {
-        if self.reversible {
+        if self.reversible || self.time_config.abort_window_sec > 0 {
             require!(
                 self.taker_token_a.vault_action == VaultAction::Lock,
-                CantBeReversible
+                VaultsNotSetToLock
             );
             if let Some(taker_token_b) = self.taker_token_b {
                 require!(
                     taker_token_b.vault_action == VaultAction::Lock,
-                    CantBeReversible
+                    VaultsNotSetToLock
                 );
             }
             if let Some(taker_token_c) = self.taker_token_c {
                 require!(
                     taker_token_c.vault_action == VaultAction::Lock,
-                    CantBeReversible
+                    VaultsNotSetToLock
                 );
             }
         }
@@ -189,6 +190,17 @@ pub struct TimeConfig {
     pub mutation_time_sec: u64,
 
     pub abort_window_sec: u64,
+}
+
+impl TimeConfig {
+    // todo test
+    pub fn assert_is_valid(&self) -> ProgramResult {
+        require!(
+            self.abort_window_sec <= self.mutation_time_sec,
+            AbortTimeTooLarge
+        );
+        Ok(())
+    }
 }
 
 #[repr(C)]
