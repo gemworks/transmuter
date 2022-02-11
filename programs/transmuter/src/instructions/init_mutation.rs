@@ -13,7 +13,7 @@ pub struct InitMutation<'info> {
     #[account(seeds = [transmuter.key().as_ref()], bump = bump_auth)]
     pub authority: AccountInfo<'info>,
 
-    // maker escrows (b & c are optional)
+    // tokens
     // a
     #[account(init, seeds = [
             b"escrow".as_ref(),
@@ -106,7 +106,6 @@ pub fn handler(ctx: Context<InitMutation>, config: MutationConfig, uses: u64) ->
     mutation.config = config;
     mutation.init_uses(uses);
     mutation.config.assert_is_valid()?;
-    mutation.config.time_config.assert_is_valid()?;
 
     // first escrow
     let mint_a = ctx.accounts.token_a_mint.to_account_info();

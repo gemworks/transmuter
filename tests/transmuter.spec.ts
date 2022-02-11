@@ -59,6 +59,7 @@ describe("transmuter", () => {
     takerTokenC = null,
     makerTokenB = null,
     makerTokenC = null,
+    reversible = false,
   }: {
     vaultAction?: any;
     mutationTimeSec?: BN;
@@ -66,6 +67,7 @@ describe("transmuter", () => {
     takerTokenC?: TakerTokenConfig;
     makerTokenB?: MakerTokenConfig;
     makerTokenC?: MakerTokenConfig;
+    reversible?: boolean;
   }) => {
     const [makerMint] = await sdk.createMintAndATA(toBN(makerTokenAmount));
 
@@ -85,16 +87,13 @@ describe("transmuter", () => {
       },
       makerTokenB,
       makerTokenC,
-      timeConfig: {
-        mutationTimeSec,
-        abortWindowSec: toBN(0),
-      },
       priceConfig: {
         priceLamports: toBN(LAMPORTS_PER_SOL),
         payEveryTime: false,
         paid: false,
       },
-      reversible: false,
+      mutationTimeSec,
+      reversible,
     };
 
     const { mutationWrapper, tx } = await sdk.initMutation(
@@ -265,7 +264,7 @@ describe("transmuter", () => {
   });
 
   //using max maker tokens and max taker tokens to test out compute budget
-  it.only("happy path (mutation time > 0, 3 maker, 3 taker))", async () => {
+  it.only("happy path (mutation time > 0, reversible, 3x3))", async () => {
     await prepareTransmuter(3);
 
     const [makerMintB] = await sdk.createMintAndATA(toBN(makerTokenAmount));
@@ -294,6 +293,7 @@ describe("transmuter", () => {
         totalFunding: toBN(makerTokenAmount),
         amountPerUse: toBN(makerTokenAmount),
       },
+      reversible: true,
     });
 
     const { vault, takerMint } = await prepareTakerVaults(transmuter.bankA);
@@ -305,6 +305,7 @@ describe("transmuter", () => {
     tx.addSigners(taker);
 
     await expectTX(tx, "executes mutation").to.be.fulfilled;
+    console.log("executed once");
 
     //verify vault is locked and owned by taker
     const vaultAcc = await gb.fetchVaultAcc(vault);
@@ -328,6 +329,7 @@ describe("transmuter", () => {
 
     //try to call immediately again - will fail, since not enough time passed
     await expect(tx.confirm()).to.be.rejected;
+    console.log("tried to execute twice (failure expected)");
 
     // todo
     // try {
@@ -341,6 +343,7 @@ describe("transmuter", () => {
 
     //call again
     await expectTX(tx, "executes mutation").to.be.fulfilled;
+    console.log("executed third time");
 
     //this time tokens present
     await verifyTakerReceivedTokens(makerMint);
@@ -348,7 +351,7 @@ describe("transmuter", () => {
 
   it("happy path (reverse)", async () => {
     await prepareTransmuter(3); //test 3
-    const { makerMint } = await prepareMutation({});
+    const { makerMint } = await prepareMutation({ reversible: true });
     const { vault, takerMint } = await prepareTakerVaults();
 
     //call execute

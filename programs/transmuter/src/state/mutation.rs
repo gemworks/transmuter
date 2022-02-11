@@ -65,19 +65,18 @@ pub struct MutationConfig {
     pub maker_token_b: Option<MakerTokenConfig>,
     pub maker_token_c: Option<MakerTokenConfig>,
 
-    pub time_config: TimeConfig,
+    pub price: PriceConfig,
 
-    pub price_config: PriceConfig,
+    pub mutation_time_sec: u64,
 
     pub reversible: bool,
 }
 
 impl MutationConfig {
     // todo test
-    /// for a mutation to be reversible / abortable
-    /// all user's vaults must be Locked, and nothing else
+    /// for a mutation to be reversible, all vaults must be set to Lock
     pub fn assert_is_valid(&self) -> ProgramResult {
-        if self.reversible || self.time_config.abort_window_sec > 0 {
+        if self.reversible {
             require!(
                 self.taker_token_a.vault_action == VaultAction::Lock,
                 VaultsNotSetToLock
@@ -181,26 +180,6 @@ pub enum VaultAction {
     ChangeOwner,
     Lock,
     DoNothing,
-}
-
-#[repr(C)]
-#[derive(Debug, Copy, Clone, AnchorSerialize, AnchorDeserialize)]
-pub struct TimeConfig {
-    /// setting to anything >0 will force the user to execute twice
-    pub mutation_time_sec: u64,
-
-    pub abort_window_sec: u64,
-}
-
-impl TimeConfig {
-    // todo test
-    pub fn assert_is_valid(&self) -> ProgramResult {
-        require!(
-            self.abort_window_sec <= self.mutation_time_sec,
-            AbortTimeTooLarge
-        );
-        Ok(())
-    }
 }
 
 #[repr(C)]

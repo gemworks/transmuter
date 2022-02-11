@@ -63,22 +63,10 @@ pub mod transmuter_v0 {
         _bump_a: u8,
         _bump_b: u8,
         _bump_c: u8,
-        _bump_receipt: u8,
+        bump_receipt: u8,
         reverse: bool,
     ) -> ProgramResult {
         // msg!("execute mutation"); //not enough compute
-        instructions::execute_mutation::handler(ctx, reverse)
-    }
-
-    pub fn abort_mutation(
-        ctx: Context<ExecuteMutation>,
-        _bump_auth: u8,
-        _bump_a: u8,
-        _bump_b: u8,
-        _bump_c: u8,
-        _bump_receipt: u8,
-    ) -> ProgramResult {
-        msg!("abort pending mutation");
-        instructions::abort_mutation::handler(ctx)
+        instructions::execute_mutation::handler(ctx, bump_receipt, reverse)
     }
 }

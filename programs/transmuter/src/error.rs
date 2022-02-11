@@ -32,24 +32,15 @@ pub enum ErrorCode {
     #[msg("Passed vault doesn't belong to passed bank")]
     VaultDoesNotBelongToBank,
 
-    #[msg("Mutation hasn't completed yet - need more time")]
-    MutationNotComplete, //10
+    #[msg("Reversals require all vaults to be set to Lock")]
+    VaultsNotSetToLock, //10
 
-    #[msg("Reversals & abortions require all vaults to be set to Lock")]
-    VaultsNotSetToLock,
+    #[msg("Mutation execution hasn't completed yet")]
+    MutationNotComplete,
 
-    #[msg("Abortion time specified muse be <= mutation time")]
-    AbortTimeTooLarge,
+    #[msg("Mutation execution already finished in the past")]
+    MutationAlreadyComplete,
 
-    #[msg("Abortion window has closed")]
-    AbortWindowClosed,
-
-    #[msg("Ths mutation doesn't support aborts")]
-    AbortNotSupported,
-
-    #[msg("Execution hasn't completed yet (reversal not possible")]
-    ExecutionNotComplete,
-
-    #[msg("Execution already finished in the past (abort not possible)")]
-    ExecutionAlreadyComplete,
+    #[msg("Mutation isn't configured to be reversible")]
+    MutationNotReversible,
 }

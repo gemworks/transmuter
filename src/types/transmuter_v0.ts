@@ -297,10 +297,6 @@ export type TransmuterV0 = {
       ],
       "args": [
         {
-          "name": "bumpAuth",
-          "type": "u8"
-        },
-        {
           "name": "bumpA",
           "type": "u8"
         },
@@ -321,143 +317,6 @@ export type TransmuterV0 = {
           "type": "bool"
         }
       ]
-    },
-    {
-      "name": "abortMutation",
-      "accounts": [
-        {
-          "name": "transmuter",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "mutation",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "owner",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "authority",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "bankA",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "vaultA",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "gemBank",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "tokenAEscrow",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "tokenATakerAta",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "tokenAMint",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "tokenBEscrow",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "tokenBTakerAta",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "tokenBMint",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "tokenCEscrow",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "tokenCTakerAta",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "tokenCMint",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "taker",
-          "isMut": true,
-          "isSigner": true
-        },
-        {
-          "name": "executionReceipt",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "tokenProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "associatedTokenProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "systemProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "rent",
-          "isMut": false,
-          "isSigner": false
-        }
-      ],
-      "args": [
-        {
-          "name": "bumpAuth",
-          "type": "u8"
-        },
-        {
-          "name": "bumpA",
-          "type": "u8"
-        },
-        {
-          "name": "bumpB",
-          "type": "u8"
-        },
-        {
-          "name": "bumpC",
-          "type": "u8"
-        },
-        {
-          "name": "bumpReceipt",
-          "type": "u8"
-        }
-      ]
     }
   ],
   "accounts": [
@@ -467,18 +326,14 @@ export type TransmuterV0 = {
         "kind": "struct",
         "fields": [
           {
-            "name": "state",
-            "type": {
-              "defined": "ExecutionState"
-            }
-          },
-          {
             "name": "mutationCompleteTs",
             "type": "u64"
           },
           {
-            "name": "abortWindowClosesTs",
-            "type": "u64"
+            "name": "state",
+            "type": {
+              "defined": "ExecutionState"
+            }
           }
         ]
       }
@@ -616,16 +471,14 @@ export type TransmuterV0 = {
             }
           },
           {
-            "name": "timeConfig",
-            "type": {
-              "defined": "TimeConfig"
-            }
-          },
-          {
-            "name": "priceConfig",
+            "name": "price",
             "type": {
               "defined": "PriceConfig"
             }
+          },
+          {
+            "name": "mutationTimeSec",
+            "type": "u64"
           },
           {
             "name": "reversible",
@@ -683,22 +536,6 @@ export type TransmuterV0 = {
       }
     },
     {
-      "name": "TimeConfig",
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "mutationTimeSec",
-            "type": "u64"
-          },
-          {
-            "name": "abortWindowSec",
-            "type": "u64"
-          }
-        ]
-      }
-    },
-    {
       "name": "PriceConfig",
       "type": {
         "kind": "struct",
@@ -723,9 +560,6 @@ export type TransmuterV0 = {
       "type": {
         "kind": "enum",
         "variants": [
-          {
-            "name": "None"
-          },
           {
             "name": "Pending"
           },
@@ -834,38 +668,18 @@ export type TransmuterV0 = {
     },
     {
       "code": 6010,
-      "name": "MutationNotComplete",
-      "msg": "Mutation hasn't completed yet - need more time"
+      "name": "VaultsNotSetToLock",
+      "msg": "Reversals require all vaults to be set to Lock"
     },
     {
       "code": 6011,
-      "name": "VaultsNotSetToLock",
-      "msg": "Reversals & abortions require all vaults to be set to Lock"
+      "name": "MutationNotComplete",
+      "msg": "Mutation execution hasn't completed yet"
     },
     {
       "code": 6012,
-      "name": "AbortTimeTooLarge",
-      "msg": "Abortion time specified muse be <= mutation time"
-    },
-    {
-      "code": 6013,
-      "name": "AbortWindowClosed",
-      "msg": "Abortion window has closed"
-    },
-    {
-      "code": 6014,
-      "name": "AbortNotSupported",
-      "msg": "Ths mutation doesn't support aborts"
-    },
-    {
-      "code": 6015,
-      "name": "ExecutionNotComplete",
-      "msg": "Execution hasn't completed yet (reversal not possible"
-    },
-    {
-      "code": 6016,
-      "name": "ExecutionAlreadyComplete",
-      "msg": "Execution already finished in the past (abort not possible)"
+      "name": "MutationAlreadyComplete",
+      "msg": "Mutation execution already finished in the past"
     }
   ]
 };
@@ -1169,10 +983,6 @@ export const IDL: TransmuterV0 = {
       ],
       "args": [
         {
-          "name": "bumpAuth",
-          "type": "u8"
-        },
-        {
           "name": "bumpA",
           "type": "u8"
         },
@@ -1193,143 +1003,6 @@ export const IDL: TransmuterV0 = {
           "type": "bool"
         }
       ]
-    },
-    {
-      "name": "abortMutation",
-      "accounts": [
-        {
-          "name": "transmuter",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "mutation",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "owner",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "authority",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "bankA",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "vaultA",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "gemBank",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "tokenAEscrow",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "tokenATakerAta",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "tokenAMint",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "tokenBEscrow",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "tokenBTakerAta",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "tokenBMint",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "tokenCEscrow",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "tokenCTakerAta",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "tokenCMint",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "taker",
-          "isMut": true,
-          "isSigner": true
-        },
-        {
-          "name": "executionReceipt",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "tokenProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "associatedTokenProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "systemProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "rent",
-          "isMut": false,
-          "isSigner": false
-        }
-      ],
-      "args": [
-        {
-          "name": "bumpAuth",
-          "type": "u8"
-        },
-        {
-          "name": "bumpA",
-          "type": "u8"
-        },
-        {
-          "name": "bumpB",
-          "type": "u8"
-        },
-        {
-          "name": "bumpC",
-          "type": "u8"
-        },
-        {
-          "name": "bumpReceipt",
-          "type": "u8"
-        }
-      ]
     }
   ],
   "accounts": [
@@ -1339,18 +1012,14 @@ export const IDL: TransmuterV0 = {
         "kind": "struct",
         "fields": [
           {
-            "name": "state",
-            "type": {
-              "defined": "ExecutionState"
-            }
-          },
-          {
             "name": "mutationCompleteTs",
             "type": "u64"
           },
           {
-            "name": "abortWindowClosesTs",
-            "type": "u64"
+            "name": "state",
+            "type": {
+              "defined": "ExecutionState"
+            }
           }
         ]
       }
@@ -1488,16 +1157,14 @@ export const IDL: TransmuterV0 = {
             }
           },
           {
-            "name": "timeConfig",
-            "type": {
-              "defined": "TimeConfig"
-            }
-          },
-          {
-            "name": "priceConfig",
+            "name": "price",
             "type": {
               "defined": "PriceConfig"
             }
+          },
+          {
+            "name": "mutationTimeSec",
+            "type": "u64"
           },
           {
             "name": "reversible",
@@ -1555,22 +1222,6 @@ export const IDL: TransmuterV0 = {
       }
     },
     {
-      "name": "TimeConfig",
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "mutationTimeSec",
-            "type": "u64"
-          },
-          {
-            "name": "abortWindowSec",
-            "type": "u64"
-          }
-        ]
-      }
-    },
-    {
       "name": "PriceConfig",
       "type": {
         "kind": "struct",
@@ -1595,9 +1246,6 @@ export const IDL: TransmuterV0 = {
       "type": {
         "kind": "enum",
         "variants": [
-          {
-            "name": "None"
-          },
           {
             "name": "Pending"
           },
@@ -1706,38 +1354,18 @@ export const IDL: TransmuterV0 = {
     },
     {
       "code": 6010,
-      "name": "MutationNotComplete",
-      "msg": "Mutation hasn't completed yet - need more time"
+      "name": "VaultsNotSetToLock",
+      "msg": "Reversals require all vaults to be set to Lock"
     },
     {
       "code": 6011,
-      "name": "VaultsNotSetToLock",
-      "msg": "Reversals & abortions require all vaults to be set to Lock"
+      "name": "MutationNotComplete",
+      "msg": "Mutation execution hasn't completed yet"
     },
     {
       "code": 6012,
-      "name": "AbortTimeTooLarge",
-      "msg": "Abortion time specified muse be <= mutation time"
-    },
-    {
-      "code": 6013,
-      "name": "AbortWindowClosed",
-      "msg": "Abortion window has closed"
-    },
-    {
-      "code": 6014,
-      "name": "AbortNotSupported",
-      "msg": "Ths mutation doesn't support aborts"
-    },
-    {
-      "code": 6015,
-      "name": "ExecutionNotComplete",
-      "msg": "Execution hasn't completed yet (reversal not possible"
-    },
-    {
-      "code": 6016,
-      "name": "ExecutionAlreadyComplete",
-      "msg": "Execution already finished in the past (abort not possible)"
+      "name": "MutationAlreadyComplete",
+      "msg": "Mutation execution already finished in the past"
     }
   ]
 };

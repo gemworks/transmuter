@@ -1,11 +1,12 @@
 use crate::*;
-use anchor_lang::solana_program::{program::invoke, system_instruction};
+use anchor_lang::solana_program::{hash::hash, program::invoke, system_instruction};
 use anchor_spl::associated_token::AssociatedToken;
 use anchor_spl::token::{self, Mint, Token, TokenAccount, Transfer};
 use gem_bank::state::Vault;
 use gem_bank::{
     self, cpi::accounts::SetVaultLock, cpi::accounts::UpdateVaultOwner, program::GemBank,
 };
+use std::mem;
 
 #[derive(Accounts)]
 #[instruction(bump_a: u8, bump_b: u8, bump_c: u8, bump_receipt: u8)]
@@ -25,7 +26,7 @@ pub struct ExecuteMutation<'info> {
     pub vault_a: Box<Account<'info, Vault>>,
     pub gem_bank: Program<'info, GemBank>,
 
-    // token accs
+    // tokens
     // a
     #[account(mut, seeds = [
             b"escrow".as_ref(),
@@ -41,7 +42,6 @@ pub struct ExecuteMutation<'info> {
     pub token_a_taker_ata: Box<Account<'info, TokenAccount>>,
     pub token_a_mint: Box<Account<'info, Mint>>,
     // b
-    // todo can make optional
     #[account(mut, seeds = [
             b"escrow".as_ref(),
             mutation.key().as_ref(),
@@ -49,7 +49,7 @@ pub struct ExecuteMutation<'info> {
         ],
         bump = bump_b)]
     pub token_b_escrow: AccountInfo<'info>,
-    // todo currently creating 3 dest token accs even if we only need 1 - can take offchain & thus avoid doing it
+    // todo currently creating 3 dest token accs even if we only need 1 - do manually
     #[account(init_if_needed,
         associated_token::mint = token_b_mint,
         associated_token::authority = taker,
@@ -74,15 +74,9 @@ pub struct ExecuteMutation<'info> {
     // misc
     #[account(mut)]
     pub taker: Signer<'info>,
-    #[account(init_if_needed, seeds = [
-        b"receipt".as_ref(),
-        mutation.key().as_ref(),
-        taker.key().as_ref(),
-    ],
-    bump = bump_receipt,
-    payer = taker,
-    space = 8 + std::mem::size_of::<ExecutionReceipt>())]
-    pub execution_receipt: Box<Account<'info, ExecutionReceipt>>,
+    // manually init'ed / deserialized because we don't always need it
+    #[account(mut)]
+    pub execution_receipt: AccountInfo<'info>,
     pub token_program: Program<'info, Token>,
     pub associated_token_program: Program<'info, AssociatedToken>,
     pub system_program: Program<'info, System>,
@@ -142,7 +136,7 @@ impl<'info> ExecuteMutation<'info> {
         )
     }
 
-    pub fn pay_owner(&self, lamports: u64) -> ProgramResult {
+    fn pay_owner(&self, lamports: u64) -> ProgramResult {
         invoke(
             &system_instruction::transfer(self.taker.key, self.owner.key, lamports),
             &[
@@ -153,7 +147,7 @@ impl<'info> ExecuteMutation<'info> {
         )
     }
 
-    pub fn perform_vault_action(
+    fn perform_vault_action(
         &self,
         bank: AccountInfo<'info>,
         vault: &Account<'info, Vault>,
@@ -210,6 +204,7 @@ impl<'info> ExecuteMutation<'info> {
 
 pub fn handler<'a, 'b, 'c, 'info>(
     ctx: Context<'a, 'b, 'c, 'info, ExecuteMutation<'info>>,
+    bump_receipt: u8,
     reverse: bool,
 ) -> ProgramResult {
     // --------------------------------------- uses & payment
@@ -222,41 +217,16 @@ pub fn handler<'a, 'b, 'c, 'info>(
     if reverse {
         mutation.increment_uses()?;
     } else {
-        mutation.try_decrement_uses()?;
+        mutation.try_decrement_uses()?; //fails if 0 uses left
     }
 
     // collect payment
-    let amount_due = mutation.config.price_config.calc_and_record_payment();
+    let amount_due = mutation.config.price.calc_and_record_payment();
     if amount_due > 0 {
         ctx.accounts.pay_owner(amount_due)?;
     }
 
-    // --------------------------------------- execution receipt
-
-    // todo if no reversals or abortions we can skip this part
-
-    let mut execution_receipt = &mut ctx.accounts.execution_receipt;
-
-    // todo test
-    if execution_receipt.is_complete() {
-        return Err(ErrorCode::ExecutionAlreadyComplete.into());
-    }
-
-    // todo test
-    if reverse && !execution_receipt.is_complete() {
-        return Err(ErrorCode::ExecutionNotComplete.into());
-    }
-
-    // if no execution receipt, we're running for the 1st time = init one
-    if execution_receipt.is_empty() {
-        let time_config = ctx.accounts.mutation.config.time_config;
-        execution_receipt.init_receipt(time_config)?;
-    // if one exists and is pending, we're running 2nd+ time = try move to completed
-    } else if execution_receipt.state == ExecutionState::Pending {
-        execution_receipt.try_mark_complete()?;
-    }
-
-    // --------------------------------------- perform action on taker vaults
+    // --------------------------------------- taker vaults
 
     let remaining_accs = &mut ctx.remaining_accounts.iter();
     let mutation = &mut ctx.accounts.mutation;
@@ -300,13 +270,80 @@ pub fn handler<'a, 'b, 'c, 'info>(
         )?;
     }
 
-    // --------------------------------------- move tokens
+    // --------------------------------------- execution receipt
+    // todo check every branch on all 3 sections below
 
-    // todo test
-    // if we got this far but execution is pending, we don't transfer tokens
-    if ctx.accounts.execution_receipt.is_pending() {
-        return Ok(());
+    let config = ctx.accounts.mutation.config;
+    let execution_receipt_info = &mut ctx.accounts.execution_receipt;
+    let mut execution_receipt: Account<'_, ExecutionReceipt>;
+
+    // only relevant if either:
+    // - reversible (we'll need to know that mutation completed)
+    // - mutation time > 0 (we'll need to know if mutation still pending)
+    if config.reversible || config.mutation_time_sec > 0 {
+        let execution_receipt_result: std::result::Result<
+            Account<'_, ExecutionReceipt>,
+            ProgramError,
+        > = Account::try_from(execution_receipt_info);
+
+        // deserialize or create a receipt
+        if let Ok(er) = execution_receipt_result {
+            execution_receipt = er;
+        } else {
+            create_pda_with_space(
+                &[
+                    b"receipt".as_ref(),
+                    ctx.accounts.mutation.key().as_ref(),
+                    ctx.accounts.taker.key().as_ref(),
+                    &[bump_receipt], //todo is this a security vulnerability?
+                ],
+                execution_receipt_info,
+                8 + std::mem::size_of::<ExecutionReceipt>(),
+                ctx.program_id,
+                &ctx.accounts.taker.to_account_info(),
+                &ctx.accounts.system_program.to_account_info(),
+            )?;
+
+            let disc = hash("account:ExecutionReceipt".as_bytes());
+            let mutation_complete_ts =
+                ExecutionReceipt::calc_mutation_complete_ts(config.mutation_time_sec)?;
+
+            let mut execution_receipt_raw = execution_receipt_info.data.borrow_mut();
+            execution_receipt_raw[..8].clone_from_slice(&disc.to_bytes()[..8]);
+            execution_receipt_raw[8..16].clone_from_slice(&mutation_complete_ts.to_le_bytes());
+
+            // because first state (pending) = all 0s, we can skip the below & save compute
+            // execution_receipt_raw[16..20].clone_from_slice(&[0, 0, 0, 0]); //2nd would be 1000
+
+            if config.mutation_time_sec > 0 {
+                return Ok(());
+            }
+
+            // todo tricky sit not sure how to solve:
+            //  no more compute budget here, so have to return
+            //  but in theory if mutation_time_sec = 0 that's shitty UX, since could have continued
+        };
     }
+
+    // --------------------------------------- reverse checks
+
+    if reverse && !config.reversible {
+        return Err(ErrorCode::MutationNotReversible.into());
+    }
+
+    if reverse && !execution_receipt.is_complete() {
+        return Err(ErrorCode::MutationNotComplete.into());
+    }
+
+    // --------------------------------------- mutation time > 0 checks
+
+    if execution_receipt.is_pending() {
+        execution_receipt.try_mark_complete()?; //will error out if isn't due yet
+    } else {
+        return Err(ErrorCode::MutationAlreadyComplete.into());
+    }
+
+    // --------------------------------------- move tokens
 
     // first token
     let escrow_a = ctx.accounts.token_a_escrow.to_account_info();

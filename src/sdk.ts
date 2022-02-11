@@ -49,11 +49,6 @@ export const VaultAction = {
   DoNothing: { doNothing: {} },
 };
 
-export interface TimeConfig {
-  mutationTimeSec: BN;
-  abortWindowSec: BN;
-}
-
 export interface PriceConfig {
   priceLamports: BN;
   payEveryTime: boolean;
@@ -69,9 +64,9 @@ export interface MutationConfig {
   makerTokenB: MakerTokenConfig | null;
   makerTokenC: MakerTokenConfig | null;
 
-  timeConfig: TimeConfig;
-
   priceConfig: PriceConfig;
+
+  mutationTimeSec: BN;
 
   reversible: boolean;
 }
