@@ -303,7 +303,7 @@ pub fn handler<'a, 'b, 'c, 'info>(
                     b"receipt".as_ref(),
                     ctx.accounts.mutation.key().as_ref(),
                     ctx.accounts.taker.key().as_ref(),
-                    &[bump_receipt], //todo is this a security vulnerability?
+                    &[bump_receipt],
                 ],
                 execution_receipt_info,
                 8 + std::mem::size_of::<ExecutionReceipt>(),
