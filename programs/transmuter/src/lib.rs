@@ -60,9 +60,6 @@ pub mod transmuter_v0 {
 
     pub fn execute_mutation<'a, 'b, 'c, 'info>(
         ctx: Context<'a, 'b, 'c, 'info, ExecuteMutation<'info>>,
-        _bump_a: u8,
-        _bump_b: u8,
-        _bump_c: u8,
         bump_receipt: u8,
     ) -> ProgramResult {
         // msg!("execute mutation"); //save compute
@@ -71,9 +68,6 @@ pub mod transmuter_v0 {
 
     pub fn reverse_mutation<'a, 'b, 'c, 'info>(
         ctx: Context<'a, 'b, 'c, 'info, ExecuteMutation<'info>>,
-        _bump_a: u8,
-        _bump_b: u8,
-        _bump_c: u8,
         _bump_receipt: u8,
     ) -> ProgramResult {
         // msg!("reverse mutation"); //save compute

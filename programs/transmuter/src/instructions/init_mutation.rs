@@ -106,6 +106,13 @@ pub fn handler(ctx: Context<InitMutation>, config: MutationConfig, uses: u64) ->
     mutation.config = config;
     mutation.init_uses(uses);
     mutation.config.assert_is_valid()?;
+    mutation.token_a_escrow = ctx.accounts.token_a_escrow.key();
+    if config.maker_token_b.is_some() {
+        mutation.token_b_escrow = Some(ctx.accounts.token_b_escrow.key());
+    }
+    if config.maker_token_c.is_some() {
+        mutation.token_c_escrow = Some(ctx.accounts.token_c_escrow.key());
+    }
 
     // first escrow
     let mint_a = ctx.accounts.token_a_mint.to_account_info();

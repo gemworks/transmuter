@@ -10,6 +10,11 @@ pub struct Mutation {
 
     pub config: MutationConfig,
 
+    /// storing these here to save compute during ix execution (has_one cheaper than derivation)
+    pub token_a_escrow: Pubkey,
+    pub token_b_escrow: Option<Pubkey>,
+    pub token_c_escrow: Option<Pubkey>,
+
     total_uses: u64,
 
     remaining_uses: u64,
@@ -105,6 +110,7 @@ pub enum RequiredUnits {
     Gems,
 }
 
+/// Token required FROM user
 #[repr(C)]
 #[derive(Debug, Copy, Clone, AnchorSerialize, AnchorDeserialize)]
 pub struct TakerTokenConfig {
@@ -145,6 +151,7 @@ impl TakerTokenConfig {
     }
 }
 
+/// Token returned TO user
 #[repr(C)]
 #[derive(Debug, Copy, Clone, AnchorSerialize, AnchorDeserialize)]
 pub struct MakerTokenConfig {

@@ -9,12 +9,15 @@ use gem_bank::{
 };
 
 #[derive(Accounts)]
-#[instruction(bump_a: u8, bump_b: u8, bump_c: u8, bump_receipt: u8)]
+#[instruction(bump_receipt: u8)]
 pub struct ExecuteMutation<'info> {
     // mutation
     #[account(has_one = authority, has_one = owner)]
     pub transmuter: Box<Account<'info, Transmuter>>,
-    #[account(mut, has_one = transmuter)]
+    #[account(mut,
+        has_one = transmuter,
+        has_one = token_a_escrow,
+    )] //other 2 escrows conditionally checked in handler
     pub mutation: Box<Account<'info, Mutation>>,
     #[account(mut)]
     pub owner: AccountInfo<'info>,
@@ -27,46 +30,30 @@ pub struct ExecuteMutation<'info> {
     pub vault_a: Box<Account<'info, Vault>>,
     pub gem_bank: Program<'info, GemBank>,
 
-    // tokens
+    // tokens - skipping deserialization due to compute. Ok coz:
     // a
-    // todo not deserializing any of these due to compute limitations. Is that a sec problem?
-    #[account(mut, seeds = [
-            b"escrow".as_ref(),
-            mutation.key().as_ref(),
-            token_a_mint.key().as_ref(),
-        ],
-        bump = bump_a)]
-    pub token_a_escrow: AccountInfo<'info>,
     #[account(mut)]
-    pub token_a_taker_ata: AccountInfo<'info>,
-    pub token_a_mint: AccountInfo<'info>,
+    pub token_a_escrow: AccountInfo<'info>, //has_one check enough
+    #[account(mut)]
+    pub token_a_taker_ata: AccountInfo<'info>, //if not a TA, transfer will fail
+    pub token_a_mint: AccountInfo<'info>, //if wrong mint, transfer will fail
     // b
-    #[account(mut, seeds = [
-            b"escrow".as_ref(),
-            mutation.key().as_ref(),
-            token_b_mint.key().as_ref(),
-        ],
-        bump = bump_b)]
+    #[account(mut)]
     pub token_b_escrow: AccountInfo<'info>,
     #[account(mut)]
-    pub token_b_taker_ata: AccountInfo<'info>,
+    pub token_b_taker_ata: AccountInfo<'info>, //may/not be TA, can't deserialize
     pub token_b_mint: AccountInfo<'info>,
     // c
-    #[account(mut, seeds = [
-            b"escrow".as_ref(),
-            mutation.key().as_ref(),
-            token_c_mint.key().as_ref(),
-        ],
-        bump = bump_c)]
+    #[account(mut)]
     pub token_c_escrow: AccountInfo<'info>,
     #[account(mut)]
-    pub token_c_taker_ata: AccountInfo<'info>,
+    pub token_c_taker_ata: AccountInfo<'info>, //may/not be TA, can't deserialize
     pub token_c_mint: AccountInfo<'info>,
 
     // misc
     #[account(mut)]
     pub taker: Signer<'info>,
-    // manually init'ed / deserialized because we don't always need it
+    // manually init'ed / deserialized to save compute
     #[account(mut)]
     pub execution_receipt: AccountInfo<'info>,
     pub token_program: Program<'info, Token>,
@@ -218,6 +205,18 @@ pub fn handler<'a, 'b, 'c, 'info>(
     ctx: Context<'a, 'b, 'c, 'info, ExecuteMutation<'info>>,
     bump_receipt: u8,
 ) -> ProgramResult {
+    // --------------------------------------- verify other 2 escrows
+
+    let mutation = &ctx.accounts.mutation;
+
+    if let Some(b_escrow) = mutation.token_b_escrow {
+        assert_keys_eq!(ctx.accounts.token_b_escrow.key(), b_escrow, "b escrow");
+    }
+
+    if let Some(c_escrow) = mutation.token_c_escrow {
+        assert_keys_eq!(ctx.accounts.token_c_escrow.key(), c_escrow, "c escrow");
+    }
+
     // --------------------------------------- create any necessary ATAs
 
     let config = ctx.accounts.mutation.config;
@@ -297,21 +296,8 @@ pub fn handler<'a, 'b, 'c, 'info>(
     // - reversible (we'll need to know that mutation completed)
     // - mutation time > 0 (we'll need to know if mutation still pending)
     if config.reversible || config.mutation_time_sec > 0 {
-        let execution_receipt_result: std::result::Result<
-            Account<'_, ExecutionReceipt>,
-            ProgramError,
-        > = Account::try_from(execution_receipt_info);
-
-        // deserialize an existing receipt
-        if let Ok(mut execution_receipt) = execution_receipt_result {
-            if execution_receipt.is_pending() {
-                execution_receipt.try_mark_complete()?; //will error out if isn't due yet
-            } else {
-                return Err(ErrorCode::MutationAlreadyComplete.into());
-            }
-
-        // or create a receipt
-        } else {
+        // create a receipt
+        if execution_receipt_info.data_is_empty() {
             create_pda_with_space(
                 &[
                     b"receipt".as_ref(),
@@ -340,7 +326,29 @@ pub fn handler<'a, 'b, 'c, 'info>(
                 // if no extra wait is required, mark as complete (little endian)
                 execution_receipt_raw[16..20].clone_from_slice(&[1, 0, 0, 0]);
             }
-        };
+
+        // deserialize an existing receipt
+        } else {
+            let (pda, bump) = Pubkey::find_program_address(
+                &[
+                    b"receipt".as_ref(),
+                    ctx.accounts.mutation.key().as_ref(),
+                    ctx.accounts.taker.key().as_ref(),
+                ],
+                &ctx.program_id,
+            );
+            assert_keys_eq!(pda, execution_receipt_info.key(), "PDA mismatch");
+            invariant!(bump_receipt == bump, "PDA bump mismatch");
+
+            let mut execution_receipt: Account<'_, ExecutionReceipt> =
+                Account::try_from(execution_receipt_info)?;
+
+            if execution_receipt.is_pending() {
+                execution_receipt.try_mark_complete()?; //will error out if isn't due yet
+            } else {
+                return Err(ErrorCode::MutationAlreadyComplete.into());
+            }
+        }
     }
 
     // --------------------------------------- move tokens

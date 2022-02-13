@@ -2,7 +2,7 @@ import { RequiredUnits, VaultAction } from "../src";
 import { expectTX } from "@saberhq/chai-solana";
 
 import "chai-bn";
-import { Keypair, LAMPORTS_PER_SOL } from "@solana/web3.js";
+import { LAMPORTS_PER_SOL } from "@solana/web3.js";
 import { pause, toBN } from "@gemworks/gem-farm-ts";
 import { expect } from "chai";
 import { MutationTester } from "./mutation.tester";
@@ -121,7 +121,6 @@ describe("transmuter", () => {
     await mt.verifyTakerReceivedMakerTokens();
   });
 
-  //todo non-deterministic - still fails sometimes due to compute
   it("happy path (reversible, 3x3))", async () => {
     await mt.prepareMutation({
       takerTokenB: {

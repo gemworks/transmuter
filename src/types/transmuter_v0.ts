@@ -297,18 +297,6 @@ export type TransmuterV0 = {
       ],
       "args": [
         {
-          "name": "bumpA",
-          "type": "u8"
-        },
-        {
-          "name": "bumpB",
-          "type": "u8"
-        },
-        {
-          "name": "bumpC",
-          "type": "u8"
-        },
-        {
           "name": "bumpReceipt",
           "type": "u8"
         }
@@ -430,18 +418,6 @@ export type TransmuterV0 = {
       ],
       "args": [
         {
-          "name": "bumpA",
-          "type": "u8"
-        },
-        {
-          "name": "bumpB",
-          "type": "u8"
-        },
-        {
-          "name": "bumpC",
-          "type": "u8"
-        },
-        {
           "name": "bumpReceipt",
           "type": "u8"
         }
@@ -480,6 +456,22 @@ export type TransmuterV0 = {
             "name": "config",
             "type": {
               "defined": "MutationConfig"
+            }
+          },
+          {
+            "name": "tokenAEscrow",
+            "type": "publicKey"
+          },
+          {
+            "name": "tokenBEscrow",
+            "type": {
+              "option": "publicKey"
+            }
+          },
+          {
+            "name": "tokenCEscrow",
+            "type": {
+              "option": "publicKey"
             }
           },
           {
@@ -1118,18 +1110,6 @@ export const IDL: TransmuterV0 = {
       ],
       "args": [
         {
-          "name": "bumpA",
-          "type": "u8"
-        },
-        {
-          "name": "bumpB",
-          "type": "u8"
-        },
-        {
-          "name": "bumpC",
-          "type": "u8"
-        },
-        {
           "name": "bumpReceipt",
           "type": "u8"
         }
@@ -1251,18 +1231,6 @@ export const IDL: TransmuterV0 = {
       ],
       "args": [
         {
-          "name": "bumpA",
-          "type": "u8"
-        },
-        {
-          "name": "bumpB",
-          "type": "u8"
-        },
-        {
-          "name": "bumpC",
-          "type": "u8"
-        },
-        {
           "name": "bumpReceipt",
           "type": "u8"
         }
@@ -1301,6 +1269,22 @@ export const IDL: TransmuterV0 = {
             "name": "config",
             "type": {
               "defined": "MutationConfig"
+            }
+          },
+          {
+            "name": "tokenAEscrow",
+            "type": "publicKey"
+          },
+          {
+            "name": "tokenBEscrow",
+            "type": {
+              "option": "publicKey"
+            }
+          },
+          {
+            "name": "tokenCEscrow",
+            "type": {
+              "option": "publicKey"
             }
           },
           {
