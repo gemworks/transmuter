@@ -32,7 +32,7 @@ export class MutationWrapper {
     return this.sdk.provider;
   }
 
-  get data(): MutationData | undefined {
+  get data(): any {
     return this._data;
   }
 

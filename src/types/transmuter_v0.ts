@@ -807,6 +807,11 @@ export type TransmuterV0 = {
       "code": 6014,
       "name": "AnchorSerializationIssue",
       "msg": "Anchor serialization issue"
+    },
+    {
+      "code": 6015,
+      "name": "ExecutionReceiptMissing",
+      "msg": "Execution receipt for this taker not found"
     }
   ]
 };
@@ -1620,6 +1625,11 @@ export const IDL: TransmuterV0 = {
       "code": 6014,
       "name": "AnchorSerializationIssue",
       "msg": "Anchor serialization issue"
+    },
+    {
+      "code": 6015,
+      "name": "ExecutionReceiptMissing",
+      "msg": "Execution receipt for this taker not found"
     }
   ]
 };

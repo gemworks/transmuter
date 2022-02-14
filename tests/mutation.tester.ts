@@ -28,12 +28,12 @@ export class MutationTester {
   transmuter: TransmuterWrapper;
   mutation: MutationWrapper;
 
-  //maker
+  // maker
   makerMintA: PublicKey;
   makerMintB?: PublicKey;
   makerMintC?: PublicKey;
 
-  //taker
+  // taker
   takerMintA: PublicKey;
   takerAccA: PublicKey;
   takerVaultA: PublicKey;
@@ -46,13 +46,16 @@ export class MutationTester {
   takerAccC: PublicKey;
   takerVaultC: PublicKey;
 
+  // amounts & uses
+  makerTokenAmount: BN;
+  takerTokenAmount: BN;
+  uses: BN;
+
   constructor(
     readonly taker = Keypair.generate(),
     readonly sdk = makeSDK(),
     readonly conn = sdk.provider.connection,
     readonly maker = sdk.provider.wallet.publicKey,
-    readonly makerTokenAmount = toBN(10),
-    readonly takerTokenAmount = toBN(5),
     readonly gb = new GemBankClient(
       sdk.provider.connection,
       sdk.provider.wallet as any,
@@ -79,6 +82,7 @@ export class MutationTester {
     makerTokenBAmount = null,
     makerTokenCAmount = null,
     reversible = false,
+    uses = toBN(1),
   }: {
     vaultAction?: any;
     mutationTimeSec?: BN;
@@ -87,8 +91,16 @@ export class MutationTester {
     makerTokenBAmount?: BN;
     makerTokenCAmount?: BN;
     reversible?: boolean;
+    uses?: BN;
   }) => {
-    //create any relevant maker mints
+    // configure amounts & uses
+    const perUseMakerTokenAmount = toBN(10);
+    const perUseTakerTokenAmount = toBN(10);
+    this.makerTokenAmount = perUseMakerTokenAmount.mul(uses);
+    this.takerTokenAmount = perUseTakerTokenAmount.mul(uses);
+    this.uses = uses;
+
+    // create any relevant maker mints
     [this.makerMintA] = await this.sdk.createMintAndATA(this.makerTokenAmount);
     if (makerTokenBAmount) {
       [this.makerMintB] = await this.sdk.createMintAndATA(makerTokenBAmount);
@@ -97,7 +109,7 @@ export class MutationTester {
       [this.makerMintC] = await this.sdk.createMintAndATA(makerTokenCAmount);
     }
 
-    //setup & fill up any relevant taker vaults
+    // setup & fill up any relevant taker vaults
     ({
       vault: this.takerVaultA,
       takerMint: this.takerMintA,
@@ -121,7 +133,7 @@ export class MutationTester {
     const config: MutationConfig = {
       takerTokenA: {
         gemBank: this.transmuter.bankA,
-        requiredAmount: toBN(this.takerTokenAmount),
+        requiredAmount: this.takerTokenAmount,
         requiredUnits: RequiredUnits.RarityPoints,
         vaultAction,
       },
@@ -129,21 +141,21 @@ export class MutationTester {
       takerTokenC,
       makerTokenA: {
         mint: this.makerMintA,
-        totalFunding: toBN(this.makerTokenAmount),
-        amountPerUse: toBN(this.makerTokenAmount),
+        totalFunding: this.makerTokenAmount,
+        amountPerUse: this.makerTokenAmount.div(uses),
       },
       makerTokenB: makerTokenBAmount
         ? {
             mint: this.makerMintB,
-            totalFunding: toBN(makerTokenBAmount),
-            amountPerUse: toBN(makerTokenBAmount),
+            totalFunding: makerTokenBAmount,
+            amountPerUse: makerTokenBAmount.div(uses),
           }
         : null,
       makerTokenC: makerTokenCAmount
         ? {
             mint: this.makerMintC,
-            totalFunding: toBN(makerTokenCAmount),
-            amountPerUse: toBN(makerTokenCAmount),
+            totalFunding: makerTokenCAmount,
+            amountPerUse: makerTokenCAmount.div(uses),
           }
         : null,
       price: {
@@ -157,7 +169,7 @@ export class MutationTester {
     const { mutationWrapper, tx } = await this.sdk.initMutation(
       config,
       this.transmuter.key,
-      toBN(1)
+      uses
     );
     await expectTX(tx, "init new mutation").to.be.fulfilled;
     this.mutation = mutationWrapper;
@@ -165,34 +177,32 @@ export class MutationTester {
     console.log("mutation ready");
   };
 
-  prepareTakerVaults = async (bank: PublicKey) => {
-    //fund taker
+  prepareTakerVaults = async (bank: PublicKey, taker = this.taker) => {
+    // fund taker
     await this.sdk.provider.connection
-      .requestAirdrop(this.taker.publicKey, 3 * LAMPORTS_PER_SOL)
-      .then((sig) =>
-        this.sdk.provider.connection.confirmTransaction(sig, "confirmed")
-      );
+      .requestAirdrop(taker.publicKey, 3 * LAMPORTS_PER_SOL)
+      .then((sig) => this.conn.confirmTransaction(sig, "confirmed"));
 
-    //create vaults
+    // create vaults
     const { vault } = await this.gb.initVault(
       bank,
-      this.taker,
-      this.taker,
-      this.taker.publicKey,
+      taker,
+      taker,
+      taker.publicKey,
       "abc"
     );
 
-    //create tokens
+    // create tokens
     const [takerMint, takerAcc] = await this.sdk.createMintAndATA(
       toBN(this.takerTokenAmount),
-      this.taker
+      taker
     );
 
-    //deposit tokens
+    // deposit tokens
     await this.gb.depositGem(
       bank,
       vault,
-      this.taker,
+      taker,
       toBN(this.takerTokenAmount),
       takerMint,
       takerAcc
@@ -222,7 +232,11 @@ export class MutationTester {
     expect(
       (await this.sdk.provider.connection.getTokenAccountBalance(makerATA))
         .value.amount
-    ).to.eq(amount ? amount.toString() : this.makerTokenAmount.toString());
+    ).to.eq(
+      amount
+        ? amount.toString()
+        : this.makerTokenAmount.div(this.uses).toString()
+    );
 
     console.log("received tokens valid");
   };
@@ -230,7 +244,7 @@ export class MutationTester {
   verifyVault = async (locked: boolean, owner: PublicKey | Keypair) => {
     const vaultAcc = await this.gb.fetchVaultAcc(this.takerVaultA);
 
-    //verify owner & lock
+    // verify owner & lock
     expect(vaultAcc.owner.toBase58()).to.be.eq(
       isKp(owner)
         ? (<Keypair>owner).publicKey.toBase58()
@@ -238,7 +252,7 @@ export class MutationTester {
     );
     expect(vaultAcc.locked).to.be.eq(locked);
 
-    //verify taker can/can't withdraw gems
+    // verify taker can/can't withdraw gems
     if (!locked) {
       await this.gb.withdrawGem(
         this.transmuter.bankA,

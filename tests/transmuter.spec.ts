@@ -7,7 +7,7 @@ import { pause, toBN } from "@gemworks/gem-farm-ts";
 import { expect } from "chai";
 import { MutationTester } from "./mutation.tester";
 
-describe("transmuter", () => {
+describe("transmuter spec", () => {
   let mt: MutationTester;
 
   beforeEach("setup tester class", async () => {
@@ -85,6 +85,7 @@ describe("transmuter", () => {
       },
       makerTokenBAmount: mt.makerTokenAmount,
       makerTokenCAmount: mt.makerTokenAmount,
+      uses: toBN(2),
     });
 
     //call execute
@@ -100,15 +101,8 @@ describe("transmuter", () => {
     await mt.verifyTakerReceivedMakerTokens(toBN(0));
 
     //try to call immediately again - will fail, since not enough time passed
-    await expect(tx.confirm()).to.be.rejected;
+    expect(tx.confirm()).to.be.rejectedWith("0x177b"); //MutationNotComplete
     console.log("tried to execute twice (failure expected)");
-
-    // todo
-    // try {
-    //   await tx.confirm();
-    // } catch (e) {
-    //   expect(e.message).to.include("0x177a");
-    // }
 
     console.log("pausing for mutation duration");
     await pause(6000);
