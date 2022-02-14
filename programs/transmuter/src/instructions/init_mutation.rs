@@ -1,8 +1,8 @@
 use crate::*;
-use anchor_spl::token::{self, Mint, Token, TokenAccount, Transfer};
+use anchor_spl::token::{self, InitializeAccount, Mint, Token, TokenAccount, Transfer};
 
 #[derive(Accounts)]
-#[instruction(bump_auth: u8, bump_a: u8, bump_b: u8, bump_c: u8)]
+#[instruction(bump_auth: u8, bump_a: u8)]
 pub struct InitMutation<'info> {
     // mutation
     #[account(has_one = authority)]
@@ -31,31 +31,14 @@ pub struct InitMutation<'info> {
     pub token_a_mint: Box<Account<'info, Mint>>,
     // b
     // todo can make optional
-    // todo currently we're init'ing 3 escrow accs when we might only need 1 - switch to manual
-    #[account(init, seeds = [
-            b"escrow".as_ref(),
-            mutation.key().as_ref(),
-            token_b_mint.key().as_ref(),
-        ],
-        bump = bump_b,
-        token::mint = token_b_mint,
-        token::authority = authority,
-        payer = owner)]
-    pub token_b_escrow: Box<Account<'info, TokenAccount>>,
+    #[account(mut)] //manually init'ing
+    pub token_b_escrow: AccountInfo<'info>,
     #[account(mut)]
     pub token_b_source: AccountInfo<'info>,
     pub token_b_mint: Box<Account<'info, Mint>>,
     // c
-    #[account(init, seeds = [
-            b"escrow".as_ref(),
-            mutation.key().as_ref(),
-            token_c_mint.key().as_ref(),
-        ],
-        bump = bump_c,
-        token::mint = token_c_mint,
-        token::authority = authority,
-        payer = owner)]
-    pub token_c_escrow: Box<Account<'info, TokenAccount>>,
+    #[account(mut)] //manually init'ing
+    pub token_c_escrow: AccountInfo<'info>,
     #[account(mut)]
     pub token_c_source: AccountInfo<'info>,
     pub token_c_mint: Box<Account<'info, Mint>>,
@@ -97,9 +80,56 @@ impl<'info> InitMutation<'info> {
 
         token::transfer(self.transfer_ctx(source, escrow), maker_token.total_funding)
     }
+
+    fn init_token_account(
+        &self,
+        account: AccountInfo<'info>,
+        mint: AccountInfo<'info>,
+    ) -> CpiContext<'_, '_, '_, 'info, InitializeAccount<'info>> {
+        CpiContext::new(
+            self.token_program.to_account_info(),
+            InitializeAccount {
+                account,
+                mint,
+                authority: self.authority.to_account_info(),
+                rent: self.rent.to_account_info(),
+            },
+        )
+    }
+
+    fn create_and_init_escrow(
+        &self,
+        token_account: AccountInfo<'info>,
+        mint: AccountInfo<'info>,
+        bump: u8,
+    ) -> ProgramResult {
+        // create
+        create_pda_with_space(
+            &[
+                b"escrow".as_ref(),
+                self.mutation.key().as_ref(),
+                mint.key().as_ref(),
+                &[bump],
+            ],
+            &token_account,
+            anchor_spl::token::TokenAccount::LEN,
+            &spl_token::id(),
+            &self.payer.to_account_info(),
+            &self.system_program.to_account_info(),
+        )?;
+
+        // init
+        anchor_spl::token::initialize_account(self.init_token_account(token_account, mint))
+    }
 }
 
-pub fn handler(ctx: Context<InitMutation>, config: MutationConfig, uses: u64) -> ProgramResult {
+pub fn handler(
+    ctx: Context<InitMutation>,
+    config: MutationConfig,
+    uses: u64,
+    bump_b: u8,
+    bump_c: u8,
+) -> ProgramResult {
     let mutation = &mut ctx.accounts.mutation;
 
     mutation.transmuter = ctx.accounts.transmuter.key();
@@ -127,6 +157,12 @@ pub fn handler(ctx: Context<InitMutation>, config: MutationConfig, uses: u64) ->
         let mint_b = ctx.accounts.token_b_mint.to_account_info();
         let source_b = ctx.accounts.token_b_source.to_account_info();
         let escrow_b = ctx.accounts.token_b_escrow.to_account_info();
+
+        // create
+        ctx.accounts
+            .create_and_init_escrow(escrow_b.clone(), mint_b.clone(), bump_b)?;
+
+        // fund
         ctx.accounts
             .fund_escrow(mint_b.key(), uses, source_b, escrow_b, maker_token_b)?;
     }
@@ -136,6 +172,12 @@ pub fn handler(ctx: Context<InitMutation>, config: MutationConfig, uses: u64) ->
         let mint_c = ctx.accounts.token_c_mint.to_account_info();
         let source_c = ctx.accounts.token_c_source.to_account_info();
         let escrow_c = ctx.accounts.token_c_escrow.to_account_info();
+
+        // create
+        ctx.accounts
+            .create_and_init_escrow(escrow_c.clone(), mint_c.clone(), bump_c)?;
+
+        // fund
         ctx.accounts
             .fund_escrow(mint_c.key(), uses, source_c, escrow_c, maker_token_c)?;
     }

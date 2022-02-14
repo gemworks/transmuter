@@ -32,13 +32,13 @@ pub mod transmuter_v0 {
         ctx: Context<InitMutation>,
         _bump_auth: u8,
         _bump_a: u8,
-        _bump_b: u8,
-        _bump_c: u8,
+        bump_b: u8,
+        bump_c: u8,
         config: MutationConfig,
         uses: u64,
     ) -> ProgramResult {
         msg!("init new mutation");
-        instructions::init_mutation::handler(ctx, config, uses)
+        instructions::init_mutation::handler(ctx, config, uses, bump_b, bump_c)
     }
 
     pub fn update_mutation(ctx: Context<UpdateMutation>) -> ProgramResult {
