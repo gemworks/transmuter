@@ -17,7 +17,7 @@ pub fn handler<'a, 'b, 'c, 'info>(
         return Err(ErrorCode::MutationNotComplete.into());
     }
 
-    let (expected_receipt, bump) = Pubkey::find_program_address(
+    let (pda, bump) = Pubkey::find_program_address(
         &[
             b"receipt".as_ref(),
             ctx.accounts.mutation.key().as_ref(),
@@ -25,11 +25,7 @@ pub fn handler<'a, 'b, 'c, 'info>(
         ],
         ctx.program_id,
     );
-    assert_keys_eq!(
-        expected_receipt,
-        ctx.accounts.execution_receipt.key(),
-        "receipt"
-    );
+    assert_keys_eq!(pda, ctx.accounts.execution_receipt.key(), "receipt");
     invariant!(bump == bump_receipt, "receipt bump");
 
     // --------------------------------------- uses & payment

@@ -37,7 +37,6 @@ impl Mutation {
         Ok(())
     }
 
-    // todo test
     pub fn increment_uses(&mut self) -> ProgramResult {
         self.remaining_uses.try_add_assign(1)?;
         self.update_state();

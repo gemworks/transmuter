@@ -4,6 +4,7 @@ import { toBN } from "@gemworks/gem-farm-ts";
 import { expectTX } from "@saberhq/chai-solana";
 import { expect } from "chai";
 import { Keypair } from "@solana/web3.js";
+import { MutationState } from "../src";
 
 describe("transmuter edge cases", () => {
   let mt: MutationTester;
@@ -12,7 +13,7 @@ describe("transmuter edge cases", () => {
     mt = await MutationTester.load();
   });
 
-  it("decrements then increments uses during execution", async () => {
+  it.only("decrements then increments uses during execution", async () => {
     await mt.prepareMutation({ uses: toBN(2), reversible: true });
 
     //call execute
@@ -25,6 +26,7 @@ describe("transmuter edge cases", () => {
     await mt.mutation.reloadData();
     expect(mt.mutation.data.totalUses.toNumber()).to.eq(2);
     expect(mt.mutation.data.remainingUses.toNumber()).to.eq(1);
+    expect(mt.mutation.data.state == MutationState.Available);
 
     // ----------------- 2nd taker
     const taker2 = Keypair.generate();
@@ -40,6 +42,7 @@ describe("transmuter edge cases", () => {
     await mt.mutation.reloadData();
     expect(mt.mutation.data.totalUses.toNumber()).to.eq(2);
     expect(mt.mutation.data.remainingUses.toNumber()).to.eq(0);
+    expect(mt.mutation.data.state == MutationState.Exhausted);
 
     // ----------------- 3rd taker
     const taker3 = Keypair.generate();
@@ -71,12 +74,13 @@ describe("transmuter edge cases", () => {
     await mt.mutation.reloadData();
     expect(mt.mutation.data.totalUses.toNumber()).to.eq(2);
     expect(mt.mutation.data.remainingUses.toNumber()).to.eq(2);
+    expect(mt.mutation.data.state == MutationState.Available);
 
     // ----------------- try to reverse 1 too many
     expect(reverseTx1.confirm()).to.be.rejectedWith("0x177f");
   });
 
-  it.only("prevents same taker from executing twice", async () => {
+  it("prevents same taker from executing twice", async () => {
     await mt.prepareMutation({ uses: toBN(2), reversible: true });
 
     //call execute

@@ -49,6 +49,11 @@ export const VaultAction = {
   DoNothing: { doNothing: {} },
 };
 
+export const MutationState = {
+  Exhausted: { exhausted: {} },
+  Available: { available: {} },
+};
+
 export interface PriceConfig {
   priceLamports: BN;
   reversalPriceLamports: BN;
