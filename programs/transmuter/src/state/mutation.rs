@@ -29,16 +29,17 @@ impl Mutation {
         self.state = MutationState::Available;
     }
 
-    // todo test
     pub fn try_decrement_uses(&mut self) -> ProgramResult {
-        self.remaining_uses.try_sub(1).map_err(|_| NoMoreUsesLeft)?;
+        self.remaining_uses
+            .try_sub_assign(1)
+            .map_err(|_| NoMoreUsesLeft)?;
         self.update_state();
         Ok(())
     }
 
     // todo test
     pub fn increment_uses(&mut self) -> ProgramResult {
-        self.remaining_uses.try_add(1)?;
+        self.remaining_uses.try_add_assign(1)?;
         self.update_state();
         Ok(())
     }

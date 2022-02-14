@@ -189,13 +189,13 @@ impl<'info> ExecuteMutation<'info> {
         if reverse {
             token::transfer(
                 self.transfer_ctx(taker_ata, escrow, self.taker.to_account_info()),
-                maker_token.total_funding,
+                maker_token.amount_per_use,
             )
         } else {
             token::transfer(
                 self.transfer_ctx(escrow, taker_ata, self.authority.to_account_info())
                     .with_signer(&[&self.transmuter.get_seeds()]),
-                maker_token.total_funding,
+                maker_token.amount_per_use,
             )
         }
     }

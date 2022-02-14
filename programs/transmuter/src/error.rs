@@ -18,7 +18,7 @@ pub enum ErrorCode {
     ArithmeticError,
 
     #[msg("This mutation has exhausted all of its uses")]
-    NoMoreUsesLeft, //5
+    NoMoreUsesLeft, //5 = 0x1775
 
     #[msg("Funding amount doesn't added up to uses * amount per use")]
     IncorrectFunding,
@@ -33,7 +33,7 @@ pub enum ErrorCode {
     VaultDoesNotBelongToBank,
 
     #[msg("Reversals require all vaults to be set to Lock")]
-    VaultsNotSetToLock, //10
+    VaultsNotSetToLock, //10 = 0x177a
 
     #[msg("Mutation execution hasn't completed yet")]
     MutationNotComplete,

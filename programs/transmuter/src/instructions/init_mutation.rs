@@ -30,7 +30,7 @@ pub struct InitMutation<'info> {
     pub token_a_source: AccountInfo<'info>,
     pub token_a_mint: Box<Account<'info, Mint>>,
     // b
-    // todo can make optional
+    // todo can make optional, but doesn't really change anything
     #[account(mut)] //manually init'ing
     pub token_b_escrow: AccountInfo<'info>,
     #[account(mut)]
