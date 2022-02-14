@@ -165,8 +165,24 @@ describe("transmuter (main spec)", () => {
     await mt.verifyTakerReceivedMakerTokens();
   });
 
-  it("reverse mutation", async () => {
-    await mt.prepareMutation({ reversible: true });
+  it("reverse mutation (3x3)", async () => {
+    await mt.prepareMutation({
+      takerTokenB: {
+        gemBank: mt.transmuter.bankB,
+        requiredAmount: toBN(mt.takerTokenAmount),
+        requiredUnits: RequiredUnits.RarityPoints,
+        vaultAction: VaultAction.Lock,
+      },
+      takerTokenC: {
+        gemBank: mt.transmuter.bankC,
+        requiredAmount: toBN(mt.takerTokenAmount),
+        requiredUnits: RequiredUnits.RarityPoints,
+        vaultAction: VaultAction.Lock,
+      },
+      makerTokenBAmount: mt.makerTokenAmount,
+      makerTokenCAmount: mt.makerTokenAmount,
+      reversible: true,
+    });
 
     //call execute
     const tx = await mt.mutation.execute(mt.taker.publicKey);
@@ -178,6 +194,13 @@ describe("transmuter (main spec)", () => {
     const vaultAcc = await mt.gb.fetchVaultAcc(mt.takerVaultA);
     expect(vaultAcc.owner.toBase58()).to.be.eq(mt.taker.publicKey.toBase58());
     expect(vaultAcc.locked).to.be.eq(true);
+
+    //verify receipt exists and is complete
+    const receipt = await mt.sdk.fetchReceipt(
+      mt.mutation.key,
+      mt.taker.publicKey
+    );
+    expect(receipt.state == ExecutionState.Complete);
 
     //call reverse
     const reverseTx = await mt.mutation.reverse(mt.taker.publicKey);

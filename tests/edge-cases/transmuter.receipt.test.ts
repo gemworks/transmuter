@@ -18,8 +18,21 @@ describe("transmuter (receipt)", () => {
     const tx = await mt.mutation.execute(mt.taker.publicKey);
     tx.addSigners(mt.taker);
     await expectTX(tx, "executes mutation").to.be.fulfilled;
-    console.log("mutation executed (1st taker)");
+    console.log("mutation executed");
 
     expect(tx.confirm()).to.be.rejectedWith("0x177c");
+  });
+
+  it("doesnt create a receipt for non-reversible, 0-timeout txs", async () => {
+    await mt.prepareMutation({});
+
+    //call execute
+    const tx = await mt.mutation.execute(mt.taker.publicKey);
+    tx.addSigners(mt.taker);
+    await expectTX(tx, "executes mutation").to.be.fulfilled;
+    console.log("mutation executed");
+
+    expect(mt.sdk.fetchReceipt(mt.mutation.key, mt.taker.publicKey)).to.be
+      .rejected;
   });
 });

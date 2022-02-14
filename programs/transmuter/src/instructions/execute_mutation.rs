@@ -201,7 +201,6 @@ impl<'info> ExecuteMutation<'info> {
     }
 }
 
-// todo test conditionals
 pub fn handler<'a, 'b, 'c, 'info>(
     ctx: Context<'a, 'b, 'c, 'info, ExecuteMutation<'info>>,
     bump_receipt: u8,
@@ -288,7 +287,6 @@ pub fn handler<'a, 'b, 'c, 'info>(
     }
 
     // --------------------------------------- execution receipt
-    // todo test every branch below
 
     let config = ctx.accounts.mutation.config;
     let execution_receipt_info = &mut ctx.accounts.execution_receipt;
