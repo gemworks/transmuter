@@ -1,4 +1,4 @@
-import { RequiredUnits, VaultAction } from "../src";
+import { ExecutionState, RequiredUnits, VaultAction } from "../src";
 import { expectTX } from "@saberhq/chai-solana";
 
 import "chai-bn";
@@ -68,7 +68,7 @@ describe("transmuter (main spec)", () => {
   });
 
   //using max maker tokens and max taker tokens to test out compute budget
-  it("happy path (mutation time > 0, 3x3))", async () => {
+  it.only("happy path (mutation time > 0, 3x3))", async () => {
     await mt.prepareMutation({
       mutationTimeSec: toBN(5),
       takerTokenB: {
@@ -97,6 +97,17 @@ describe("transmuter (main spec)", () => {
     //verify vault is locked and owned by taker
     await mt.verifyVault(true, mt.taker);
 
+    //verify receipt exists and is pending
+    const receipt = await mt.sdk.fetchReceipt(
+      mt.mutation.key,
+      mt.taker.publicKey
+    );
+    expect(receipt.state == ExecutionState.Pending);
+    expect(receipt.mutationCompleteTs.toNumber()).to.be.gt(+new Date() / 1000);
+    expect(receipt.mutationCompleteTs.toNumber()).to.be.lt(
+      +new Date() / 1000 + 10
+    );
+
     //verify no tokens in taker's wallet after first call
     await mt.verifyTakerReceivedMakerTokens(toBN(0));
 
@@ -110,6 +121,13 @@ describe("transmuter (main spec)", () => {
     //call again
     await expectTX(tx, "executes mutation").to.be.fulfilled;
     console.log("executed third time");
+
+    //verify receipt exists and is complete
+    const receipt2 = await mt.sdk.fetchReceipt(
+      mt.mutation.key,
+      mt.taker.publicKey
+    );
+    expect(receipt2.state == ExecutionState.Complete);
 
     //this time tokens present
     await mt.verifyTakerReceivedMakerTokens();
@@ -147,7 +165,7 @@ describe("transmuter (main spec)", () => {
     await mt.verifyTakerReceivedMakerTokens();
   });
 
-  it.only("happy path (reverse)", async () => {
+  it("happy path (reverse)", async () => {
     await mt.prepareMutation({ reversible: true });
 
     //call execute

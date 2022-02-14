@@ -54,6 +54,11 @@ export const MutationState = {
   Available: { available: {} },
 };
 
+export const ExecutionState = {
+  Pending: { pending: {} },
+  Complete: { complete: {} },
+};
+
 export interface PriceConfig {
   priceLamports: BN;
   reversalPriceLamports: BN;
@@ -121,6 +126,11 @@ export class TransmuterSDK {
       [Buffer.from("receipt"), mutation.toBytes(), taker.toBytes()],
       this.programs.Transmuter.programId
     );
+  }
+
+  async fetchReceipt(mutation: PublicKey, taker: PublicKey) {
+    const [receiptAddr] = await this.findExecutionReceiptPDA(mutation, taker);
+    return this.programs.Transmuter.account.executionReceipt.fetch(receiptAddr);
   }
 
   // --------------------------------------- initializers

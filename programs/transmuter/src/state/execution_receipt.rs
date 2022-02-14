@@ -23,7 +23,6 @@ impl ExecutionReceipt {
         self.state == ExecutionState::Complete
     }
 
-    // todo test
     pub fn calc_mutation_complete_ts(
         mutation_time_sec: u64,
     ) -> std::result::Result<u64, ProgramError> {
@@ -31,7 +30,6 @@ impl ExecutionReceipt {
         now_ts.try_add(mutation_time_sec)
     }
 
-    // todo test
     pub fn try_mark_complete(&mut self) -> ProgramResult {
         let now_ts = now_ts()?;
         require!(now_ts >= self.mutation_complete_ts, MutationNotComplete);
