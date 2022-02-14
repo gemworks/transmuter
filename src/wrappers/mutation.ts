@@ -1,22 +1,16 @@
-import { MutationConfig, TransmuterSDK } from "../sdk";
-import {
-  Keypair,
-  PublicKey,
-  SystemProgram,
-  SYSVAR_RENT_PUBKEY,
-} from "@solana/web3.js";
+import { TransmuterSDK } from "../sdk";
+import { PublicKey, SystemProgram, SYSVAR_RENT_PUBKEY } from "@solana/web3.js";
 import {
   AugmentedProvider,
   TransactionEnvelope,
 } from "@saberhq/solana-contrib";
 import { MutationData, TransmuterProgram } from "../constants";
-import { GEM_BANK_PROG_ID, stringifyPKsAndBNs } from "@gemworks/gem-farm-ts";
+import { GEM_BANK_PROG_ID } from "@gemworks/gem-farm-ts";
 import {
   ASSOCIATED_TOKEN_PROGRAM_ID,
   TOKEN_PROGRAM_ID,
 } from "@solana/spl-token";
 import { createMint } from "@saberhq/token-utils";
-import { BN } from "@project-serum/anchor";
 
 export class MutationWrapper {
   private _data?: any; //todo temp
@@ -236,6 +230,28 @@ export class MutationWrapper {
         associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
         systemProgram: SystemProgram.programId,
         rent: SYSVAR_RENT_PUBKEY,
+      },
+    });
+
+    return new TransactionEnvelope(this.provider, [ix]);
+  }
+
+  async initTakerVault(bank: PublicKey, taker: PublicKey) {
+    const [creator, creatorBump] = await this.sdk.findVaultCreatorPDA(
+      this.key,
+      taker
+    );
+    const [vault, vaultBump] = await this.sdk.findVaultPDA(bank, creator);
+
+    const ix = this.program.instruction.initTakerVault(creatorBump, vaultBump, {
+      accounts: {
+        mutation: this.key,
+        bank,
+        vault,
+        creator,
+        gemBank: GEM_BANK_PROG_ID,
+        taker,
+        systemProgram: SystemProgram.programId,
       },
     });
 

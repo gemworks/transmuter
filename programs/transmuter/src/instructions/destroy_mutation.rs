@@ -1,3 +1,8 @@
+//! What happens on mutation destruction?
+//! 1) Escrow accounts are drained to the owner (ATAs created)
+//! 2) Escrow accounts are closed and SOL credited to the owner
+//! 3) Mutation state account is closed and SOL credited to the owner
+
 use crate::*;
 use anchor_spl::associated_token::{AssociatedToken, Create};
 use anchor_spl::token::{CloseAccount, Mint, Token, TokenAccount, Transfer};

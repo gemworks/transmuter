@@ -273,6 +273,56 @@ export type TransmuterV0 = {
       "args": []
     },
     {
+      "name": "initTakerVault",
+      "accounts": [
+        {
+          "name": "mutation",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "bank",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "vault",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "creator",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "gemBank",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "taker",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "bumpCreator",
+          "type": "u8"
+        },
+        {
+          "name": "bumpVault",
+          "type": "u8"
+        }
+      ]
+    },
+    {
       "name": "executeMutation",
       "accounts": [
         {
@@ -1180,6 +1230,56 @@ export const IDL: TransmuterV0 = {
       "name": "whitelistTokens",
       "accounts": [],
       "args": []
+    },
+    {
+      "name": "initTakerVault",
+      "accounts": [
+        {
+          "name": "mutation",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "bank",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "vault",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "creator",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "gemBank",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "taker",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "bumpCreator",
+          "type": "u8"
+        },
+        {
+          "name": "bumpVault",
+          "type": "u8"
+        }
+      ]
     },
     {
       "name": "executeMutation",

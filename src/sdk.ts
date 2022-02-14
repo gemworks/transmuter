@@ -107,6 +107,16 @@ export class TransmuterSDK {
     );
   }
 
+  async findVaultCreatorPDA(
+    mutation: PublicKey,
+    taker: PublicKey
+  ): Promise<[PublicKey, number]> {
+    return PublicKey.findProgramAddress(
+      [Buffer.from("creator"), mutation.toBytes(), taker.toBytes()],
+      this.programs.Transmuter.programId
+    );
+  }
+
   //todo should be using gem farm's instead, but need to re-do the sdk for that
   async findVaultPDA(
     bank: PublicKey,

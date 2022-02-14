@@ -58,6 +58,14 @@ pub mod transmuter_v0 {
 
     // --------------------------------------- taker
 
+    pub fn init_taker_vault(
+        ctx: Context<InitTakerVault>,
+        bump_creator: u8,
+        bump_vault: u8,
+    ) -> ProgramResult {
+        instructions::init_vault::handler(ctx, bump_creator, bump_vault)
+    }
+
     pub fn execute_mutation<'a, 'b, 'c, 'info>(
         ctx: Context<'a, 'b, 'c, 'info, ExecuteMutation<'info>>,
         bump_receipt: u8,

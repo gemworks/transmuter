@@ -286,4 +286,10 @@ describe("transmuter (main spec)", () => {
     expect(mt.conn.getTokenAccountBalance(data.tokenBEscrow)).to.be.rejected;
     expect(mt.conn.getTokenAccountBalance(data.tokenCEscrow)).to.be.rejected;
   });
+
+  it.only("inits taker vault", async () => {
+    await mt.prepareMutation({});
+
+    await mt.mutation.initTakerVault(mt.transmuter.bankA, mt.taker.publicKey);
+  });
 });
