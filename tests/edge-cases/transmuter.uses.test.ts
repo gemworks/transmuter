@@ -1,10 +1,10 @@
 import "chai-bn";
-import { MutationTester } from "./mutation.tester";
+import { MutationTester } from "../mutation.tester";
 import { toBN } from "@gemworks/gem-farm-ts";
 import { expectTX } from "@saberhq/chai-solana";
 import { expect } from "chai";
 import { Keypair } from "@solana/web3.js";
-import { MutationState } from "../src";
+import { MutationState } from "../../src";
 
 describe("transmuter (uses)", () => {
   let mt: MutationTester;

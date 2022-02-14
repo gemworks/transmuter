@@ -14,7 +14,7 @@ describe("transmuter (main spec)", () => {
     mt = await MutationTester.load();
   });
 
-  it("happy path (lock vault)", async () => {
+  it("execute mutation (lock vault)", async () => {
     await mt.prepareMutation({});
 
     //call execute
@@ -33,7 +33,7 @@ describe("transmuter (main spec)", () => {
     await mt.verifyTakerReceivedMakerTokens();
   });
 
-  it("happy path (change owner)", async () => {
+  it("execute mutation (change owner)", async () => {
     await mt.prepareMutation({
       vaultAction: VaultAction.ChangeOwner,
     });
@@ -50,7 +50,7 @@ describe("transmuter (main spec)", () => {
     await mt.verifyTakerReceivedMakerTokens();
   });
 
-  it("happy path (do nothing)", async () => {
+  it("execute mutation (do nothing)", async () => {
     await mt.prepareMutation({
       vaultAction: VaultAction.DoNothing,
     });
@@ -68,7 +68,7 @@ describe("transmuter (main spec)", () => {
   });
 
   //using max maker tokens and max taker tokens to test out compute budget
-  it.only("happy path (mutation time > 0, 3x3))", async () => {
+  it("execute mutation (mutation time > 0, 3x3))", async () => {
     await mt.prepareMutation({
       mutationTimeSec: toBN(5),
       takerTokenB: {
@@ -133,7 +133,7 @@ describe("transmuter (main spec)", () => {
     await mt.verifyTakerReceivedMakerTokens();
   });
 
-  it("happy path (reversible, 3x3))", async () => {
+  it("execute mutation (reversible, 3x3))", async () => {
     await mt.prepareMutation({
       takerTokenB: {
         gemBank: mt.transmuter.bankB,
@@ -165,7 +165,7 @@ describe("transmuter (main spec)", () => {
     await mt.verifyTakerReceivedMakerTokens();
   });
 
-  it("happy path (reverse)", async () => {
+  it("reverse mutation", async () => {
     await mt.prepareMutation({ reversible: true });
 
     //call execute
@@ -173,6 +173,11 @@ describe("transmuter (main spec)", () => {
     tx.addSigners(mt.taker);
     await expectTX(tx, "executes mutation").to.be.fulfilled;
     console.log("executed");
+
+    // verify vault locked & belongs to owner
+    const vaultAcc = await mt.gb.fetchVaultAcc(mt.takerVaultA);
+    expect(vaultAcc.owner.toBase58()).to.be.eq(mt.taker.publicKey.toBase58());
+    expect(vaultAcc.locked).to.be.eq(true);
 
     //call reverse
     const reverseTx = await mt.mutation.reverse(mt.taker.publicKey);
@@ -182,6 +187,11 @@ describe("transmuter (main spec)", () => {
     //will have paid TWICE
     const newBalance = await mt.conn.getBalance(mt.taker.publicKey);
     expect(newBalance).to.be.lessThan(LAMPORTS_PER_SOL);
+
+    //verify vault unlocked & belongs to owner
+    const vaultAcc2 = await mt.gb.fetchVaultAcc(mt.takerVaultA);
+    expect(vaultAcc2.owner.toBase58()).to.be.eq(mt.taker.publicKey.toBase58());
+    expect(vaultAcc2.locked).to.be.eq(false);
 
     //verify NO tokens are indeed in taker's wallet
     await mt.verifyTakerReceivedMakerTokens(toBN(0));

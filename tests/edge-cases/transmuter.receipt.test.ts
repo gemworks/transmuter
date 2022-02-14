@@ -1,10 +1,10 @@
 import "chai-bn";
-import { MutationTester } from "./mutation.tester";
+import { MutationTester } from "../mutation.tester";
 import { toBN } from "@gemworks/gem-farm-ts";
 import { expectTX } from "@saberhq/chai-solana";
 import { expect } from "chai";
 
-describe("transmuter (uses)", () => {
+describe("transmuter (receipt)", () => {
   let mt: MutationTester;
 
   beforeEach("setup tester class", async () => {

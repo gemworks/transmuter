@@ -1,12 +1,11 @@
 import "chai-bn";
-import { MutationTester } from "./mutation.tester";
+import { MutationTester } from "../mutation.tester";
 import { expect } from "chai";
-import { RequiredUnits, VaultAction } from "../src";
+import { RequiredUnits, VaultAction } from "../../src";
 import { toBN } from "@gemworks/gem-farm-ts";
-import { expectTX } from "@saberhq/chai-solana";
 import { Keypair } from "@solana/web3.js";
 
-describe("transmuter (bad config)", () => {
+describe("transmuter (vault)", () => {
   let mt: MutationTester;
 
   beforeEach("setup tester class", async () => {

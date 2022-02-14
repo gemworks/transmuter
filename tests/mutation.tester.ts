@@ -84,6 +84,7 @@ export class MutationTester {
     reversible = false,
     uses = toBN(1),
     mutationInitError = undefined,
+    reversalPriceLamports = toBN(LAMPORTS_PER_SOL),
   }: {
     vaultAction?: any;
     mutationTimeSec?: BN;
@@ -94,6 +95,7 @@ export class MutationTester {
     reversible?: boolean;
     uses?: BN;
     mutationInitError?: string;
+    reversalPriceLamports?: BN;
   }) => {
     // configure amounts & uses
     const perUseMakerTokenAmount = toBN(10);
@@ -162,7 +164,7 @@ export class MutationTester {
         : null,
       price: {
         priceLamports: toBN(LAMPORTS_PER_SOL),
-        reversalPriceLamports: toBN(LAMPORTS_PER_SOL),
+        reversalPriceLamports,
       },
       mutationTimeSec,
       reversible,

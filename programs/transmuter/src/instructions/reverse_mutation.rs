@@ -1,7 +1,6 @@
 use crate::*;
 use gem_bank::state::Vault;
 
-// todo test conditionals
 pub fn handler<'a, 'b, 'c, 'info>(
     ctx: Context<'a, 'b, 'c, 'info, ExecuteMutation<'info>>,
     bump_receipt: u8,
@@ -14,6 +13,7 @@ pub fn handler<'a, 'b, 'c, 'info>(
     let execution_receipt: Account<'_, ExecutionReceipt> =
         Account::try_from(&execution_receipt_info)
             .map_err(|_| ErrorCode::ExecutionReceiptMissing)?;
+
     if !execution_receipt.is_complete() {
         return Err(ErrorCode::MutationNotComplete.into());
     }
@@ -39,7 +39,7 @@ pub fn handler<'a, 'b, 'c, 'info>(
         ctx.accounts.make_payment(
             ctx.accounts.owner.to_account_info(),
             ctx.accounts.taker.to_account_info(),
-            price as u64,
+            price.abs() as u64,
         )?;
     } else if price > 0 {
         ctx.accounts.make_payment(
