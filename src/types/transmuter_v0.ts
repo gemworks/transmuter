@@ -173,8 +173,99 @@ export type TransmuterV0 = {
     },
     {
       "name": "destroyMutation",
-      "accounts": [],
-      "args": []
+      "accounts": [
+        {
+          "name": "transmuter",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "mutation",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "owner",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "authority",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenAEscrow",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenADest",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenAMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenBEscrow",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenBDest",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenBMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenCEscrow",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenCDest",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenCMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "associatedTokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "rent",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "bumpAuth",
+          "type": "u8"
+        }
+      ]
     },
     {
       "name": "whitelistTokens",
@@ -991,8 +1082,99 @@ export const IDL: TransmuterV0 = {
     },
     {
       "name": "destroyMutation",
-      "accounts": [],
-      "args": []
+      "accounts": [
+        {
+          "name": "transmuter",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "mutation",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "owner",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "authority",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenAEscrow",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenADest",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenAMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenBEscrow",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenBDest",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenBMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenCEscrow",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenCDest",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenCMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "associatedTokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "rent",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "bumpAuth",
+          "type": "u8"
+        }
+      ]
     },
     {
       "name": "whitelistTokens",

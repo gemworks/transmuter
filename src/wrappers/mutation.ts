@@ -1,4 +1,4 @@
-import { TransmuterSDK } from "../sdk";
+import { MutationConfig, TransmuterSDK } from "../sdk";
 import {
   Keypair,
   PublicKey,
@@ -16,6 +16,7 @@ import {
   TOKEN_PROGRAM_ID,
 } from "@solana/spl-token";
 import { createMint } from "@saberhq/token-utils";
+import { BN } from "@project-serum/anchor";
 
 export class MutationWrapper {
   private _data?: any; //todo temp
@@ -186,6 +187,59 @@ export class MutationWrapper {
     }
 
     return new TransactionEnvelope(this.sdk.provider, [ix]);
+  }
+
+  async destroy(transmuter: PublicKey) {
+    await this.reloadData();
+    let config = this._data.config;
+
+    // ----------------- prep escrows
+
+    const tokenAMint = config.makerTokenA.mint;
+    const [tokenAEscrow, tokenAEscrowBump, tokenADest] =
+      await this.sdk.prepTokenAccounts(this.key, tokenAMint);
+
+    const tokenBMint = config.makerTokenB
+      ? config.makerTokenB.mint
+      : await createMint(this.provider);
+    const [tokenBEscrow, tokenBEscrowBump, tokenBDest] =
+      await this.sdk.prepTokenAccounts(this.key, tokenBMint);
+
+    const tokenCMint = config.makerTokenC
+      ? config.makerTokenC.mint
+      : await createMint(this.provider);
+    const [tokenCEscrow, tokenCEscrowBump, tokenCDest] =
+      await this.sdk.prepTokenAccounts(this.key, tokenCMint);
+
+    // ----------------- prep ix
+
+    const [authority, bump] = await this.sdk.findTransmuterAuthorityPDA(
+      this.transmuter
+    );
+
+    const ix = this.program.instruction.destroyMutation(bump, {
+      accounts: {
+        transmuter,
+        mutation: this.key,
+        owner: this.provider.wallet.publicKey,
+        authority,
+        tokenAEscrow,
+        tokenADest,
+        tokenAMint,
+        tokenBEscrow,
+        tokenBDest,
+        tokenBMint,
+        tokenCEscrow,
+        tokenCDest,
+        tokenCMint,
+        tokenProgram: TOKEN_PROGRAM_ID,
+        associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
+        systemProgram: SystemProgram.programId,
+        rent: SYSVAR_RENT_PUBKEY,
+      },
+    });
+
+    return new TransactionEnvelope(this.provider, [ix]);
   }
 
   // --------------------------------------- load

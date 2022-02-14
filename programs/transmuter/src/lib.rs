@@ -46,7 +46,7 @@ pub mod transmuter_v0 {
         instructions::update_mutation::handler(ctx)
     }
 
-    pub fn destroy_mutation(ctx: Context<DestroyMutation>) -> ProgramResult {
+    pub fn destroy_mutation(ctx: Context<DestroyMutation>, _bump_auth: u8) -> ProgramResult {
         msg!("destroy mutation");
         instructions::destroy_mutation::handler(ctx)
     }

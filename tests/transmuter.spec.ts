@@ -226,4 +226,27 @@ describe("transmuter (main spec)", () => {
 
     await mt.verifyTakerReceivedMakerTokens();
   });
+
+  it.only("destroys mutation (3x3)", async () => {
+    await mt.prepareMutation({
+      takerTokenB: {
+        gemBank: mt.transmuter.bankB,
+        requiredAmount: toBN(mt.takerTokenAmount),
+        requiredUnits: RequiredUnits.RarityPoints,
+        vaultAction: VaultAction.Lock,
+      },
+      takerTokenC: {
+        gemBank: mt.transmuter.bankC,
+        requiredAmount: toBN(mt.takerTokenAmount),
+        requiredUnits: RequiredUnits.RarityPoints,
+        vaultAction: VaultAction.Lock,
+      },
+      makerTokenBAmount: mt.makerTokenAmount,
+      makerTokenCAmount: mt.makerTokenAmount,
+      reversible: true,
+    });
+
+    const tx = await mt.mutation.destroy(mt.transmuter.key);
+    await expectTX(tx, "destroy mutation").to.be.fulfilled;
+  });
 });
