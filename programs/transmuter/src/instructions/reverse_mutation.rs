@@ -3,6 +3,7 @@ use gem_bank::state::Vault;
 
 pub fn handler<'a, 'b, 'c, 'info>(
     ctx: Context<'a, 'b, 'c, 'info, ExecuteMutation<'info>>,
+    bump_receipt: u8,
 ) -> ProgramResult {
     if !ctx.accounts.mutation.config.reversible {
         return Err(ErrorCode::MutationNotReversible.into());
@@ -10,12 +11,13 @@ pub fn handler<'a, 'b, 'c, 'info>(
 
     let execution_receipt_info = ctx.accounts.execution_receipt.to_account_info();
     let execution_receipt: Account<'_, ExecutionReceipt> =
-        Account::try_from(&execution_receipt_info)?;
+        Account::try_from(&execution_receipt_info)
+            .map_err(|_| ErrorCode::ExecutionReceiptMissing)?;
     if !execution_receipt.is_complete() {
         return Err(ErrorCode::MutationNotComplete.into());
     }
 
-    let (expected_receipt, _bump) = Pubkey::find_program_address(
+    let (expected_receipt, bump) = Pubkey::find_program_address(
         &[
             b"receipt".as_ref(),
             ctx.accounts.mutation.key().as_ref(),
@@ -28,6 +30,7 @@ pub fn handler<'a, 'b, 'c, 'info>(
         ctx.accounts.execution_receipt.key(),
         "receipt"
     );
+    invariant!(bump == bump_receipt, "receipt bump");
 
     // --------------------------------------- uses & payment
 

@@ -46,4 +46,7 @@ pub enum ErrorCode {
 
     #[msg("Anchor serialization issue")]
     AnchorSerializationIssue,
+
+    #[msg("Execution receipt for this taker not found")]
+    ExecutionReceiptMissing, //15 = 0x177f
 }

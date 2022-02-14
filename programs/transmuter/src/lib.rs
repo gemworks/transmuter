@@ -68,9 +68,9 @@ pub mod transmuter_v0 {
 
     pub fn reverse_mutation<'a, 'b, 'c, 'info>(
         ctx: Context<'a, 'b, 'c, 'info, ExecuteMutation<'info>>,
-        _bump_receipt: u8,
+        bump_receipt: u8,
     ) -> ProgramResult {
         // msg!("reverse mutation"); //save compute
-        instructions::reverse_mutation::handler(ctx)
+        instructions::reverse_mutation::handler(ctx, bump_receipt)
     }
 }

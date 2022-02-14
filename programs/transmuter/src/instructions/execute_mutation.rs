@@ -337,8 +337,8 @@ pub fn handler<'a, 'b, 'c, 'info>(
                 ],
                 &ctx.program_id,
             );
-            assert_keys_eq!(pda, execution_receipt_info.key(), "PDA mismatch");
-            invariant!(bump_receipt == bump, "PDA bump mismatch");
+            assert_keys_eq!(pda, execution_receipt_info.key(), "receipt");
+            invariant!(bump_receipt == bump, "receipt bump");
 
             let mut execution_receipt: Account<'_, ExecutionReceipt> =
                 Account::try_from(execution_receipt_info)?;
