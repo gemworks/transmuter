@@ -83,6 +83,7 @@ export class MutationTester {
     makerTokenCAmount = null,
     reversible = false,
     uses = toBN(1),
+    mutationInitError = undefined,
   }: {
     vaultAction?: any;
     mutationTimeSec?: BN;
@@ -92,6 +93,7 @@ export class MutationTester {
     makerTokenCAmount?: BN;
     reversible?: boolean;
     uses?: BN;
+    mutationInitError?: string;
   }) => {
     // configure amounts & uses
     const perUseMakerTokenAmount = toBN(10);
@@ -171,10 +173,14 @@ export class MutationTester {
       this.transmuter.key,
       uses
     );
-    await expectTX(tx, "init new mutation").to.be.fulfilled;
-    this.mutation = mutationWrapper;
 
-    console.log("mutation ready");
+    if (!mutationInitError) {
+      await expectTX(tx, "init new mutation").to.be.fulfilled;
+      this.mutation = mutationWrapper;
+      console.log("mutation ready");
+    } else {
+      expect(tx.confirm()).to.be.rejectedWith(mutationInitError);
+    }
   };
 
   prepareTakerVaults = async (bank: PublicKey, taker = this.taker) => {

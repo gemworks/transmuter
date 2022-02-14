@@ -6,14 +6,14 @@ import { expect } from "chai";
 import { Keypair } from "@solana/web3.js";
 import { MutationState } from "../src";
 
-describe("transmuter edge cases", () => {
+describe("transmuter (uses)", () => {
   let mt: MutationTester;
 
   beforeEach("setup tester class", async () => {
     mt = await MutationTester.load();
   });
 
-  it.only("decrements then increments uses during execution", async () => {
+  it("decrements then increments uses during execution", async () => {
     await mt.prepareMutation({ uses: toBN(2), reversible: true });
 
     //call execute

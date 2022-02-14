@@ -78,7 +78,6 @@ pub struct MutationConfig {
 }
 
 impl MutationConfig {
-    // todo test
     /// for a mutation to be reversible, all vaults must be set to Lock
     pub fn assert_is_valid(&self) -> ProgramResult {
         if self.reversible {

@@ -7,7 +7,7 @@ import { pause, toBN } from "@gemworks/gem-farm-ts";
 import { expect } from "chai";
 import { MutationTester } from "./mutation.tester";
 
-describe("transmuter spec", () => {
+describe("transmuter (main spec)", () => {
   let mt: MutationTester;
 
   beforeEach("setup tester class", async () => {
