@@ -1,6 +1,7 @@
 use crate::*;
 use gem_bank::state::Vault;
 
+// todo test conditionals
 pub fn handler<'a, 'b, 'c, 'info>(
     ctx: Context<'a, 'b, 'c, 'info, ExecuteMutation<'info>>,
     bump_receipt: u8,
@@ -33,7 +34,6 @@ pub fn handler<'a, 'b, 'c, 'info>(
     let mutation = &mut ctx.accounts.mutation;
     mutation.increment_uses()?;
 
-    // todo test
     let price = mutation.config.price.reversal_price_lamports;
     if price < 0 {
         ctx.accounts.make_payment(

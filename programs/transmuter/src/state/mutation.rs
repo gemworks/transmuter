@@ -109,7 +109,7 @@ pub enum RequiredUnits {
     Gems,
 }
 
-/// Token required FROM user
+/// Token required FROM taker
 #[repr(C)]
 #[derive(Debug, Copy, Clone, AnchorSerialize, AnchorDeserialize)]
 pub struct TakerTokenConfig {
@@ -124,13 +124,13 @@ pub struct TakerTokenConfig {
 }
 
 impl TakerTokenConfig {
-    // todo test
+    /// verifies that bank passed matches bank stored on taker token config
     pub fn assert_correct_bank(&self, bank_key: Pubkey) -> ProgramResult {
         require!(bank_key == self.gem_bank, BankDoesNotMatch);
         Ok(())
     }
 
-    // todo test
+    /// verifies taker has indeed fulfilled the requirements set out by maker
     pub fn assert_sufficient_amount(&self, vault: &Account<Vault>) -> ProgramResult {
         match self.required_units {
             RequiredUnits::RarityPoints => {
@@ -150,7 +150,7 @@ impl TakerTokenConfig {
     }
 }
 
-/// Token returned TO user
+/// Token returned TO taker
 #[repr(C)]
 #[derive(Debug, Copy, Clone, AnchorSerialize, AnchorDeserialize)]
 pub struct MakerTokenConfig {

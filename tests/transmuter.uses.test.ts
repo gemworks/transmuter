@@ -79,16 +79,4 @@ describe("transmuter (uses)", () => {
     // ----------------- try to reverse 1 too many
     expect(reverseTx1.confirm()).to.be.rejectedWith("0x177f");
   });
-
-  it("prevents same taker from executing twice", async () => {
-    await mt.prepareMutation({ uses: toBN(2), reversible: true });
-
-    //call execute
-    const tx = await mt.mutation.execute(mt.taker.publicKey);
-    tx.addSigners(mt.taker);
-    await expectTX(tx, "executes mutation").to.be.fulfilled;
-    console.log("mutation executed (1st taker)");
-
-    expect(tx.confirm()).to.be.rejectedWith("0x177c");
-  });
 });

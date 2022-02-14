@@ -19,7 +19,7 @@ describe("transmuter (bad config)", () => {
     });
   });
 
-  it.only("tries a reversible mutation w/ 3rd non-lock vault", async () => {
+  it("tries a reversible mutation w/ 3rd non-lock vault", async () => {
     await mt.prepareMutation({
       vaultAction: VaultAction.Lock,
       reversible: true,
@@ -33,7 +33,7 @@ describe("transmuter (bad config)", () => {
         gemBank: mt.transmuter.bankC,
         requiredAmount: toBN(mt.takerTokenAmount),
         requiredUnits: RequiredUnits.RarityPoints,
-        vaultAction: VaultAction.DoNothing,
+        vaultAction: VaultAction.DoNothing, //<-- should cause to fail
       },
       mutationInitError: "0x177a",
     });
