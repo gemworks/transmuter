@@ -47,15 +47,15 @@ export class MutationTester {
   takerVaultC: PublicKey;
 
   // amounts & uses
-  makerTokenAmount: BN;
-  takerTokenAmount: BN;
-  uses: BN;
+  uses: BN = toBN(1);
 
   constructor(
     readonly taker = Keypair.generate(),
     readonly sdk = makeSDK(),
     readonly conn = sdk.provider.connection,
     readonly maker = sdk.provider.wallet.publicKey,
+    readonly makerTokenAmountPerUse = toBN(10),
+    readonly takerTokenAmountPerUse = toBN(10),
     readonly gb = new GemBankClient(
       sdk.provider.connection,
       sdk.provider.wallet as any,
@@ -63,6 +63,14 @@ export class MutationTester {
       GEM_BANK_PROG_ID
     )
   ) {}
+
+  get makerTokenAmount() {
+    return this.makerTokenAmountPerUse.mul(this.uses);
+  }
+
+  get takerTokenAmount() {
+    return this.takerTokenAmountPerUse.mul(this.uses);
+  }
 
   // --------------------------------------- ix call wrappers
 
@@ -79,8 +87,8 @@ export class MutationTester {
     mutationTimeSec = toBN(0),
     takerTokenB = null,
     takerTokenC = null,
-    makerTokenBAmount = null,
-    makerTokenCAmount = null,
+    makerTokenBAmountPerUse = null,
+    makerTokenCAmountPerUse = null,
     reversible = false,
     uses = toBN(1),
     mutationInitError = undefined,
@@ -90,27 +98,27 @@ export class MutationTester {
     mutationTimeSec?: BN;
     takerTokenB?: TakerTokenConfig;
     takerTokenC?: TakerTokenConfig;
-    makerTokenBAmount?: BN;
-    makerTokenCAmount?: BN;
+    makerTokenBAmountPerUse?: BN;
+    makerTokenCAmountPerUse?: BN;
     reversible?: boolean;
     uses?: BN;
     mutationInitError?: string;
     reversalPriceLamports?: BN;
   }) => {
     // configure amounts & uses
-    const perUseMakerTokenAmount = toBN(10);
-    const perUseTakerTokenAmount = toBN(10);
-    this.makerTokenAmount = perUseMakerTokenAmount.mul(uses);
-    this.takerTokenAmount = perUseTakerTokenAmount.mul(uses);
     this.uses = uses;
 
     // create any relevant maker mints
     [this.makerMintA] = await this.sdk.createMintAndATA(this.makerTokenAmount);
-    if (makerTokenBAmount) {
-      [this.makerMintB] = await this.sdk.createMintAndATA(makerTokenBAmount);
+    if (makerTokenBAmountPerUse) {
+      [this.makerMintB] = await this.sdk.createMintAndATA(
+        makerTokenBAmountPerUse.mul(uses)
+      );
     }
-    if (makerTokenCAmount) {
-      [this.makerMintC] = await this.sdk.createMintAndATA(makerTokenCAmount);
+    if (makerTokenCAmountPerUse) {
+      [this.makerMintC] = await this.sdk.createMintAndATA(
+        makerTokenCAmountPerUse.mul(uses)
+      );
     }
 
     // setup & fill up any relevant taker vaults
@@ -146,20 +154,20 @@ export class MutationTester {
       makerTokenA: {
         mint: this.makerMintA,
         totalFunding: this.makerTokenAmount,
-        amountPerUse: this.makerTokenAmount.div(uses),
+        amountPerUse: this.makerTokenAmountPerUse,
       },
-      makerTokenB: makerTokenBAmount
+      makerTokenB: makerTokenBAmountPerUse
         ? {
             mint: this.makerMintB,
-            totalFunding: makerTokenBAmount,
-            amountPerUse: makerTokenBAmount.div(uses),
+            totalFunding: makerTokenBAmountPerUse.mul(uses),
+            amountPerUse: makerTokenBAmountPerUse,
           }
         : null,
-      makerTokenC: makerTokenCAmount
+      makerTokenC: makerTokenCAmountPerUse
         ? {
             mint: this.makerMintC,
-            totalFunding: makerTokenCAmount,
-            amountPerUse: makerTokenCAmount.div(uses),
+            totalFunding: makerTokenCAmountPerUse.mul(uses),
+            amountPerUse: makerTokenCAmountPerUse,
           }
         : null,
       price: {
@@ -206,7 +214,7 @@ export class MutationTester {
 
     // create tokens
     const [takerMint, takerAcc] = await this.sdk.createMintAndATA(
-      toBN(this.takerTokenAmount),
+      toBN(this.takerTokenAmountPerUse.mul(this.uses)),
       taker
     );
 

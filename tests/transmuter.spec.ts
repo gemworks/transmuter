@@ -1,4 +1,9 @@
-import { ExecutionState, RequiredUnits, VaultAction } from "../src";
+import {
+  ExecutionState,
+  MutationConfig,
+  RequiredUnits,
+  VaultAction,
+} from "../src";
 import { expectTX } from "@saberhq/chai-solana";
 
 import "chai-bn";
@@ -73,18 +78,18 @@ describe("transmuter (main spec)", () => {
       mutationTimeSec: toBN(5),
       takerTokenB: {
         gemBank: mt.transmuter.bankB,
-        requiredAmount: toBN(mt.takerTokenAmount),
+        requiredAmount: toBN(mt.takerTokenAmountPerUse.mul(toBN(2))), //have to manually mult
         requiredUnits: RequiredUnits.RarityPoints,
         vaultAction: VaultAction.Lock,
       },
       takerTokenC: {
         gemBank: mt.transmuter.bankC,
-        requiredAmount: toBN(mt.takerTokenAmount),
+        requiredAmount: toBN(mt.takerTokenAmountPerUse.mul(toBN(2))), //have to manually mult
         requiredUnits: RequiredUnits.RarityPoints,
         vaultAction: VaultAction.Lock,
       },
-      makerTokenBAmount: mt.makerTokenAmount,
-      makerTokenCAmount: mt.makerTokenAmount,
+      makerTokenBAmountPerUse: mt.makerTokenAmount,
+      makerTokenCAmountPerUse: mt.makerTokenAmount,
       uses: toBN(2),
     });
 
@@ -147,8 +152,8 @@ describe("transmuter (main spec)", () => {
         requiredUnits: RequiredUnits.RarityPoints,
         vaultAction: VaultAction.Lock,
       },
-      makerTokenBAmount: mt.makerTokenAmount,
-      makerTokenCAmount: mt.makerTokenAmount,
+      makerTokenBAmountPerUse: mt.makerTokenAmount,
+      makerTokenCAmountPerUse: mt.makerTokenAmount,
       reversible: true,
     });
 
@@ -165,6 +170,7 @@ describe("transmuter (main spec)", () => {
     await mt.verifyTakerReceivedMakerTokens();
   });
 
+  //todo still sometimes fails due to compute :(
   it("reverse mutation (3x3)", async () => {
     await mt.prepareMutation({
       takerTokenB: {
@@ -179,8 +185,8 @@ describe("transmuter (main spec)", () => {
         requiredUnits: RequiredUnits.RarityPoints,
         vaultAction: VaultAction.Lock,
       },
-      makerTokenBAmount: mt.makerTokenAmount,
-      makerTokenCAmount: mt.makerTokenAmount,
+      makerTokenBAmountPerUse: mt.makerTokenAmount,
+      makerTokenCAmountPerUse: mt.makerTokenAmount,
       reversible: true,
     });
 
@@ -227,7 +233,7 @@ describe("transmuter (main spec)", () => {
     await mt.verifyTakerReceivedMakerTokens();
   });
 
-  it.only("destroys mutation (3x3)", async () => {
+  it("destroys mutation (3x3)", async () => {
     await mt.prepareMutation({
       takerTokenB: {
         gemBank: mt.transmuter.bankB,
@@ -241,12 +247,43 @@ describe("transmuter (main spec)", () => {
         requiredUnits: RequiredUnits.RarityPoints,
         vaultAction: VaultAction.Lock,
       },
-      makerTokenBAmount: mt.makerTokenAmount,
-      makerTokenCAmount: mt.makerTokenAmount,
+      makerTokenBAmountPerUse: mt.makerTokenAmount,
+      makerTokenCAmountPerUse: mt.makerTokenAmount,
       reversible: true,
     });
 
+    await mt.mutation.reloadData();
+    const data = mt.mutation.data;
+
+    //BEFORE - rent should be paid
+    expect(await mt.conn.getBalance(data.tokenAEscrow)).to.be.gt(0);
+    expect(await mt.conn.getBalance(data.tokenBEscrow)).to.be.gt(0);
+    expect(await mt.conn.getBalance(data.tokenCEscrow)).to.be.gt(0);
+    expect(await mt.conn.getBalance(mt.mutation.key)).to.be.gt(0);
+
+    //BEFORE - tokens should be present
+    expect(
+      (await mt.conn.getTokenAccountBalance(data.tokenAEscrow)).value.uiAmount
+    ).to.be.gt(0);
+    expect(
+      (await mt.conn.getTokenAccountBalance(data.tokenBEscrow)).value.uiAmount
+    ).to.be.gt(0);
+    expect(
+      (await mt.conn.getTokenAccountBalance(data.tokenCEscrow)).value.uiAmount
+    ).to.be.gt(0);
+
     const tx = await mt.mutation.destroy(mt.transmuter.key);
     await expectTX(tx, "destroy mutation").to.be.fulfilled;
+
+    //AFTER - rent should be empty
+    expect((await mt.conn.getBalance(data.tokenAEscrow)) == 0);
+    expect((await mt.conn.getBalance(data.tokenBEscrow)) == 0);
+    expect((await mt.conn.getBalance(data.tokenCEscrow)) == 0);
+    expect((await mt.conn.getBalance(mt.mutation.key)) == 0);
+
+    //AFTER - tokens should be empty
+    expect(mt.conn.getTokenAccountBalance(data.tokenAEscrow)).to.be.rejected;
+    expect(mt.conn.getTokenAccountBalance(data.tokenBEscrow)).to.be.rejected;
+    expect(mt.conn.getTokenAccountBalance(data.tokenCEscrow)).to.be.rejected;
   });
 });

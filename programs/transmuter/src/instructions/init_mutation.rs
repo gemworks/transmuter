@@ -5,7 +5,7 @@ use anchor_spl::token::{self, InitializeAccount, Mint, Token, TokenAccount, Tran
 #[instruction(bump_auth: u8, bump_a: u8)]
 pub struct InitMutation<'info> {
     // mutation
-    #[account(has_one = authority)]
+    #[account(has_one = authority, has_one = owner)]
     pub transmuter: Box<Account<'info, Transmuter>>,
     #[account(init, payer = payer, space = 8 + std::mem::size_of::<Mutation>())]
     pub mutation: Box<Account<'info, Mutation>>,

@@ -7,9 +7,12 @@ use anchor_spl::{associated_token, token};
 #[instruction(bump_auth: u8)]
 pub struct DestroyMutation<'info> {
     // mutation
-    #[account(has_one = authority)]
+    #[account(has_one = authority, has_one = owner)]
     pub transmuter: Box<Account<'info, Transmuter>>,
-    #[account(mut, close = owner)]
+    #[account(mut, close = owner,
+        has_one = transmuter,
+        has_one = token_a_escrow,
+    )] //other 2 escrows conditionally checked in handler
     pub mutation: Box<Account<'info, Mutation>>,
     pub owner: Signer<'info>,
     #[account(seeds = [transmuter.key().as_ref()], bump = bump_auth)]
@@ -98,12 +101,6 @@ pub fn handler(ctx: Context<DestroyMutation>) -> ProgramResult {
     // --------------------------------------- verify other 2 escrows
 
     let mutation = &ctx.accounts.mutation;
-
-    assert_keys_eq!(
-        ctx.accounts.token_a_escrow.key(),
-        mutation.token_a_escrow,
-        "a escrow"
-    );
 
     if let Some(b_escrow) = mutation.token_b_escrow {
         assert_keys_eq!(ctx.accounts.token_b_escrow.key(), b_escrow, "b escrow");
