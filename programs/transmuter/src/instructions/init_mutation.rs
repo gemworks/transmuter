@@ -149,6 +149,8 @@ pub fn handler(
     let source_a = ctx.accounts.token_a_source.to_account_info();
     let escrow_a = ctx.accounts.token_a_escrow.to_account_info();
     let maker_token_a = config.maker_token_a;
+
+    //fund (created in validator struct)
     ctx.accounts
         .fund_escrow(mint_a.key(), uses, source_a, escrow_a, maker_token_a)?;
 

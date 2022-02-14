@@ -164,13 +164,13 @@ pub struct MakerTokenConfig {
 }
 
 impl MakerTokenConfig {
-    // todo test
+    /// verifies the passed mint matches that recorded on token config
     pub fn assert_correct_mint(&self, mint: Pubkey) -> ProgramResult {
         require!(mint == self.mint, MintDoesNotMatch);
         Ok(())
     }
 
-    // todo test
+    /// verifies the math of uses * funding per use = total funding
     pub fn assert_sufficient_funding(&self, uses: u64) -> ProgramResult {
         require!(
             self.total_funding == uses.try_mul(self.amount_per_use)?,

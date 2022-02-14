@@ -58,7 +58,7 @@ describe("transmuter (bad config)", () => {
     expect(tx.confirm()).to.be.rejectedWith("0x1777");
   });
 
-  it.only("tries to execute w/o fulfilling maker's requirements (gem count, 3rd vault)", async () => {
+  it("tries to execute w/o fulfilling maker's requirements (gem count, 3rd vault)", async () => {
     await mt.prepareMutation({
       takerTokenB: {
         gemBank: mt.transmuter.bankB,

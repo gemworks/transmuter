@@ -183,11 +183,15 @@ export class MutationTester {
     }
   };
 
+  doAirdrop = async (receiver: PublicKey, amount: number) => {
+    await this.conn
+      .requestAirdrop(receiver, amount)
+      .then((sig) => this.conn.confirmTransaction(sig, "confirmed"));
+  };
+
   prepareTakerVaults = async (bank: PublicKey, taker = this.taker) => {
     // fund taker
-    await this.sdk.provider.connection
-      .requestAirdrop(taker.publicKey, 3 * LAMPORTS_PER_SOL)
-      .then((sig) => this.conn.confirmTransaction(sig, "confirmed"));
+    await this.doAirdrop(taker.publicKey, 3 * LAMPORTS_PER_SOL);
 
     // create vaults
     const { vault } = await this.gb.initVault(

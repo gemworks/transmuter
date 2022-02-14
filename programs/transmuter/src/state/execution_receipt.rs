@@ -1,6 +1,5 @@
 use crate::*;
 
-// todo don't forget to delete on reversals
 #[repr(C)]
 #[account]
 pub struct ExecutionReceipt {

@@ -147,7 +147,7 @@ describe("transmuter (main spec)", () => {
     await mt.verifyTakerReceivedMakerTokens();
   });
 
-  it("happy path (reverse)", async () => {
+  it.only("happy path (reverse)", async () => {
     await mt.prepareMutation({ reversible: true });
 
     //call execute
@@ -165,10 +165,14 @@ describe("transmuter (main spec)", () => {
     const newBalance = await mt.conn.getBalance(mt.taker.publicKey);
     expect(newBalance).to.be.lessThan(LAMPORTS_PER_SOL);
 
-    //verify vault is UNlocked and owned by taker
-    await mt.verifyVault(false, mt.taker);
-
     //verify NO tokens are indeed in taker's wallet
     await mt.verifyTakerReceivedMakerTokens(toBN(0));
+
+    //call execute again, to prove same taker can re-execute
+    await mt.doAirdrop(mt.taker.publicKey, LAMPORTS_PER_SOL); //need more funding
+    await expectTX(tx, "executes mutation").to.be.fulfilled;
+    console.log("re-executed");
+
+    await mt.verifyTakerReceivedMakerTokens();
   });
 });
