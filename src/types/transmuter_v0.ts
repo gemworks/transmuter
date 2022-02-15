@@ -60,8 +60,24 @@ export type TransmuterV0 = {
     },
     {
       "name": "updateTransmuter",
-      "accounts": [],
-      "args": []
+      "accounts": [
+        {
+          "name": "transmuter",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "owner",
+          "isMut": true,
+          "isSigner": true
+        }
+      ],
+      "args": [
+        {
+          "name": "newOwner",
+          "type": "publicKey"
+        }
+      ]
     },
     {
       "name": "addToBankWhitelist",
@@ -338,11 +354,6 @@ export type TransmuterV0 = {
           "type": "u64"
         }
       ]
-    },
-    {
-      "name": "updateMutation",
-      "accounts": [],
-      "args": []
     },
     {
       "name": "destroyMutation",
@@ -1264,8 +1275,24 @@ export const IDL: TransmuterV0 = {
     },
     {
       "name": "updateTransmuter",
-      "accounts": [],
-      "args": []
+      "accounts": [
+        {
+          "name": "transmuter",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "owner",
+          "isMut": true,
+          "isSigner": true
+        }
+      ],
+      "args": [
+        {
+          "name": "newOwner",
+          "type": "publicKey"
+        }
+      ]
     },
     {
       "name": "addToBankWhitelist",
@@ -1542,11 +1569,6 @@ export const IDL: TransmuterV0 = {
           "type": "u64"
         }
       ]
-    },
-    {
-      "name": "updateMutation",
-      "accounts": [],
-      "args": []
     },
     {
       "name": "destroyMutation",

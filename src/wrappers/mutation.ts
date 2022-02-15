@@ -118,7 +118,7 @@ export class MutationWrapper {
           transmuter: this.transmuter,
           mutation: this.key,
           authority,
-          owner: this.sdk.provider.wallet.publicKey,
+          owner: this.provider.wallet.publicKey,
           bankA,
           vaultA,
           bankB,
@@ -149,7 +149,7 @@ export class MutationWrapper {
           transmuter: this.transmuter,
           mutation: this.key,
           authority,
-          owner: this.sdk.provider.wallet.publicKey,
+          owner: this.provider.wallet.publicKey,
           bankA,
           vaultA,
           bankB,
@@ -179,7 +179,7 @@ export class MutationWrapper {
     return {
       authority,
       executionReceipt,
-      tx: new TransactionEnvelope(this.sdk.provider, [ix]),
+      tx: new TransactionEnvelope(this.provider, [ix]),
     };
   }
 

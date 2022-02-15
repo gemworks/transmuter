@@ -4,7 +4,7 @@ use gem_bank::{self, cpi::accounts::AddToWhitelist, program::GemBank, state::Ban
 #[derive(Accounts)]
 #[instruction(bump_auth: u8)]
 pub struct AddToBankWhitelist<'info> {
-    // mutation
+    // transmuter
     #[account(has_one = authority, has_one = owner)]
     pub transmuter: Box<Account<'info, Transmuter>>,
     #[account(mut)]

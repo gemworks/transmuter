@@ -4,7 +4,6 @@ pub mod execute_mutation;
 pub mod init_mutation;
 pub mod init_transmuter;
 pub mod reverse_mutation;
-pub mod update_mutation;
 pub mod update_transmuter;
 
 pub use bank_instructions::*;
@@ -13,7 +12,6 @@ pub use execute_mutation::*;
 pub use init_mutation::*;
 pub use init_transmuter::*;
 pub use reverse_mutation::*;
-pub use update_mutation::*;
 pub use update_transmuter::*;
 
 // have to duplicate or this won't show up in IDL

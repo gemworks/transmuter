@@ -42,6 +42,17 @@ export class TransmuterWrapper {
 
   // --------------------------------------- ixs
 
+  async updateTransmuter(newOwner: PublicKey) {
+    const ix = await this.program.instruction.updateTransmuter(newOwner, {
+      accounts: {
+        transmuter: this.key,
+        owner: this.provider.wallet.publicKey,
+      },
+    });
+
+    return { tx: new TransactionEnvelope(this.provider, [ix]) };
+  }
+
   async addToBankWhitelist(
     bank: PublicKey,
     addressToWhitelist: PublicKey,
@@ -64,7 +75,7 @@ export class TransmuterWrapper {
       {
         accounts: {
           transmuter: this.key,
-          owner: this.sdk.provider.wallet.publicKey,
+          owner: this.provider.wallet.publicKey,
           authority,
           bank,
           addressToWhitelist,
@@ -78,7 +89,7 @@ export class TransmuterWrapper {
     return {
       authority,
       whitelistProof,
-      tx: new TransactionEnvelope(this.sdk.provider, [ix]),
+      tx: new TransactionEnvelope(this.provider, [ix]),
     };
   }
 
@@ -99,7 +110,7 @@ export class TransmuterWrapper {
       {
         accounts: {
           transmuter: this.key,
-          owner: this.sdk.provider.wallet.publicKey,
+          owner: this.provider.wallet.publicKey,
           authority,
           bank,
           addressToRemove,
@@ -112,7 +123,7 @@ export class TransmuterWrapper {
     return {
       authority,
       whitelistProof,
-      tx: new TransactionEnvelope(this.sdk.provider, [ix]),
+      tx: new TransactionEnvelope(this.provider, [ix]),
     };
   }
 
@@ -149,7 +160,7 @@ export class TransmuterWrapper {
       {
         accounts: {
           transmuter: this.key,
-          owner: this.sdk.provider.wallet.publicKey,
+          owner: this.provider.wallet.publicKey,
           authority,
           bank,
           gemBank: GEM_BANK_PROG_ID,
@@ -161,7 +172,7 @@ export class TransmuterWrapper {
 
     return {
       authority,
-      tx: new TransactionEnvelope(this.sdk.provider, [ix]),
+      tx: new TransactionEnvelope(this.provider, [ix]),
     };
   }
 

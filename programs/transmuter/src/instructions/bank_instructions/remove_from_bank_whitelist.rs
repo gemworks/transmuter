@@ -9,7 +9,7 @@ use gem_bank::{
 #[derive(Accounts)]
 #[instruction(bump_auth: u8)]
 pub struct RemoveFromBankWhitelist<'info> {
-    // mutation
+    // transmuter
     #[account(has_one = authority, has_one = owner)]
     pub transmuter: Box<Account<'info, Transmuter>>,
     #[account(mut)]

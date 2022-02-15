@@ -2,7 +2,7 @@ import { ExecutionState, RequiredUnits, VaultAction } from "../src";
 import { expectTX } from "@saberhq/chai-solana";
 
 import "chai-bn";
-import { LAMPORTS_PER_SOL } from "@solana/web3.js";
+import { Keypair, LAMPORTS_PER_SOL } from "@solana/web3.js";
 import { pause, toBN } from "@gemworks/gem-farm-ts";
 import { expect } from "chai";
 import { MutationTester } from "./mutation.tester";
@@ -381,5 +381,17 @@ describe("transmuter (main spec)", () => {
 
     //verify vault count (1 for mt2.taker, 2 for mt.taker)
     expect((await mt.gb.fetchAllVaultPDAs(mt.transmuter.bankA)).length == 3);
+  });
+
+  it("updates transmuter owner", async () => {
+    const newOwner = Keypair.generate().publicKey;
+
+    const { tx } = await mt.transmuter.updateTransmuter(newOwner);
+    await expectTX(tx, "updates owner").to.be.fulfilled;
+
+    await mt.transmuter.reloadData();
+    expect((<any>mt.transmuter.data).owner.toBase58()).to.be.eq(
+      newOwner.toBase58()
+    );
   });
 });

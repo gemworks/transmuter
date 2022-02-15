@@ -30,9 +30,9 @@ pub mod transmuter_v0 {
         instructions::init_transmuter::handler(ctx, bump_auth)
     }
 
-    pub fn update_transmuter(ctx: Context<UpdateTransmuter>) -> ProgramResult {
+    pub fn update_transmuter(ctx: Context<UpdateTransmuter>, new_owner: Pubkey) -> ProgramResult {
         msg!("update transmuter");
-        instructions::update_transmuter::handler(ctx)
+        instructions::update_transmuter::handler(ctx, new_owner)
     }
 
     pub fn add_to_bank_whitelist(
@@ -76,11 +76,6 @@ pub mod transmuter_v0 {
     ) -> ProgramResult {
         msg!("init new mutation");
         instructions::init_mutation::handler(ctx, config, uses, bump_b, bump_c)
-    }
-
-    pub fn update_mutation(ctx: Context<UpdateMutation>) -> ProgramResult {
-        msg!("update mutation");
-        instructions::update_mutation::handler(ctx)
     }
 
     pub fn destroy_mutation(ctx: Context<DestroyMutation>, _bump_auth: u8) -> ProgramResult {
