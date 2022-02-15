@@ -105,7 +105,7 @@ export class MutationTester {
     mutationInitError?: string;
     reversalPriceLamports?: BN;
   }) => {
-    // configure amounts & uses
+    // record uses
     this.uses = uses;
 
     // create any relevant maker mints
@@ -234,9 +234,17 @@ export class MutationTester {
 
   // --------------------------------------- loader
 
-  static load = async (): Promise<MutationTester> => {
+  static load = async (
+    transmuter?: TransmuterWrapper
+  ): Promise<MutationTester> => {
     let tester = new MutationTester();
-    await tester.prepareTransmuter();
+
+    //either attach an existing transmuter (useful for multi-mutation testing), or create new
+    if (transmuter) {
+      tester.transmuter = transmuter;
+    } else {
+      await tester.prepareTransmuter();
+    }
 
     return tester;
   };

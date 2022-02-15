@@ -293,4 +293,30 @@ describe("transmuter (main spec)", () => {
     expect(mt.conn.getTokenAccountBalance(data.tokenBEscrow)).to.be.rejected;
     expect(mt.conn.getTokenAccountBalance(data.tokenCEscrow)).to.be.rejected;
   });
+
+  it("executes multiple mutations for same taker", async () => {
+    //transmuter 1
+    await mt.prepareMutation({});
+
+    //transmuter 2
+    const mt2 = await MutationTester.load(mt.transmuter);
+    await mt2.prepareMutation({});
+
+    //execute mutation 1
+    const { tx } = await mt.mutation.execute(mt.taker.publicKey);
+    tx.addSigners(mt.taker);
+    await expectTX(tx, "executes mutation").to.be.fulfilled;
+
+    //verify vault count (1 for each taker)
+    expect((await mt.gb.fetchAllVaultPDAs(mt.transmuter.bankA)).length == 2);
+
+    //execute mutation 2
+    await mt2.prepareTakerVaults(mt.transmuter.bankA, mt.taker);
+    const { tx: tx2 } = await mt2.mutation.execute(mt.taker.publicKey);
+    tx2.addSigners(mt.taker);
+    await expectTX(tx2, "executes mutation").to.be.fulfilled;
+
+    //verify vault count (1 for mt2.taker, 2 for mt.taker)
+    expect((await mt.gb.fetchAllVaultPDAs(mt.transmuter.bankA)).length == 3);
+  });
 });
