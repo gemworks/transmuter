@@ -70,8 +70,78 @@ describe("transmuter (main spec)", () => {
   });
 
   //using max maker tokens and max taker tokens to test out compute budget
-  it("execute mutation (mutation time > 0, 3x3))", async () => {
+  //also tests receipts
+  it("execute mutation (lock vault, mutation time > 0, 3x3))", async () => {
     await mt.prepareMutation({
+      mutationDurationSec: toBN(5),
+      takerTokenB: {
+        gemBank: mt.transmuter.bankB,
+        requiredAmount: toBN(mt.takerTokenAmountPerUse.mul(toBN(2))), //have to manually mult
+        requiredUnits: RequiredUnits.RarityPoints,
+        vaultAction: VaultAction.Lock,
+      },
+      takerTokenC: {
+        gemBank: mt.transmuter.bankC,
+        requiredAmount: toBN(mt.takerTokenAmountPerUse.mul(toBN(2))), //have to manually mult
+        requiredUnits: RequiredUnits.RarityPoints,
+        vaultAction: VaultAction.Lock,
+      },
+      makerTokenBAmountPerUse: mt.makerTokenAmount,
+      makerTokenCAmountPerUse: mt.makerTokenAmount,
+      uses: toBN(2),
+    });
+
+    // ----------------- 1st execution
+    const { tx } = await mt.mutation.execute(mt.taker.publicKey);
+    tx.addSigners(mt.taker);
+    await expectTX(tx, "executes mutation").to.be.fulfilled;
+    console.log("executed once");
+
+    //verify vault is locked and owned by taker
+    await mt.verifyVault(true, mt.taker);
+
+    //verify receipt exists and is pending
+    const receipt = await mt.sdk.fetchReceipt(
+      mt.mutation.key,
+      mt.taker.publicKey
+    );
+    expect(receipt.state == ExecutionState.Pending);
+    expect(receipt.mutationCompleteTs.toNumber()).to.be.gt(+new Date() / 1000);
+    expect(receipt.mutationCompleteTs.toNumber()).to.be.lt(
+      +new Date() / 1000 + 10
+    );
+
+    //verify no tokens in taker's wallet after first call
+    await mt.verifyTakerReceivedMakerTokens(toBN(0));
+
+    // ----------------- 2nd (failed) execution, since not enough time passed
+    expect(tx.confirm()).to.be.rejectedWith("0x177b"); //MutationNotComplete
+    console.log("tried to execute twice (failure expected)");
+
+    console.log("pausing for mutation duration");
+    await pause(6000);
+
+    // ----------------- 3rd execution
+    await expectTX(tx, "executes mutation").to.be.fulfilled;
+    console.log("executed again");
+
+    //verify vault REMAINS LOCKED and owned by taker
+    await mt.verifyVault(true, mt.taker);
+
+    //verify receipt exists and is complete
+    const receipt2 = await mt.sdk.fetchReceipt(
+      mt.mutation.key,
+      mt.taker.publicKey
+    );
+    expect(receipt2.state == ExecutionState.Complete);
+
+    //this time tokens present
+    await mt.verifyTakerReceivedMakerTokens();
+  });
+
+  it("execute mutation (change owner, mutation time > 0, 3x3))", async () => {
+    await mt.prepareMutation({
+      vaultAction: VaultAction.ChangeOwner,
       mutationDurationSec: toBN(5),
       takerTokenB: {
         gemBank: mt.transmuter.bankB,
@@ -99,45 +169,72 @@ describe("transmuter (main spec)", () => {
     //verify vault is locked and owned by taker
     await mt.verifyVault(true, mt.taker);
 
-    //verify receipt exists and is pending
-    const receipt = await mt.sdk.fetchReceipt(
-      mt.mutation.key,
-      mt.taker.publicKey
-    );
-    expect(receipt.state == ExecutionState.Pending);
-    expect(receipt.mutationCompleteTs.toNumber()).to.be.gt(+new Date() / 1000);
-    expect(receipt.mutationCompleteTs.toNumber()).to.be.lt(
-      +new Date() / 1000 + 10
-    );
-
     //verify no tokens in taker's wallet after first call
     await mt.verifyTakerReceivedMakerTokens(toBN(0));
-
-    //try to call immediately again - will fail, since not enough time passed
-    expect(tx.confirm()).to.be.rejectedWith("0x177b"); //MutationNotComplete
-    console.log("tried to execute twice (failure expected)");
 
     console.log("pausing for mutation duration");
     await pause(6000);
 
     //call again
     await expectTX(tx, "executes mutation").to.be.fulfilled;
-    console.log("executed third time");
+    console.log("executed again");
 
-    //verify receipt exists and is complete
-    const receipt2 = await mt.sdk.fetchReceipt(
-      mt.mutation.key,
-      mt.taker.publicKey
-    );
-    expect(receipt2.state == ExecutionState.Complete);
+    //verify vault is UNLOCKED and owned by MAKER
+    await mt.verifyVault(false, mt.maker);
+
+    //this time tokens present
+    await mt.verifyTakerReceivedMakerTokens();
+  });
+
+  it("execute mutation (do nothing, mutation time > 0, 3x3))", async () => {
+    await mt.prepareMutation({
+      vaultAction: VaultAction.DoNothing,
+      mutationDurationSec: toBN(5),
+      takerTokenB: {
+        gemBank: mt.transmuter.bankB,
+        requiredAmount: toBN(mt.takerTokenAmountPerUse.mul(toBN(2))), //have to manually mult
+        requiredUnits: RequiredUnits.RarityPoints,
+        vaultAction: VaultAction.Lock,
+      },
+      takerTokenC: {
+        gemBank: mt.transmuter.bankC,
+        requiredAmount: toBN(mt.takerTokenAmountPerUse.mul(toBN(2))), //have to manually mult
+        requiredUnits: RequiredUnits.RarityPoints,
+        vaultAction: VaultAction.Lock,
+      },
+      makerTokenBAmountPerUse: mt.makerTokenAmount,
+      makerTokenCAmountPerUse: mt.makerTokenAmount,
+      uses: toBN(2),
+    });
+
+    //call execute
+    const { tx } = await mt.mutation.execute(mt.taker.publicKey);
+    tx.addSigners(mt.taker);
+    await expectTX(tx, "executes mutation").to.be.fulfilled;
+    console.log("executed once");
+
+    //verify vault is locked and owned by taker
+    await mt.verifyVault(true, mt.taker);
+
+    //verify no tokens in taker's wallet after first call
+    await mt.verifyTakerReceivedMakerTokens(toBN(0));
+
+    console.log("pausing for mutation duration");
+    await pause(6000);
+
+    //call again
+    await expectTX(tx, "executes mutation").to.be.fulfilled;
+    console.log("executed again");
+
+    //verify vault is UNLOCKED and owned by TAKER
+    await mt.verifyVault(false, mt.taker);
 
     //this time tokens present
     await mt.verifyTakerReceivedMakerTokens();
   });
 
   //todo still sometimes fails due to compute - might have to settle for 2x3 or 3x2 :(
-  //using max maker tokens and max taker tokens to test out compute budget
-  it.only("reverse mutation (3x3)", async () => {
+  it("reverse mutation (3x3)", async () => {
     await mt.prepareMutation({
       takerTokenB: {
         gemBank: mt.transmuter.bankB,
@@ -158,7 +255,7 @@ describe("transmuter (main spec)", () => {
 
     const oldBalance = await mt.conn.getBalance(mt.taker.publicKey);
 
-    //call execute
+    // ----------------- 1st execution
     const { tx } = await mt.mutation.execute(mt.taker.publicKey);
     tx.addSigners(mt.taker);
     await expectTX(tx, "executes mutation").to.be.fulfilled;
@@ -174,7 +271,7 @@ describe("transmuter (main spec)", () => {
     );
     expect(receipt.state == ExecutionState.Complete);
 
-    //call reverse
+    // ----------------- reversal
     const { tx: reverseTx } = await mt.mutation.reverse(mt.taker.publicKey);
     reverseTx.addSigners(mt.taker);
     await expectTX(reverseTx, "reverses mutation").to.be.fulfilled;
@@ -199,7 +296,7 @@ describe("transmuter (main spec)", () => {
     //verify NO tokens are indeed in taker's wallet
     await mt.verifyTakerReceivedMakerTokens(toBN(0));
 
-    //call execute again, to prove same taker can re-execute
+    // ----------------- 2nd execution
     await mt.doAirdrop(mt.taker.publicKey, LAMPORTS_PER_SOL); //need more funding
     await expectTX(tx, "executes mutation").to.be.fulfilled;
     console.log("re-executed");
