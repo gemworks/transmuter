@@ -1,7 +1,7 @@
 {
   "name": "@gemworks/transmuter-ts",
   "description": "sdk for Magic Transmuter ⚗️ (by Gemworks 💎)",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "repository": "https://github.com/gemworks/transmuter",
   "scripts": {
     "build": "anchor build && ./scripts/cp_idl.sh",
