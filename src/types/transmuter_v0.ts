@@ -276,6 +276,11 @@ export type TransmuterV0 = {
       "name": "initTakerVault",
       "accounts": [
         {
+          "name": "transmuter",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
           "name": "mutation",
           "isMut": false,
           "isSigner": false
@@ -306,6 +311,11 @@ export type TransmuterV0 = {
           "isSigner": true
         },
         {
+          "name": "executionReceipt",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
           "name": "systemProgram",
           "isMut": false,
           "isSigner": false
@@ -318,6 +328,10 @@ export type TransmuterV0 = {
         },
         {
           "name": "bumpVault",
+          "type": "u8"
+        },
+        {
+          "name": "bumpReceipt",
           "type": "u8"
         }
       ]
@@ -580,6 +594,24 @@ export type TransmuterV0 = {
             "type": {
               "defined": "ExecutionState"
             }
+          },
+          {
+            "name": "vaultA",
+            "type": {
+              "option": "publicKey"
+            }
+          },
+          {
+            "name": "vaultB",
+            "type": {
+              "option": "publicKey"
+            }
+          },
+          {
+            "name": "vaultC",
+            "type": {
+              "option": "publicKey"
+            }
           }
         ]
       }
@@ -819,6 +851,9 @@ export type TransmuterV0 = {
         "kind": "enum",
         "variants": [
           {
+            "name": "NotStarted"
+          },
+          {
             "name": "Pending"
           },
           {
@@ -953,6 +988,16 @@ export type TransmuterV0 = {
       "code": 6015,
       "name": "ExecutionReceiptMissing",
       "msg": "Execution receipt for this taker not found"
+    },
+    {
+      "code": 6016,
+      "name": "NoneOfTheBanksMatch",
+      "msg": "Trying to init a vault for an unknown bank"
+    },
+    {
+      "code": 6017,
+      "name": "TakerVaultNotFound",
+      "msg": "Taker hasn't initialized one of the required vaults"
     }
   ]
 };
@@ -1235,6 +1280,11 @@ export const IDL: TransmuterV0 = {
       "name": "initTakerVault",
       "accounts": [
         {
+          "name": "transmuter",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
           "name": "mutation",
           "isMut": false,
           "isSigner": false
@@ -1265,6 +1315,11 @@ export const IDL: TransmuterV0 = {
           "isSigner": true
         },
         {
+          "name": "executionReceipt",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
           "name": "systemProgram",
           "isMut": false,
           "isSigner": false
@@ -1277,6 +1332,10 @@ export const IDL: TransmuterV0 = {
         },
         {
           "name": "bumpVault",
+          "type": "u8"
+        },
+        {
+          "name": "bumpReceipt",
           "type": "u8"
         }
       ]
@@ -1539,6 +1598,24 @@ export const IDL: TransmuterV0 = {
             "type": {
               "defined": "ExecutionState"
             }
+          },
+          {
+            "name": "vaultA",
+            "type": {
+              "option": "publicKey"
+            }
+          },
+          {
+            "name": "vaultB",
+            "type": {
+              "option": "publicKey"
+            }
+          },
+          {
+            "name": "vaultC",
+            "type": {
+              "option": "publicKey"
+            }
           }
         ]
       }
@@ -1778,6 +1855,9 @@ export const IDL: TransmuterV0 = {
         "kind": "enum",
         "variants": [
           {
+            "name": "NotStarted"
+          },
+          {
             "name": "Pending"
           },
           {
@@ -1912,6 +1992,16 @@ export const IDL: TransmuterV0 = {
       "code": 6015,
       "name": "ExecutionReceiptMissing",
       "msg": "Execution receipt for this taker not found"
+    },
+    {
+      "code": 6016,
+      "name": "NoneOfTheBanksMatch",
+      "msg": "Trying to init a vault for an unknown bank"
+    },
+    {
+      "code": 6017,
+      "name": "TakerVaultNotFound",
+      "msg": "Taker hasn't initialized one of the required vaults"
     }
   ]
 };

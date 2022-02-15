@@ -49,4 +49,10 @@ pub enum ErrorCode {
 
     #[msg("Execution receipt for this taker not found")]
     ExecutionReceiptMissing, //15 = 0x177f
+
+    #[msg("Trying to init a vault for an unknown bank")]
+    NoneOfTheBanksMatch,
+
+    #[msg("Taker hasn't initialized one of the required vaults")]
+    TakerVaultNotFound,
 }

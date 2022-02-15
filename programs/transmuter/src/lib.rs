@@ -62,23 +62,24 @@ pub mod transmuter_v0 {
         ctx: Context<InitTakerVault>,
         bump_creator: u8,
         bump_vault: u8,
+        _bump_receipt: u8,
     ) -> ProgramResult {
         instructions::init_vault::handler(ctx, bump_creator, bump_vault)
     }
 
     pub fn execute_mutation<'a, 'b, 'c, 'info>(
         ctx: Context<'a, 'b, 'c, 'info, ExecuteMutation<'info>>,
-        bump_receipt: u8,
+        _bump_receipt: u8,
     ) -> ProgramResult {
         // msg!("execute mutation"); //save compute
-        instructions::execute_mutation::handler(ctx, bump_receipt)
+        instructions::execute_mutation::handler(ctx)
     }
 
     pub fn reverse_mutation<'a, 'b, 'c, 'info>(
         ctx: Context<'a, 'b, 'c, 'info, ExecuteMutation<'info>>,
-        bump_receipt: u8,
+        _bump_receipt: u8,
     ) -> ProgramResult {
         // msg!("reverse mutation"); //save compute
-        instructions::reverse_mutation::handler(ctx, bump_receipt)
+        instructions::reverse_mutation::handler(ctx)
     }
 }

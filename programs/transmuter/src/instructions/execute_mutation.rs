@@ -53,9 +53,13 @@ pub struct ExecuteMutation<'info> {
     // misc
     #[account(mut)]
     pub taker: Signer<'info>,
-    // manually init'ed / deserialized to save compute
-    #[account(mut)]
-    pub execution_receipt: AccountInfo<'info>,
+    #[account(mut, seeds = [
+            b"receipt".as_ref(),
+            mutation.key().as_ref(),
+            taker.key().as_ref()
+        ],
+        bump = bump_receipt)]
+    pub execution_receipt: Box<Account<'info, ExecutionReceipt>>,
     pub token_program: Program<'info, Token>,
     pub associated_token_program: Program<'info, AssociatedToken>,
     pub system_program: Program<'info, System>,
@@ -150,11 +154,14 @@ impl<'info> ExecuteMutation<'info> {
         &self,
         bank: AccountInfo<'info>,
         vault: &Account<'info, Vault>,
+        er_vault: Pubkey,
         taker_token: TakerTokenConfig,
         vault_lock: bool,
     ) -> ProgramResult {
+        // bank & vault validation
         taker_token.assert_correct_bank(bank.key())?;
         taker_token.assert_sufficient_amount(vault)?;
+        assert_keys_eq!(vault.key(), er_vault, "vaults don't match");
 
         // both methods below will check that vault actually belongs to bank
         match taker_token.vault_action {
@@ -203,7 +210,6 @@ impl<'info> ExecuteMutation<'info> {
 
 pub fn handler<'a, 'b, 'c, 'info>(
     ctx: Context<'a, 'b, 'c, 'info, ExecuteMutation<'info>>,
-    bump_receipt: u8,
 ) -> ProgramResult {
     // --------------------------------------- verify other 2 escrows
 
@@ -264,26 +270,39 @@ pub fn handler<'a, 'b, 'c, 'info>(
     // first bank
     let bank_a = ctx.accounts.bank_a.to_account_info();
     let vault_a = &ctx.accounts.vault_a;
+    let er_vault_a = ctx.accounts.execution_receipt.vault_a.unwrap(); //todo potentially do better
     let taker_token_a = mutation.config.taker_token_a;
     ctx.accounts
-        .perform_vault_action(bank_a, vault_a, taker_token_a, true)?;
+        .perform_vault_action(bank_a, vault_a, er_vault_a, taker_token_a, true)?;
 
     // second bank
     if let Some(taker_token_b) = config.taker_token_b {
         let bank_b = next_account_info(remaining_accs)?;
         let vault_b = next_account_info(remaining_accs)?;
+        let er_vault_b = ctx.accounts.execution_receipt.vault_b.unwrap();
         let vault_b_acc: Account<'_, Vault> = Account::try_from(vault_b)?;
-        ctx.accounts
-            .perform_vault_action(bank_b.clone(), &vault_b_acc, taker_token_b, true)?;
+        ctx.accounts.perform_vault_action(
+            bank_b.clone(),
+            &vault_b_acc,
+            er_vault_b,
+            taker_token_b,
+            true,
+        )?;
     }
 
     // third bank
     if let Some(taker_token_c) = config.taker_token_c {
         let bank_c = next_account_info(remaining_accs)?;
         let vault_c = next_account_info(remaining_accs)?;
+        let er_vault_c = ctx.accounts.execution_receipt.vault_c.unwrap();
         let vault_c_acc: Account<'_, Vault> = Account::try_from(vault_c)?;
-        ctx.accounts
-            .perform_vault_action(bank_c.clone(), &vault_c_acc, taker_token_c, true)?;
+        ctx.accounts.perform_vault_action(
+            bank_c.clone(),
+            &vault_c_acc,
+            er_vault_c,
+            taker_token_c,
+            true,
+        )?;
     }
 
     // --------------------------------------- execution receipt
@@ -291,62 +310,24 @@ pub fn handler<'a, 'b, 'c, 'info>(
     let config = ctx.accounts.mutation.config;
     let execution_receipt_info = &mut ctx.accounts.execution_receipt;
 
-    // only relevant if either:
-    // - reversible (we'll need to know that mutation completed)
-    // - mutation time > 0 (we'll need to know if mutation still pending)
-    if config.reversible || config.mutation_time_sec > 0 {
-        // create a receipt
-        if execution_receipt_info.data_is_empty() {
-            create_pda_with_space(
-                &[
-                    b"receipt".as_ref(),
-                    ctx.accounts.mutation.key().as_ref(),
-                    ctx.accounts.taker.key().as_ref(),
-                    &[bump_receipt],
-                ],
-                execution_receipt_info,
-                8 + std::mem::size_of::<ExecutionReceipt>(),
-                ctx.program_id,
-                &ctx.accounts.taker.to_account_info(),
-                &ctx.accounts.system_program.to_account_info(),
-            )?;
-
-            let disc = hash("account:ExecutionReceipt".as_bytes());
-            let mutation_complete_ts =
-                ExecutionReceipt::calc_mutation_complete_ts(config.mutation_time_sec)?;
-
-            let mut execution_receipt_raw = execution_receipt_info.data.borrow_mut();
-            execution_receipt_raw[..8].clone_from_slice(&disc.to_bytes()[..8]);
-            execution_receipt_raw[8..16].clone_from_slice(&mutation_complete_ts.to_le_bytes());
-
+    match execution_receipt_info.state {
+        ExecutionState::NotStarted => {
+            execution_receipt_info.record_mutation_complete_ts(config.mutation_time_sec)?;
+            // if need time to complete, mark pending and exit
             if config.mutation_time_sec > 0 {
+                execution_receipt_info.mark_pending();
                 return Ok(());
-            } else {
-                // if no extra wait is required, mark as complete (little endian)
-                execution_receipt_raw[16..20].clone_from_slice(&[1, 0, 0, 0]);
             }
-
-        // deserialize an existing receipt
-        } else {
-            let (pda, bump) = Pubkey::find_program_address(
-                &[
-                    b"receipt".as_ref(),
-                    ctx.accounts.mutation.key().as_ref(),
-                    ctx.accounts.taker.key().as_ref(),
-                ],
-                &ctx.program_id,
-            );
-            assert_keys_eq!(pda, execution_receipt_info.key(), "receipt");
-            invariant!(bump_receipt == bump, "receipt bump");
-
-            let mut execution_receipt: Account<'_, ExecutionReceipt> =
-                Account::try_from(execution_receipt_info)?;
-
-            if execution_receipt.is_pending() {
-                execution_receipt.try_mark_complete()?; //will error out if isn't due yet
-            } else {
-                return Err(ErrorCode::MutationAlreadyComplete.into());
-            }
+            // else mark complete and continue
+            execution_receipt_info.try_mark_complete()?;
+        }
+        ExecutionState::Pending => {
+            // will error out if time isn't due yet
+            execution_receipt_info.try_mark_complete()?;
+        }
+        ExecutionState::Complete => {
+            // can't complete the mutation twice
+            return Err(ErrorCode::MutationAlreadyComplete.into());
         }
     }
 

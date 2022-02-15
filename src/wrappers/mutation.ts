@@ -242,18 +242,27 @@ export class MutationWrapper {
       taker
     );
     const [vault, vaultBump] = await this.sdk.findVaultPDA(bank, creator);
+    const [executionReceipt, receiptBump] =
+      await this.sdk.findExecutionReceiptPDA(this.key, taker);
 
-    const ix = this.program.instruction.initTakerVault(creatorBump, vaultBump, {
-      accounts: {
-        mutation: this.key,
-        bank,
-        vault,
-        creator,
-        gemBank: GEM_BANK_PROG_ID,
-        taker,
-        systemProgram: SystemProgram.programId,
-      },
-    });
+    const ix = this.program.instruction.initTakerVault(
+      creatorBump,
+      vaultBump,
+      receiptBump,
+      {
+        accounts: {
+          transmuter: this.transmuter,
+          mutation: this.key,
+          bank,
+          vault,
+          creator,
+          gemBank: GEM_BANK_PROG_ID,
+          taker,
+          executionReceipt,
+          systemProgram: SystemProgram.programId,
+        },
+      }
+    );
 
     return new TransactionEnvelope(this.provider, [ix]);
   }
