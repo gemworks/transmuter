@@ -352,6 +352,10 @@ export type TransmuterV0 = {
         {
           "name": "uses",
           "type": "u64"
+        },
+        {
+          "name": "name",
+          "type": "string"
         }
       ]
     },
@@ -880,6 +884,15 @@ export type TransmuterV0 = {
             "name": "state",
             "type": {
               "defined": "MutationState"
+            }
+          },
+          {
+            "name": "name",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
             }
           },
           {
@@ -1606,6 +1619,10 @@ export const IDL: TransmuterV0 = {
         {
           "name": "uses",
           "type": "u64"
+        },
+        {
+          "name": "name",
+          "type": "string"
         }
       ]
     },
@@ -2134,6 +2151,15 @@ export const IDL: TransmuterV0 = {
             "name": "state",
             "type": {
               "defined": "MutationState"
+            }
+          },
+          {
+            "name": "name",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
             }
           },
           {

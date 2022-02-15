@@ -1,5 +1,6 @@
 use crate::*;
 use anchor_spl::token::{self, InitializeAccount, Mint, Token, TokenAccount, Transfer};
+use std::io::Write;
 
 #[derive(Accounts)]
 #[instruction(bump_auth: u8, bump_a: u8)]
@@ -129,6 +130,7 @@ pub fn handler(
     uses: u64,
     bump_b: u8,
     bump_c: u8,
+    name: String,
 ) -> ProgramResult {
     let mutation = &mut ctx.accounts.mutation;
 
@@ -143,6 +145,7 @@ pub fn handler(
     if config.maker_token_c.is_some() {
         mutation.token_c_escrow = Some(ctx.accounts.token_c_escrow.key());
     }
+    (&mut mutation.name[..]).write_all(name.as_bytes())?;
 
     // first escrow
     let mint_a = ctx.accounts.token_a_mint.to_account_info();

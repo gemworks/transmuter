@@ -3,7 +3,7 @@ import { expectTX } from "@saberhq/chai-solana";
 
 import "chai-bn";
 import { Keypair, LAMPORTS_PER_SOL } from "@solana/web3.js";
-import { pause, toBN } from "@gemworks/gem-farm-ts";
+import { pause, stringToBytes, toBN } from "@gemworks/gem-farm-ts";
 import { expect } from "chai";
 import { MutationTester } from "./mutation.tester";
 
@@ -16,6 +16,11 @@ describe("transmuter (main spec)", () => {
 
   it("execute mutation (lock vault)", async () => {
     await mt.prepareMutation({});
+
+    await mt.mutation.reloadData();
+    expect(mt.mutation.data.name).to.deep.include.members(
+      stringToBytes("mutation123")
+    );
 
     const oldBalance = await mt.conn.getBalance(mt.taker.publicKey);
 

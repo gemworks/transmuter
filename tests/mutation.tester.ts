@@ -92,6 +92,7 @@ export class MutationTester {
     uses = toBN(1),
     mutationInitError = undefined,
     reversalPriceLamports = toBN(LAMPORTS_PER_SOL),
+    name = "mutation123",
   }: {
     vaultAction?: any;
     mutationDurationSec?: BN;
@@ -103,6 +104,7 @@ export class MutationTester {
     uses?: BN;
     mutationInitError?: string;
     reversalPriceLamports?: BN;
+    name?: string;
   }) => {
     // record uses
     this.uses = uses;
@@ -159,7 +161,9 @@ export class MutationTester {
     const { mutationWrapper, tx } = await this.sdk.initMutation(
       config,
       this.transmuter.key,
-      uses
+      uses,
+      undefined,
+      name
     );
 
     if (!mutationInitError) {

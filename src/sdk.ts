@@ -186,7 +186,8 @@ export class TransmuterSDK {
     config: MutationConfig,
     transmuter: PublicKey,
     uses: BN,
-    payer?: PublicKey
+    payer?: PublicKey,
+    name: string = "mutation"
   ) {
     const mutation = Keypair.generate();
 
@@ -218,6 +219,7 @@ export class TransmuterSDK {
       tokenCEscrowBump,
       config as any,
       uses,
+      name,
       {
         accounts: {
           transmuter,

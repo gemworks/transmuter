@@ -2,7 +2,7 @@ use crate::ErrorCode::NoMoreUsesLeft;
 use crate::*;
 use gem_bank::state::Vault;
 
-#[proc_macros::assert_size(592)]
+#[proc_macros::assert_size(624)]
 #[repr(C)]
 #[account]
 pub struct Mutation {
@@ -21,6 +21,8 @@ pub struct Mutation {
     remaining_uses: u64,
 
     state: MutationState,
+
+    pub name: [u8; 32],
 
     pub _reserved: [u8; 64],
 }

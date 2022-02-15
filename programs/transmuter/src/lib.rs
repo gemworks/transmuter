@@ -73,9 +73,10 @@ pub mod transmuter_v0 {
         bump_c: u8,
         config: MutationConfig,
         uses: u64,
+        name: String,
     ) -> ProgramResult {
         msg!("init new mutation");
-        instructions::init_mutation::handler(ctx, config, uses, bump_b, bump_c)
+        instructions::init_mutation::handler(ctx, config, uses, bump_b, bump_c, name)
     }
 
     pub fn destroy_mutation(ctx: Context<DestroyMutation>, _bump_auth: u8) -> ProgramResult {
