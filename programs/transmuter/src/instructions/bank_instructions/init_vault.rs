@@ -67,9 +67,9 @@ pub fn handler(ctx: Context<InitTakerVault>, bump_creator: u8, bump_vault: u8) -
 
     if bank == transmuter.bank_a {
         receipt.vault_a = Some(vault);
-    } else if transmuter.bank_b.is_some() && bank == transmuter.bank_b.unwrap() {
+    } else if bank == transmuter.bank_b {
         receipt.vault_b = Some(vault);
-    } else if transmuter.bank_c.is_some() && bank == transmuter.bank_c.unwrap() {
+    } else if bank == transmuter.bank_c {
         receipt.vault_c = Some(vault);
     } else {
         return Err(ErrorCode::NoneOfTheBanksMatch.into());

@@ -14,10 +14,10 @@ pub struct Transmuter {
     pub authority_seed: Pubkey,
     pub authority_bump_seed: [u8; 1],
 
-    // transmuter controls up to 3 banks
+    // transmuter controls 3 banks - but not all 3 have to be used for each mutation
     pub bank_a: Pubkey,
-    pub bank_b: Option<Pubkey>,
-    pub bank_c: Option<Pubkey>,
+    pub bank_b: Pubkey,
+    pub bank_c: Pubkey,
 }
 
 impl Transmuter {

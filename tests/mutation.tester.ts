@@ -74,8 +74,8 @@ export class MutationTester {
 
   // --------------------------------------- ix call wrappers
 
-  prepareTransmuter = async (bankCount: number) => {
-    const { transmuterWrapper, tx } = await this.sdk.initTransmuter(bankCount);
+  prepareTransmuter = async () => {
+    const { transmuterWrapper, tx } = await this.sdk.initTransmuter();
     await expectTX(tx, "init new transmuter").to.be.fulfilled;
     this.transmuter = transmuterWrapper;
 
@@ -236,7 +236,7 @@ export class MutationTester {
 
   static load = async (): Promise<MutationTester> => {
     let tester = new MutationTester();
-    await tester.prepareTransmuter(3);
+    await tester.prepareTransmuter();
 
     return tester;
   };

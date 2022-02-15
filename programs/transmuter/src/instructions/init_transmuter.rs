@@ -14,16 +14,16 @@ pub struct InitTransmuter<'info> {
     // taker banks
     #[account(mut)]
     pub bank_a: Signer<'info>,
+    #[account(mut)]
+    pub bank_b: Signer<'info>,
+    #[account(mut)]
+    pub bank_c: Signer<'info>,
     pub gem_bank: Program<'info, GemBank>,
 
     // misc
     #[account(mut)]
     pub payer: Signer<'info>,
     pub system_program: Program<'info, System>,
-    //
-    // optional:
-    // bank_b: signer + mut
-    // bank_c: signer + mut
 }
 
 impl<'info> InitTransmuter<'info> {
@@ -59,7 +59,6 @@ pub fn handler<'a, 'b, 'c, 'info>(
     transmuter.authority_bump_seed = [bump_auth];
 
     let full_seeds = [key.as_ref(), &[bump_auth]];
-    let remaining_accs = &mut ctx.remaining_accounts.iter();
 
     // init first bank
     let bank_a = ctx.accounts.bank_a.to_account_info();
@@ -71,30 +70,24 @@ pub fn handler<'a, 'b, 'c, 'info>(
     )?;
 
     // init second bank
-    if let Ok(bank_b) = next_account_info(remaining_accs) {
-        {
-            let transmuter = &mut ctx.accounts.transmuter;
-            transmuter.bank_b = Some(bank_b.key());
-        }
-        gem_bank::cpi::init_bank(
-            ctx.accounts
-                .init_bank_ctx(bank_b.clone())
-                .with_signer(&[&full_seeds]),
-        )?;
-    }
+    let transmuter = &mut ctx.accounts.transmuter;
+    let bank_b = ctx.accounts.bank_b.to_account_info();
+    transmuter.bank_b = bank_b.key();
+    gem_bank::cpi::init_bank(
+        ctx.accounts
+            .init_bank_ctx(bank_b)
+            .with_signer(&[&full_seeds]),
+    )?;
 
     // init third bank
-    if let Ok(bank_c) = next_account_info(remaining_accs) {
-        {
-            let transmuter = &mut ctx.accounts.transmuter;
-            transmuter.bank_c = Some(bank_c.key());
-        }
-        gem_bank::cpi::init_bank(
-            ctx.accounts
-                .init_bank_ctx(bank_c.clone())
-                .with_signer(&[&full_seeds]),
-        )?;
-    }
+    let transmuter = &mut ctx.accounts.transmuter;
+    let bank_c = ctx.accounts.bank_c.to_account_info();
+    transmuter.bank_c = bank_c.key();
+    gem_bank::cpi::init_bank(
+        ctx.accounts
+            .init_bank_ctx(bank_c)
+            .with_signer(&[&full_seeds]),
+    )?;
 
     Ok(())
 }

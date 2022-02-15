@@ -192,7 +192,6 @@ export class MutationWrapper {
       });
     }
 
-    //todo return more?
     return {
       authority,
       executionReceipt,
@@ -250,7 +249,6 @@ export class MutationWrapper {
       },
     });
 
-    //todo return more?
     return { authority, tx: new TransactionEnvelope(this.provider, [ix]) };
   }
 

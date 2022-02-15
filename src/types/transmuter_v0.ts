@@ -26,6 +26,16 @@ export type TransmuterV0 = {
           "isSigner": true
         },
         {
+          "name": "bankB",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "bankC",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
           "name": "gemBank",
           "isMut": false,
           "isSigner": false
@@ -700,15 +710,11 @@ export type TransmuterV0 = {
           },
           {
             "name": "bankB",
-            "type": {
-              "option": "publicKey"
-            }
+            "type": "publicKey"
           },
           {
             "name": "bankC",
-            "type": {
-              "option": "publicKey"
-            }
+            "type": "publicKey"
           }
         ]
       }
@@ -1030,6 +1036,16 @@ export const IDL: TransmuterV0 = {
           "isSigner": true
         },
         {
+          "name": "bankB",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "bankC",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
           "name": "gemBank",
           "isMut": false,
           "isSigner": false
@@ -1704,15 +1720,11 @@ export const IDL: TransmuterV0 = {
           },
           {
             "name": "bankB",
-            "type": {
-              "option": "publicKey"
-            }
+            "type": "publicKey"
           },
           {
             "name": "bankC",
-            "type": {
-              "option": "publicKey"
-            }
+            "type": "publicKey"
           }
         ]
       }

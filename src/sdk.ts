@@ -152,36 +152,11 @@ export class TransmuterSDK {
 
   // --------------------------------------- initializers
 
-  async initTransmuter(
-    bankCount: number, //1-3
-    payer?: PublicKey
-  ) {
+  async initTransmuter(payer?: PublicKey) {
     const transmuter = Keypair.generate();
     const bankA = Keypair.generate();
-    let bankB;
-    let bankC;
-
-    const signers: Keypair[] = [transmuter, bankA];
-    const remainingAccounts = [];
-
-    if (bankCount >= 2) {
-      bankB = Keypair.generate();
-      signers.push(bankB);
-      remainingAccounts.push({
-        pubkey: bankB.publicKey,
-        isWritable: true,
-        isSigner: true,
-      });
-    }
-    if (bankCount >= 3) {
-      bankC = Keypair.generate();
-      signers.push(bankC);
-      remainingAccounts.push({
-        pubkey: bankC.publicKey,
-        isWritable: true,
-        isSigner: true,
-      });
-    }
+    const bankB = Keypair.generate();
+    const bankC = Keypair.generate();
 
     const [authority, bump] = await this.findTransmuterAuthorityPDA(
       transmuter.publicKey
@@ -193,11 +168,12 @@ export class TransmuterSDK {
         owner: this.provider.wallet.publicKey,
         authority,
         bankA: bankA.publicKey,
+        bankB: bankB.publicKey,
+        bankC: bankC.publicKey,
         gemBank: GEM_BANK_PROG_ID,
         payer: payer ?? this.provider.wallet.publicKey,
         systemProgram: SystemProgram.programId,
       },
-      remainingAccounts,
     });
 
     return {
@@ -205,10 +181,15 @@ export class TransmuterSDK {
         this,
         transmuter.publicKey,
         bankA.publicKey,
-        bankB ? bankB.publicKey : undefined,
-        bankC ? bankC.publicKey : undefined
+        bankB.publicKey,
+        bankC.publicKey
       ),
-      tx: new TransactionEnvelope(this.provider, [ix], signers),
+      authority,
+      tx: new TransactionEnvelope(
+        this.provider,
+        [ix],
+        [transmuter, bankA, bankB, bankC]
+      ),
     };
   }
 
@@ -277,6 +258,7 @@ export class TransmuterSDK {
         mutation.publicKey,
         transmuter
       ),
+      authority,
       tx: new TransactionEnvelope(this.provider, [ix], [mutation]),
     };
   }

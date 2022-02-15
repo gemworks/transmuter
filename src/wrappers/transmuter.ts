@@ -10,8 +10,8 @@ export class TransmuterWrapper {
     readonly sdk: TransmuterSDK,
     readonly key: PublicKey,
     readonly bankA: PublicKey,
-    readonly bankB?: PublicKey,
-    readonly bankC?: PublicKey,
+    readonly bankB: PublicKey,
+    readonly bankC: PublicKey,
     _data?: TransmuterData,
     readonly program: TransmuterProgram = sdk.programs.Transmuter
   ) {}
@@ -40,8 +40,8 @@ export class TransmuterWrapper {
     sdk: TransmuterSDK,
     key: PublicKey,
     bankA: PublicKey,
-    bankB?: PublicKey,
-    bankC?: PublicKey
+    bankB: PublicKey,
+    bankC: PublicKey
   ): Promise<TransmuterWrapper> {
     const data = (await sdk.programs.Transmuter.account.transmuter.fetch(
       key
