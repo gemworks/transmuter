@@ -17,6 +17,8 @@ describe("transmuter (main spec)", () => {
   it("execute mutation (lock vault)", async () => {
     await mt.prepareMutation({});
 
+    const oldBalance = await mt.conn.getBalance(mt.taker.publicKey);
+
     //call execute
     const { tx } = await mt.mutation.execute(mt.taker.publicKey);
     tx.addSigners(mt.taker);
@@ -24,7 +26,7 @@ describe("transmuter (main spec)", () => {
 
     //verify fee paid
     const newBalance = await mt.conn.getBalance(mt.taker.publicKey);
-    expect(newBalance).to.be.lessThan(2 * LAMPORTS_PER_SOL);
+    expect(newBalance).to.be.lessThan(oldBalance - LAMPORTS_PER_SOL);
 
     //verify vault is locked and owned by taker
     await mt.verifyVault(true, mt.taker);
@@ -166,7 +168,7 @@ describe("transmuter (main spec)", () => {
   });
 
   //todo still sometimes fails due to compute - might haveto settle for 2x3 or 3x2 :(
-  it.only("reverse mutation (3x3)", async () => {
+  it("reverse mutation (3x3)", async () => {
     await mt.prepareMutation({
       takerTokenB: {
         gemBank: mt.transmuter.bankB,
@@ -184,6 +186,8 @@ describe("transmuter (main spec)", () => {
       // makerTokenCAmountPerUse: mt.makerTokenAmount,
       reversible: true,
     });
+
+    const oldBalance = await mt.conn.getBalance(mt.taker.publicKey);
 
     //call execute
     const { tx } = await mt.mutation.execute(mt.taker.publicKey);
@@ -209,9 +213,9 @@ describe("transmuter (main spec)", () => {
     await expectTX(reverseTx, "reverses mutation").to.be.fulfilled;
     console.log("reversed");
 
-    //will have paid TWICE
+    //will have paid TWICE (execution + reversal)
     const newBalance = await mt.conn.getBalance(mt.taker.publicKey);
-    expect(newBalance).to.be.lessThan(LAMPORTS_PER_SOL);
+    expect(newBalance).to.be.lessThan(oldBalance - 2 * LAMPORTS_PER_SOL);
 
     //verify vault unlocked & belongs to owner
     const vaultAcc2 = await mt.gb.fetchVaultAcc(mt.takerVaultA);

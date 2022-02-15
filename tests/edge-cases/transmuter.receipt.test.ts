@@ -15,7 +15,7 @@ describe("transmuter (receipt)", () => {
     await mt.prepareMutation({ uses: toBN(2), reversible: true });
 
     //call execute
-    const tx = await mt.mutation.execute(mt.taker.publicKey);
+    const { tx } = await mt.mutation.execute(mt.taker.publicKey);
     tx.addSigners(mt.taker);
     await expectTX(tx, "executes mutation").to.be.fulfilled;
     console.log("mutation executed");
@@ -27,7 +27,7 @@ describe("transmuter (receipt)", () => {
     await mt.prepareMutation({});
 
     //call execute
-    const tx = await mt.mutation.execute(mt.taker.publicKey);
+    const { tx } = await mt.mutation.execute(mt.taker.publicKey);
     tx.addSigners(mt.taker);
     await expectTX(tx, "executes mutation").to.be.fulfilled;
     console.log("mutation executed");

@@ -992,18 +992,8 @@ export type TransmuterV0 = {
     },
     {
       "code": 6015,
-      "name": "ExecutionReceiptMissing",
-      "msg": "Execution receipt for this taker not found"
-    },
-    {
-      "code": 6016,
       "name": "NoneOfTheBanksMatch",
       "msg": "Trying to init a vault for an unknown bank"
-    },
-    {
-      "code": 6017,
-      "name": "TakerVaultNotFound",
-      "msg": "Taker hasn't initialized one of the required vaults"
     }
   ]
 };
@@ -2002,18 +1992,8 @@ export const IDL: TransmuterV0 = {
     },
     {
       "code": 6015,
-      "name": "ExecutionReceiptMissing",
-      "msg": "Execution receipt for this taker not found"
-    },
-    {
-      "code": 6016,
       "name": "NoneOfTheBanksMatch",
       "msg": "Trying to init a vault for an unknown bank"
-    },
-    {
-      "code": 6017,
-      "name": "TakerVaultNotFound",
-      "msg": "Taker hasn't initialized one of the required vaults"
     }
   ]
 };

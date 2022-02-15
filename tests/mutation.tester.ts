@@ -208,7 +208,7 @@ export class MutationTester {
       bank,
       taker.publicKey
     );
-    tx.addSigners(this.taker);
+    tx.addSigners(taker);
     await tx.confirm();
 
     // create tokens

@@ -26,7 +26,7 @@ describe("transmuter (vault)", () => {
     );
 
     //call execute
-    const tx = await mt.mutation.execute(mt.taker.publicKey);
+    const { tx } = await mt.mutation.execute(mt.taker.publicKey);
     tx.addSigners(mt.taker);
     expect(tx.confirm()).to.be.rejectedWith("0x1778");
   });
@@ -52,7 +52,7 @@ describe("transmuter (vault)", () => {
     );
 
     //call execute
-    const tx = await mt.mutation.execute(mt.taker.publicKey);
+    const { tx } = await mt.mutation.execute(mt.taker.publicKey);
     tx.addSigners(mt.taker);
     expect(tx.confirm()).to.be.rejectedWith("0x1777");
   });
@@ -84,7 +84,7 @@ describe("transmuter (vault)", () => {
     );
 
     //call execute
-    const tx = await mt.mutation.execute(mt.taker.publicKey);
+    const { tx } = await mt.mutation.execute(mt.taker.publicKey);
     tx.addSigners(mt.taker);
     expect(tx.confirm()).to.be.rejectedWith("0x1777");
   });

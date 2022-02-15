@@ -17,7 +17,7 @@ describe("transmuter (uses)", () => {
     await mt.prepareMutation({ uses: toBN(2), reversible: true });
 
     //call execute
-    const tx = await mt.mutation.execute(mt.taker.publicKey);
+    const { tx } = await mt.mutation.execute(mt.taker.publicKey);
     tx.addSigners(mt.taker);
     await expectTX(tx, "executes mutation").to.be.fulfilled;
     console.log("mutation executed (1st taker)");
@@ -33,7 +33,7 @@ describe("transmuter (uses)", () => {
     await mt.prepareTakerVaults(mt.transmuter.bankA, taker2);
 
     //call execute
-    const tx2 = await mt.mutation.execute(taker2.publicKey);
+    const { tx: tx2 } = await mt.mutation.execute(taker2.publicKey);
     tx2.addSigners(taker2);
     await expectTX(tx2, "executes mutation").to.be.fulfilled;
     console.log("mutation executed (2nd taker)");
@@ -49,12 +49,12 @@ describe("transmuter (uses)", () => {
     await mt.prepareTakerVaults(mt.transmuter.bankA, taker3);
 
     //call execute (fails)
-    const tx3 = await mt.mutation.execute(taker3.publicKey);
+    const { tx: tx3 } = await mt.mutation.execute(taker3.publicKey);
     tx3.addSigners(taker3);
     expect(tx3.confirm()).to.be.rejectedWith("0x1775"); //NoMoreUsesLeft
 
     // ----------------- reverse one taker
-    const reverseTx1 = await mt.mutation.reverse(mt.taker.publicKey);
+    const { tx: reverseTx1 } = await mt.mutation.reverse(mt.taker.publicKey);
     reverseTx1.addSigners(mt.taker);
     await expectTX(reverseTx1, "reverses mutation").to.be.fulfilled;
 
@@ -62,11 +62,11 @@ describe("transmuter (uses)", () => {
     await expectTX(tx3, "executed mutation").to.be.fulfilled;
 
     // ----------------- reverse all takers, to restore full uses
-    const reverseTx2 = await mt.mutation.reverse(taker2.publicKey);
+    const { tx: reverseTx2 } = await mt.mutation.reverse(taker2.publicKey);
     reverseTx2.addSigners(taker2);
     await expectTX(reverseTx2, "reverses mutation").to.be.fulfilled;
 
-    const reverseTx3 = await mt.mutation.reverse(taker3.publicKey);
+    const { tx: reverseTx3 } = await mt.mutation.reverse(taker3.publicKey);
     reverseTx3.addSigners(taker3);
     await expectTX(reverseTx3, "reverses mutation").to.be.fulfilled;
 
@@ -77,6 +77,6 @@ describe("transmuter (uses)", () => {
     expect(mt.mutation.data.state == MutationState.Available);
 
     // ----------------- try to reverse 1 too many
-    expect(reverseTx1.confirm()).to.be.rejectedWith("0x177f");
+    expect(reverseTx1.confirm()).to.be.rejectedWith("0x177b");
   });
 });

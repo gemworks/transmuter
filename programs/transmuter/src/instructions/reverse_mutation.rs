@@ -45,7 +45,7 @@ pub fn handler<'a, 'b, 'c, 'info>(
     // first bank
     let bank_a = ctx.accounts.bank_a.to_account_info();
     let vault_a = &ctx.accounts.vault_a;
-    let er_vault_a = ctx.accounts.execution_receipt.vault_a.unwrap(); //todo potentially do better
+    let er_vault_a = ctx.accounts.execution_receipt.vault_a.unwrap(); //save compute
     let taker_token_a = mutation.config.taker_token_a;
     ctx.accounts
         .perform_vault_action(bank_a, vault_a, er_vault_a, taker_token_a, false)?;
