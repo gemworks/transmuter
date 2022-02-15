@@ -201,7 +201,7 @@ impl<'info> ExecuteMutation<'info> {
         }
     }
 
-    pub fn temp_lock_vaults(&self, config: &MutationConfig) -> ProgramResult {
+    pub fn lock_vaults_for_mutatino_duration(&self, config: &MutationConfig) -> ProgramResult {
         gem_bank::cpi::set_vault_lock(
             self.set_vault_lock_ctx(self.bank_a.clone(), self.vault_a.to_account_info())
                 .with_signer(&[&self.transmuter.get_seeds()]),
@@ -246,7 +246,6 @@ impl<'info> ExecuteMutation<'info> {
     }
 }
 
-// todo tests
 impl<'info> Validate<'info> for ExecuteMutation<'info> {
     fn validate(&self) -> ProgramResult {
         let config = self.mutation.config;
@@ -353,8 +352,6 @@ pub fn handler<'a, 'b, 'c, 'info>(
 
     let mut vaults_previously_locked = false;
 
-    // todo tests
-
     match execution_receipt.state {
         ExecutionState::NotStarted => {
             execution_receipt.record_mutation_complete_ts(config.mutation_duration_sec)?;
@@ -363,7 +360,7 @@ pub fn handler<'a, 'b, 'c, 'info>(
                 // mark pending
                 execution_receipt.mark_pending();
                 // lock vaults for duration of mutation
-                ctx.accounts.temp_lock_vaults(&config)?;
+                ctx.accounts.lock_vaults_for_mutatino_duration(&config)?;
                 return Ok(());
             }
             // else mark complete and continue

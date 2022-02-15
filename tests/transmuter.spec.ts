@@ -70,7 +70,7 @@ describe("transmuter (main spec)", () => {
   });
 
   //using max maker tokens and max taker tokens to test out compute budget
-  //also tests receipts
+  //also tests receipts behave the way they should
   it("execute mutation (lock vault, mutation time > 0, 3x3))", async () => {
     await mt.prepareMutation({
       mutationDurationSec: toBN(5),

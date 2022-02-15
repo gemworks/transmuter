@@ -34,7 +34,6 @@ impl ExecutionReceipt {
         self.state == ExecutionState::Complete
     }
 
-    // todo test
     pub fn record_mutation_complete_ts(&mut self, mutation_time_sec: u64) -> ProgramResult {
         let now_ts = now_ts()?;
         self.mutation_complete_ts = now_ts.try_add(mutation_time_sec)?;
@@ -42,17 +41,14 @@ impl ExecutionReceipt {
         Ok(())
     }
 
-    // todo test
     pub fn mark_not_started(&mut self) {
         self.state = ExecutionState::NotStarted;
     }
 
-    // todo test
     pub fn mark_pending(&mut self) {
         self.state = ExecutionState::Pending;
     }
 
-    // todo test
     pub fn try_mark_complete(&mut self) -> ProgramResult {
         let now_ts = now_ts()?;
         require!(now_ts >= self.mutation_complete_ts, MutationNotComplete);

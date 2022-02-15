@@ -4,6 +4,7 @@ import { expect } from "chai";
 import { RequiredUnits, VaultAction } from "../../src";
 import { toBN } from "@gemworks/gem-farm-ts";
 import { Keypair } from "@solana/web3.js";
+import { expectTX } from "@saberhq/chai-solana";
 
 describe("transmuter (vault)", () => {
   let mt: MutationTester;
@@ -87,5 +88,24 @@ describe("transmuter (vault)", () => {
     const { tx } = await mt.mutation.execute(mt.taker.publicKey);
     tx.addSigners(mt.taker);
     expect(tx.confirm()).to.be.rejectedWith("0x1777");
+  });
+
+  it("tries to init a vault with a wrong bank", async () => {
+    await mt.prepareMutation({});
+    expect(
+      mt.prepareTakerVaults(Keypair.generate().publicKey, mt.taker)
+    ).to.be.rejectedWith("0x177f");
+  });
+
+  it("tries to init a vault for a completed mutation", async () => {
+    await mt.prepareMutation({});
+
+    const { tx } = await mt.mutation.execute(mt.taker.publicKey);
+    tx.addSigners(mt.taker);
+    await expectTX(tx, "executes mutation").to.be.fulfilled;
+
+    expect(
+      mt.prepareTakerVaults(mt.transmuter.bankB, mt.taker)
+    ).to.be.rejectedWith("0x177c");
   });
 });

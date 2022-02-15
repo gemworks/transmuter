@@ -53,14 +53,12 @@ impl<'info> InitTakerVault<'info> {
     }
 }
 
-// todo test conditionals
 pub fn handler(ctx: Context<InitTakerVault>, bump_creator: u8, bump_vault: u8) -> ProgramResult {
     let transmuter = &ctx.accounts.transmuter;
     let receipt = &mut ctx.accounts.execution_receipt;
     let bank = ctx.accounts.bank.key();
     let vault = ctx.accounts.vault.key();
 
-    // todo think about this some more
     if receipt.is_pending() || receipt.is_complete() {
         return Err(ErrorCode::MutationAlreadyComplete.into());
     }
