@@ -1,6 +1,7 @@
 use crate::*;
 use gem_bank::state::Vault;
 
+#[access_control(ctx.accounts.validate())]
 pub fn handler<'a, 'b, 'c, 'info>(
     ctx: Context<'a, 'b, 'c, 'info, ExecuteMutation<'info>>,
 ) -> ProgramResult {
@@ -12,8 +13,6 @@ pub fn handler<'a, 'b, 'c, 'info>(
     if !execution_receipt.is_complete() {
         return Err(ErrorCode::MutationNotComplete.into());
     }
-
-    //reset state to not started
     execution_receipt.mark_not_started();
 
     // --------------------------------------- uses & payment
@@ -38,44 +37,35 @@ pub fn handler<'a, 'b, 'c, 'info>(
 
     // --------------------------------------- unlock taker vaults
 
-    let remaining_accs = &mut ctx.remaining_accounts.iter();
-    let mutation = &mut ctx.accounts.mutation;
-    let config = mutation.config;
+    let config = ctx.accounts.mutation.config;
 
     // first bank
-    let bank_a = ctx.accounts.bank_a.to_account_info();
-    let vault_a = &ctx.accounts.vault_a;
-    let er_vault_a = ctx.accounts.execution_receipt.vault_a.unwrap(); //save compute
-    let taker_token_a = mutation.config.taker_token_a;
-    ctx.accounts
-        .perform_vault_action(bank_a, vault_a, er_vault_a, taker_token_a, false)?;
+    ctx.accounts.perform_vault_action(
+        ctx.accounts.bank_a.to_account_info(),
+        ctx.accounts.vault_a.to_account_info(),
+        ctx.accounts.mutation.config.taker_token_a,
+        false,
+        false,
+    )?;
 
     // second bank
     if let Some(taker_token_b) = config.taker_token_b {
-        let bank_b = next_account_info(remaining_accs)?;
-        let vault_b = next_account_info(remaining_accs)?;
-        let er_vault_b = ctx.accounts.execution_receipt.vault_b.unwrap();
-        let vault_b_acc: Account<'_, Vault> = Account::try_from(vault_b)?;
         ctx.accounts.perform_vault_action(
-            bank_b.clone(),
-            &vault_b_acc,
-            er_vault_b,
+            ctx.accounts.bank_b.to_account_info(),
+            ctx.accounts.vault_b.to_account_info(),
             taker_token_b,
+            false,
             false,
         )?;
     }
 
     // third bank
     if let Some(taker_token_c) = config.taker_token_c {
-        let bank_c = next_account_info(remaining_accs)?;
-        let vault_c = next_account_info(remaining_accs)?;
-        let er_vault_c = ctx.accounts.execution_receipt.vault_c.unwrap();
-        let vault_c_acc: Account<'_, Vault> = Account::try_from(vault_c)?;
         ctx.accounts.perform_vault_action(
-            bank_c.clone(),
-            &vault_c_acc,
-            er_vault_c,
+            ctx.accounts.bank_c.to_account_info(),
+            ctx.accounts.vault_c.to_account_info(),
             taker_token_c,
+            false,
             false,
         )?;
     }
@@ -83,25 +73,31 @@ pub fn handler<'a, 'b, 'c, 'info>(
     // --------------------------------------- move back tokens
 
     // first token
-    let escrow_a = ctx.accounts.token_a_escrow.to_account_info();
-    let taker_ata_a = ctx.accounts.token_a_taker_ata.to_account_info();
-    ctx.accounts
-        .perform_token_transfer(escrow_a, taker_ata_a, config.maker_token_a, true)?;
+    ctx.accounts.perform_token_transfer(
+        ctx.accounts.token_a_escrow.to_account_info(),
+        ctx.accounts.token_a_taker_ata.to_account_info(),
+        config.maker_token_a,
+        true,
+    )?;
 
     // second token
     if let Some(maker_token_b) = config.maker_token_b {
-        let escrow_b = ctx.accounts.token_b_escrow.to_account_info();
-        let taker_ata_b = ctx.accounts.token_b_taker_ata.to_account_info();
-        ctx.accounts
-            .perform_token_transfer(escrow_b, taker_ata_b, maker_token_b, true)?;
+        ctx.accounts.perform_token_transfer(
+            ctx.accounts.token_b_escrow.to_account_info(),
+            ctx.accounts.token_b_taker_ata.to_account_info(),
+            maker_token_b,
+            true,
+        )?;
     }
 
     // third token
     if let Some(maker_token_c) = config.maker_token_c {
-        let escrow_c = ctx.accounts.token_c_escrow.to_account_info();
-        let taker_ata_c = ctx.accounts.token_c_taker_ata.to_account_info();
-        ctx.accounts
-            .perform_token_transfer(escrow_c, taker_ata_c, maker_token_c, true)?;
+        ctx.accounts.perform_token_transfer(
+            ctx.accounts.token_c_escrow.to_account_info(),
+            ctx.accounts.token_c_taker_ata.to_account_info(),
+            maker_token_c,
+            true,
+        )?;
     }
 
     Ok(())

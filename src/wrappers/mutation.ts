@@ -1,5 +1,10 @@
 import { TransmuterSDK } from "../sdk";
-import { PublicKey, SystemProgram, SYSVAR_RENT_PUBKEY } from "@solana/web3.js";
+import {
+  Keypair,
+  PublicKey,
+  SystemProgram,
+  SYSVAR_RENT_PUBKEY,
+} from "@solana/web3.js";
 import {
   AugmentedProvider,
   TransactionEnvelope,
@@ -54,6 +59,7 @@ export class MutationWrapper {
     let config = this._data.config;
 
     // ----------------- prep banks & vaults
+    // if a bank doesn't exist, we create a fake bank. Cheaper (compute) than optional accs
 
     const bankA = config.takerTokenA.gemBank;
     const { vault: vaultA } = await this.sdk.findTakerVaultPDA(
@@ -61,50 +67,22 @@ export class MutationWrapper {
       this.key,
       taker
     );
-    let bankB: PublicKey;
-    let vaultB: PublicKey;
-    let bankC: PublicKey;
-    let vaultC: PublicKey;
-
-    const remainingAccounts = [];
-
-    if (config.takerTokenB) {
-      bankB = config.takerTokenB.gemBank;
-      ({ vault: vaultB } = await this.sdk.findTakerVaultPDA(
-        bankB,
-        this.key,
-        taker
-      ));
-      remainingAccounts.push({
-        pubkey: bankB,
-        isWritable: false,
-        isSigner: false,
-      });
-      remainingAccounts.push({
-        pubkey: vaultB,
-        isWritable: true,
-        isSigner: false,
-      });
-    }
-
-    if (config.takerTokenC) {
-      bankC = config.takerTokenC.gemBank;
-      ({ vault: vaultC } = await this.sdk.findTakerVaultPDA(
-        bankC,
-        this.key,
-        taker
-      ));
-      remainingAccounts.push({
-        pubkey: bankC,
-        isWritable: false,
-        isSigner: false,
-      });
-      remainingAccounts.push({
-        pubkey: vaultC,
-        isWritable: true,
-        isSigner: false,
-      });
-    }
+    const bankB = config.takerTokenB
+      ? config.takerTokenB.gemBank
+      : Keypair.generate().publicKey;
+    const { vault: vaultB } = await this.sdk.findTakerVaultPDA(
+      bankB,
+      this.key,
+      taker
+    );
+    const bankC = config.takerTokenC
+      ? config.takerTokenC.gemBank
+      : Keypair.generate().publicKey;
+    const { vault: vaultC } = await this.sdk.findTakerVaultPDA(
+      bankC,
+      this.key,
+      taker
+    );
 
     // ----------------- prep escrows
 
@@ -141,8 +119,12 @@ export class MutationWrapper {
           mutation: this.key,
           authority,
           owner: this.sdk.provider.wallet.publicKey,
-          vaultA,
           bankA,
+          vaultA,
+          bankB,
+          vaultB,
+          bankC,
+          vaultC,
           gemBank: GEM_BANK_PROG_ID,
           tokenAEscrow,
           tokenATakerAta,
@@ -160,7 +142,6 @@ export class MutationWrapper {
           systemProgram: SystemProgram.programId,
           rent: SYSVAR_RENT_PUBKEY,
         },
-        remainingAccounts,
       });
     } else {
       ix = this.program.instruction.reverseMutation(receiptBump, {
@@ -169,8 +150,12 @@ export class MutationWrapper {
           mutation: this.key,
           authority,
           owner: this.sdk.provider.wallet.publicKey,
-          vaultA,
           bankA,
+          vaultA,
+          bankB,
+          vaultB,
+          bankC,
+          vaultC,
           gemBank: GEM_BANK_PROG_ID,
           tokenAEscrow,
           tokenATakerAta,
@@ -188,7 +173,6 @@ export class MutationWrapper {
           systemProgram: SystemProgram.programId,
           rent: SYSVAR_RENT_PUBKEY,
         },
-        remainingAccounts,
       });
     }
 

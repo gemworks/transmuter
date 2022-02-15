@@ -72,7 +72,7 @@ pub struct MutationConfig {
 
     pub price: PriceConfig,
 
-    pub mutation_time_sec: u64,
+    pub mutation_duration_sec: u64,
 
     pub reversible: bool,
 }

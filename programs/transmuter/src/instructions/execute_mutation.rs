@@ -24,10 +24,16 @@ pub struct ExecuteMutation<'info> {
     // skipping validation to save compute, has_one = auth is enough
     pub authority: AccountInfo<'info>,
 
-    // taker banks + vaults (2 more in optional accs)
+    // taker banks + vaults (B and C might be fake - cheaper than going through optoinal accs)
     pub bank_a: AccountInfo<'info>,
     #[account(mut)]
     pub vault_a: Box<Account<'info, Vault>>,
+    pub bank_b: AccountInfo<'info>,
+    #[account(mut)]
+    pub vault_b: AccountInfo<'info>,
+    pub bank_c: AccountInfo<'info>,
+    #[account(mut)]
+    pub vault_c: AccountInfo<'info>,
     pub gem_bank: Program<'info, GemBank>,
 
     // tokens - skipping deserialization due to compute. Ok coz:
@@ -64,12 +70,6 @@ pub struct ExecuteMutation<'info> {
     pub associated_token_program: Program<'info, AssociatedToken>,
     pub system_program: Program<'info, System>,
     pub rent: Sysvar<'info, Rent>,
-    //
-    // optional
-    // bank_b
-    // vault_b: mut
-    // bank_c
-    // vault_c: mut
 }
 
 impl<'info> ExecuteMutation<'info> {
@@ -153,35 +153,73 @@ impl<'info> ExecuteMutation<'info> {
     pub fn perform_vault_action(
         &self,
         bank: AccountInfo<'info>,
-        vault: &Account<'info, Vault>,
-        er_vault: Pubkey,
+        vault: AccountInfo<'info>,
         taker_token: TakerTokenConfig,
-        vault_lock: bool,
+        new_vault_lock: bool,
+        vault_previously_locked: bool,
     ) -> ProgramResult {
-        // bank & vault validation
-        taker_token.assert_correct_bank(bank.key())?;
-        taker_token.assert_sufficient_amount(vault)?;
-        assert_keys_eq!(vault.key(), er_vault, "vaults don't match");
-
-        // both methods below will check that vault actually belongs to bank
         match taker_token.vault_action {
             VaultAction::ChangeOwner => {
+                // if was previously locked, need to unlock
+                if vault_previously_locked {
+                    gem_bank::cpi::set_vault_lock(
+                        self.set_vault_lock_ctx(bank.clone(), vault.clone())
+                            .with_signer(&[&self.transmuter.get_seeds()]),
+                        false,
+                    )?;
+                }
+                // default action
                 gem_bank::cpi::update_vault_owner(
-                    self.change_vault_owner_ctx(bank, vault.to_account_info()),
+                    self.change_vault_owner_ctx(bank, vault),
                     self.transmuter.owner,
-                )?;
+                )
             }
             VaultAction::Lock => {
+                // since already locked, simply return
+                if vault_previously_locked {
+                    return Ok(());
+                }
+                // default action
                 gem_bank::cpi::set_vault_lock(
-                    self.set_vault_lock_ctx(bank, vault.to_account_info())
+                    self.set_vault_lock_ctx(bank, vault)
                         .with_signer(&[&self.transmuter.get_seeds()]),
-                    vault_lock,
-                )?;
+                    new_vault_lock,
+                )
             }
             VaultAction::DoNothing => {
-                // since not doing CPI, need to manually check vault belongs to bank
-                require!(vault.bank == bank.key(), VaultDoesNotBelongToBank);
+                // if was previously locked, need to unlock
+                if vault_previously_locked {
+                    gem_bank::cpi::set_vault_lock(
+                        self.set_vault_lock_ctx(bank, vault)
+                            .with_signer(&[&self.transmuter.get_seeds()]),
+                        false,
+                    )?;
+                }
+                // default action
+                Ok(())
             }
+        }
+    }
+
+    pub fn temp_lock_vaults(&self, config: &MutationConfig) -> ProgramResult {
+        gem_bank::cpi::set_vault_lock(
+            self.set_vault_lock_ctx(self.bank_a.clone(), self.vault_a.to_account_info())
+                .with_signer(&[&self.transmuter.get_seeds()]),
+            true,
+        )?;
+        if config.taker_token_b.is_some() {
+            gem_bank::cpi::set_vault_lock(
+                self.set_vault_lock_ctx(self.bank_b.clone(), self.vault_b.clone())
+                    .with_signer(&[&self.transmuter.get_seeds()]),
+                true,
+            )?;
+        }
+        if config.taker_token_c.is_some() {
+            gem_bank::cpi::set_vault_lock(
+                self.set_vault_lock_ctx(self.bank_c.clone(), self.vault_c.clone())
+                    .with_signer(&[&self.transmuter.get_seeds()]),
+                true,
+            )?;
         }
         Ok(())
     }
@@ -208,41 +246,88 @@ impl<'info> ExecuteMutation<'info> {
     }
 }
 
+// todo tests
+impl<'info> Validate<'info> for ExecuteMutation<'info> {
+    fn validate(&self) -> ProgramResult {
+        let config = self.mutation.config;
+
+        // validate banks & vaults
+        config
+            .taker_token_a
+            .assert_correct_bank(self.bank_a.key())?;
+        config
+            .taker_token_a
+            .assert_sufficient_amount(&self.vault_a)?;
+        assert_keys_eq!(
+            self.vault_a.key(),
+            self.execution_receipt.vault_a.unwrap(),
+            "vault doesn't match that on ER"
+        );
+
+        if let Some(taker_token_b) = config.taker_token_b {
+            let vault_b: Account<'_, Vault> = Account::try_from(&self.vault_b)?;
+            taker_token_b.assert_correct_bank(self.bank_b.key())?;
+            taker_token_b.assert_sufficient_amount(&vault_b)?;
+            assert_keys_eq!(
+                self.vault_b.key(),
+                self.execution_receipt.vault_b.unwrap(),
+                "vault doesn't match that on ER"
+            );
+        }
+
+        if let Some(taker_token_c) = config.taker_token_c {
+            let vault_c: Account<'_, Vault> = Account::try_from(&self.vault_c)?;
+            taker_token_c.assert_correct_bank(self.bank_c.key())?;
+            taker_token_c.assert_sufficient_amount(&vault_c)?;
+            assert_keys_eq!(
+                self.vault_c.key(),
+                self.execution_receipt.vault_c.unwrap(),
+                "vault doesn't match that on ER"
+            );
+        }
+
+        // validate escrows
+        if let Some(b_escrow) = self.mutation.token_b_escrow {
+            assert_keys_eq!(self.token_b_escrow.key(), b_escrow, "b escrow");
+        }
+
+        if let Some(c_escrow) = self.mutation.token_c_escrow {
+            assert_keys_eq!(self.token_c_escrow.key(), c_escrow, "c escrow");
+        }
+
+        Ok(())
+    }
+}
+
+#[access_control(ctx.accounts.validate())]
 pub fn handler<'a, 'b, 'c, 'info>(
     ctx: Context<'a, 'b, 'c, 'info, ExecuteMutation<'info>>,
 ) -> ProgramResult {
-    // --------------------------------------- verify other 2 escrows
-
-    let mutation = &ctx.accounts.mutation;
-
-    if let Some(b_escrow) = mutation.token_b_escrow {
-        assert_keys_eq!(ctx.accounts.token_b_escrow.key(), b_escrow, "b escrow");
-    }
-
-    if let Some(c_escrow) = mutation.token_c_escrow {
-        assert_keys_eq!(ctx.accounts.token_c_escrow.key(), c_escrow, "c escrow");
-    }
-
     // --------------------------------------- create any necessary ATAs
-
-    let config = ctx.accounts.mutation.config;
+    // tried factoring out as a fn, but somehow increases compute requirements
 
     let token_a_ata = ctx.accounts.token_a_taker_ata.to_account_info();
     if token_a_ata.data_is_empty() {
-        let token_a_mint = ctx.accounts.token_a_mint.to_account_info();
-        associated_token::create(ctx.accounts.create_ata_ctx(token_a_ata, token_a_mint))?;
+        associated_token::create(
+            ctx.accounts
+                .create_ata_ctx(token_a_ata, ctx.accounts.token_a_mint.to_account_info()),
+        )?;
     }
 
     let token_b_ata = ctx.accounts.token_b_taker_ata.to_account_info();
-    if config.maker_token_b.is_some() && token_b_ata.data_is_empty() {
-        let token_b_mint = ctx.accounts.token_b_mint.to_account_info();
-        associated_token::create(ctx.accounts.create_ata_ctx(token_b_ata, token_b_mint))?;
+    if ctx.accounts.mutation.config.maker_token_b.is_some() && token_b_ata.data_is_empty() {
+        associated_token::create(
+            ctx.accounts
+                .create_ata_ctx(token_b_ata, ctx.accounts.token_b_mint.to_account_info()),
+        )?;
     }
 
     let token_c_ata = ctx.accounts.token_c_taker_ata.to_account_info();
-    if config.maker_token_c.is_some() && token_c_ata.data_is_empty() {
-        let token_c_mint = ctx.accounts.token_c_mint.to_account_info();
-        associated_token::create(ctx.accounts.create_ata_ctx(token_c_ata, token_c_mint))?;
+    if ctx.accounts.mutation.config.maker_token_c.is_some() && token_c_ata.data_is_empty() {
+        associated_token::create(
+            ctx.accounts
+                .create_ata_ctx(token_c_ata, ctx.accounts.token_c_mint.to_account_info()),
+        )?;
     }
 
     // --------------------------------------- uses & payment
@@ -261,69 +346,34 @@ pub fn handler<'a, 'b, 'c, 'info>(
         )?;
     }
 
-    // --------------------------------------- taker vaults
-
-    let remaining_accs = &mut ctx.remaining_accounts.iter();
-    let mutation = &mut ctx.accounts.mutation;
-    let config = mutation.config;
-
-    // first bank
-    let bank_a = ctx.accounts.bank_a.to_account_info();
-    let vault_a = &ctx.accounts.vault_a;
-    let er_vault_a = ctx.accounts.execution_receipt.vault_a.unwrap(); //save compute
-    let taker_token_a = mutation.config.taker_token_a;
-    ctx.accounts
-        .perform_vault_action(bank_a, vault_a, er_vault_a, taker_token_a, true)?;
-
-    // second bank
-    if let Some(taker_token_b) = config.taker_token_b {
-        let bank_b = next_account_info(remaining_accs)?;
-        let vault_b = next_account_info(remaining_accs)?;
-        let er_vault_b = ctx.accounts.execution_receipt.vault_b.unwrap();
-        let vault_b_acc: Account<'_, Vault> = Account::try_from(vault_b)?;
-        ctx.accounts.perform_vault_action(
-            bank_b.clone(),
-            &vault_b_acc,
-            er_vault_b,
-            taker_token_b,
-            true,
-        )?;
-    }
-
-    // third bank
-    if let Some(taker_token_c) = config.taker_token_c {
-        let bank_c = next_account_info(remaining_accs)?;
-        let vault_c = next_account_info(remaining_accs)?;
-        let er_vault_c = ctx.accounts.execution_receipt.vault_c.unwrap();
-        let vault_c_acc: Account<'_, Vault> = Account::try_from(vault_c)?;
-        ctx.accounts.perform_vault_action(
-            bank_c.clone(),
-            &vault_c_acc,
-            er_vault_c,
-            taker_token_c,
-            true,
-        )?;
-    }
-
     // --------------------------------------- execution receipt
 
+    let execution_receipt = &mut ctx.accounts.execution_receipt;
     let config = ctx.accounts.mutation.config;
-    let execution_receipt_info = &mut ctx.accounts.execution_receipt;
 
-    match execution_receipt_info.state {
+    let mut vaults_previously_locked = false;
+
+    // todo tests
+
+    match execution_receipt.state {
         ExecutionState::NotStarted => {
-            execution_receipt_info.record_mutation_complete_ts(config.mutation_time_sec)?;
+            execution_receipt.record_mutation_complete_ts(config.mutation_duration_sec)?;
             // if need time to complete, mark pending and exit
-            if config.mutation_time_sec > 0 {
-                execution_receipt_info.mark_pending();
+            if config.mutation_duration_sec > 0 {
+                // mark pending
+                execution_receipt.mark_pending();
+                // lock vaults for duration of mutation
+                ctx.accounts.temp_lock_vaults(&config)?;
                 return Ok(());
             }
             // else mark complete and continue
-            execution_receipt_info.try_mark_complete()?;
+            execution_receipt.try_mark_complete()?;
         }
         ExecutionState::Pending => {
             // will error out if time isn't due yet
-            execution_receipt_info.try_mark_complete()?;
+            execution_receipt.try_mark_complete()?;
+            // this is the only case where vaults were previously locked
+            vaults_previously_locked = true;
         }
         ExecutionState::Complete => {
             // can't complete the mutation twice
@@ -331,28 +381,67 @@ pub fn handler<'a, 'b, 'c, 'info>(
         }
     }
 
+    // --------------------------------------- taker vaults
+
+    // first bank
+    ctx.accounts.perform_vault_action(
+        ctx.accounts.bank_a.to_account_info(),
+        ctx.accounts.vault_a.to_account_info(),
+        ctx.accounts.mutation.config.taker_token_a,
+        true,
+        vaults_previously_locked,
+    )?;
+
+    // second bank
+    if let Some(taker_token_b) = config.taker_token_b {
+        ctx.accounts.perform_vault_action(
+            ctx.accounts.bank_b.to_account_info(),
+            ctx.accounts.vault_b.to_account_info(),
+            taker_token_b,
+            true,
+            vaults_previously_locked,
+        )?;
+    }
+
+    // third bank
+    if let Some(taker_token_c) = config.taker_token_c {
+        ctx.accounts.perform_vault_action(
+            ctx.accounts.bank_c.to_account_info(),
+            ctx.accounts.vault_c.to_account_info(),
+            taker_token_c,
+            true,
+            vaults_previously_locked,
+        )?;
+    }
+
     // --------------------------------------- move tokens
 
     // first token
-    let escrow_a = ctx.accounts.token_a_escrow.to_account_info();
-    let taker_ata_a = ctx.accounts.token_a_taker_ata.to_account_info();
-    ctx.accounts
-        .perform_token_transfer(escrow_a, taker_ata_a, config.maker_token_a, false)?;
+    ctx.accounts.perform_token_transfer(
+        ctx.accounts.token_a_escrow.to_account_info(),
+        ctx.accounts.token_a_taker_ata.to_account_info(),
+        config.maker_token_a,
+        false,
+    )?;
 
     // second token
     if let Some(maker_token_b) = config.maker_token_b {
-        let escrow_b = ctx.accounts.token_b_escrow.to_account_info();
-        let taker_ata_b = ctx.accounts.token_b_taker_ata.to_account_info();
-        ctx.accounts
-            .perform_token_transfer(escrow_b, taker_ata_b, maker_token_b, false)?;
+        ctx.accounts.perform_token_transfer(
+            ctx.accounts.token_b_escrow.to_account_info(),
+            ctx.accounts.token_b_taker_ata.to_account_info(),
+            maker_token_b,
+            false,
+        )?;
     }
 
     // third token
     if let Some(maker_token_c) = config.maker_token_c {
-        let escrow_c = ctx.accounts.token_c_escrow.to_account_info();
-        let taker_ata_c = ctx.accounts.token_c_taker_ata.to_account_info();
-        ctx.accounts
-            .perform_token_transfer(escrow_c, taker_ata_c, maker_token_c, false)?;
+        ctx.accounts.perform_token_transfer(
+            ctx.accounts.token_c_escrow.to_account_info(),
+            ctx.accounts.token_c_taker_ata.to_account_info(),
+            maker_token_c,
+            false,
+        )?;
     }
 
     Ok(())

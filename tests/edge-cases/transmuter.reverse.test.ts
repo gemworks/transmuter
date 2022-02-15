@@ -37,7 +37,10 @@ describe("transmuter (reverse)", () => {
   });
 
   it("tries to reverse a pending mutation", async () => {
-    await mt.prepareMutation({ reversible: true, mutationTimeSec: toBN(30) });
+    await mt.prepareMutation({
+      reversible: true,
+      mutationDurationSec: toBN(30),
+    });
 
     //call execute
     const { tx } = await mt.mutation.execute(mt.taker.publicKey);

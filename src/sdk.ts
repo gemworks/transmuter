@@ -76,7 +76,7 @@ export interface MutationConfig {
 
   price: PriceConfig;
 
-  mutationTimeSec: BN;
+  mutationDurationSec: BN;
 
   reversible: boolean;
 }

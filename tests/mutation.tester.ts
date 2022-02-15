@@ -84,7 +84,7 @@ export class MutationTester {
 
   prepareMutation = async ({
     vaultAction = VaultAction.Lock,
-    mutationTimeSec = toBN(0),
+    mutationDurationSec = toBN(0),
     takerTokenB = null,
     takerTokenC = null,
     makerTokenBAmountPerUse = null,
@@ -95,7 +95,7 @@ export class MutationTester {
     reversalPriceLamports = toBN(LAMPORTS_PER_SOL),
   }: {
     vaultAction?: any;
-    mutationTimeSec?: BN;
+    mutationDurationSec?: BN;
     takerTokenB?: TakerTokenConfig;
     takerTokenC?: TakerTokenConfig;
     makerTokenBAmountPerUse?: BN;
@@ -153,7 +153,7 @@ export class MutationTester {
         priceLamports: toBN(LAMPORTS_PER_SOL),
         reversalPriceLamports,
       },
-      mutationTimeSec,
+      mutationDurationSec,
       reversible,
     };
 

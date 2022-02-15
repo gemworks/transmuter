@@ -380,6 +380,26 @@ export type TransmuterV0 = {
           "isSigner": false
         },
         {
+          "name": "bankB",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "vaultB",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "bankC",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "vaultC",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
           "name": "gemBank",
           "isMut": false,
           "isSigner": false
@@ -497,6 +517,26 @@ export type TransmuterV0 = {
         },
         {
           "name": "vaultA",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "bankB",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "vaultB",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "bankC",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "vaultC",
           "isMut": true,
           "isSigner": false
         },
@@ -777,7 +817,7 @@ export type TransmuterV0 = {
             }
           },
           {
-            "name": "mutationTimeSec",
+            "name": "mutationDurationSec",
             "type": "u64"
           },
           {
@@ -1380,6 +1420,26 @@ export const IDL: TransmuterV0 = {
           "isSigner": false
         },
         {
+          "name": "bankB",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "vaultB",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "bankC",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "vaultC",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
           "name": "gemBank",
           "isMut": false,
           "isSigner": false
@@ -1497,6 +1557,26 @@ export const IDL: TransmuterV0 = {
         },
         {
           "name": "vaultA",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "bankB",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "vaultB",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "bankC",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "vaultC",
           "isMut": true,
           "isSigner": false
         },
@@ -1777,7 +1857,7 @@ export const IDL: TransmuterV0 = {
             }
           },
           {
-            "name": "mutationTimeSec",
+            "name": "mutationDurationSec",
             "type": "u64"
           },
           {

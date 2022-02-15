@@ -72,7 +72,7 @@ describe("transmuter (main spec)", () => {
   //using max maker tokens and max taker tokens to test out compute budget
   it("execute mutation (mutation time > 0, 3x3))", async () => {
     await mt.prepareMutation({
-      mutationTimeSec: toBN(5),
+      mutationDurationSec: toBN(5),
       takerTokenB: {
         gemBank: mt.transmuter.bankB,
         requiredAmount: toBN(mt.takerTokenAmountPerUse.mul(toBN(2))), //have to manually mult
@@ -135,40 +135,9 @@ describe("transmuter (main spec)", () => {
     await mt.verifyTakerReceivedMakerTokens();
   });
 
-  it("execute mutation (reversible, 3x3))", async () => {
-    await mt.prepareMutation({
-      takerTokenB: {
-        gemBank: mt.transmuter.bankB,
-        requiredAmount: toBN(mt.takerTokenAmount),
-        requiredUnits: RequiredUnits.RarityPoints,
-        vaultAction: VaultAction.Lock,
-      },
-      takerTokenC: {
-        gemBank: mt.transmuter.bankC,
-        requiredAmount: toBN(mt.takerTokenAmount),
-        requiredUnits: RequiredUnits.RarityPoints,
-        vaultAction: VaultAction.Lock,
-      },
-      makerTokenBAmountPerUse: mt.makerTokenAmount,
-      makerTokenCAmountPerUse: mt.makerTokenAmount,
-      reversible: true,
-    });
-
-    //call execute
-    const { tx } = await mt.mutation.execute(mt.taker.publicKey);
-    tx.addSigners(mt.taker);
-    await expectTX(tx, "executes mutation").to.be.fulfilled;
-    console.log("executed once");
-
-    //verify vault is locked and owned by taker
-    await mt.verifyVault(true, mt.taker);
-
-    //this time tokens present
-    await mt.verifyTakerReceivedMakerTokens();
-  });
-
-  //todo still sometimes fails due to compute - might haveto settle for 2x3 or 3x2 :(
-  it("reverse mutation (3x3)", async () => {
+  //todo still sometimes fails due to compute - might have to settle for 2x3 or 3x2 :(
+  //using max maker tokens and max taker tokens to test out compute budget
+  it.only("reverse mutation (3x3)", async () => {
     await mt.prepareMutation({
       takerTokenB: {
         gemBank: mt.transmuter.bankB,
@@ -196,9 +165,7 @@ describe("transmuter (main spec)", () => {
     console.log("executed");
 
     // verify vault locked & belongs to owner
-    const vaultAcc = await mt.gb.fetchVaultAcc(mt.takerVaultA);
-    expect(vaultAcc.owner.toBase58()).to.be.eq(mt.taker.publicKey.toBase58());
-    expect(vaultAcc.locked).to.be.eq(true);
+    await mt.verifyVault(true, mt.taker);
 
     //verify receipt exists and is complete
     const receipt = await mt.sdk.fetchReceipt(
@@ -217,7 +184,7 @@ describe("transmuter (main spec)", () => {
     const newBalance = await mt.conn.getBalance(mt.taker.publicKey);
     expect(newBalance).to.be.lessThan(oldBalance - 2 * LAMPORTS_PER_SOL);
 
-    //verify vault unlocked & belongs to owner
+    //verify vault unlocked & belongs to owner (manually, not to withdraw tokens)
     const vaultAcc2 = await mt.gb.fetchVaultAcc(mt.takerVaultA);
     expect(vaultAcc2.owner.toBase58()).to.be.eq(mt.taker.publicKey.toBase58());
     expect(vaultAcc2.locked).to.be.eq(false);
