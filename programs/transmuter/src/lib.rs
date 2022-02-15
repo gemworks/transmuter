@@ -1,4 +1,5 @@
 pub use anchor_lang::prelude::*;
+use gem_bank::instructions::record_rarity_points::RarityConfig;
 pub use vipers::*;
 
 pub mod error;
@@ -19,7 +20,8 @@ declare_id!("4c5WjWPmecCLHMSo8bQESo26VCotSKtjiUpCPnfEPL2p");
 pub mod transmuter_v0 {
     use super::*;
 
-    // --------------------------------------- maker
+    // --------------------------------------- maker (transmuter)
+
     pub fn init_transmuter<'a, 'b, 'c, 'info>(
         ctx: Context<'a, 'b, 'c, 'info, InitTransmuter<'info>>,
         bump_auth: u8,
@@ -27,6 +29,41 @@ pub mod transmuter_v0 {
         msg!("init new transmuter");
         instructions::init_transmuter::handler(ctx, bump_auth)
     }
+
+    pub fn update_transmuter(ctx: Context<UpdateTransmuter>) -> ProgramResult {
+        msg!("update transmuter");
+        instructions::update_transmuter::handler(ctx)
+    }
+
+    pub fn add_to_bank_whitelist(
+        ctx: Context<AddToBankWhitelist>,
+        _bump_auth: u8,
+        bump_wl: u8,
+        whitelist_type: u8,
+    ) -> ProgramResult {
+        msg!("add to bank whitelist");
+        instructions::add_to_bank_whitelist::handler(ctx, bump_wl, whitelist_type)
+    }
+
+    pub fn remove_from_bank_whitelist(
+        ctx: Context<RemoveFromBankWhitelist>,
+        _bump_auth: u8,
+        bump_wl: u8,
+    ) -> ProgramResult {
+        msg!("remove from bank whitelist");
+        instructions::remove_from_bank_whitelist::handler(ctx, bump_wl)
+    }
+
+    pub fn add_rarities_to_bank<'a, 'b, 'c, 'info>(
+        ctx: Context<'a, 'b, 'c, 'info, AddRaritiesToBank<'info>>,
+        _bump_auth: u8,
+        rarity_configs: Vec<RarityConfig>,
+    ) -> ProgramResult {
+        msg!("add rarities to bank");
+        instructions::add_rarities_to_bank::handler(ctx, rarity_configs)
+    }
+
+    // --------------------------------------- maker (mutation)
 
     pub fn init_mutation(
         ctx: Context<InitMutation>,
@@ -51,12 +88,8 @@ pub mod transmuter_v0 {
         instructions::destroy_mutation::handler(ctx)
     }
 
-    pub fn whitelist_tokens(ctx: Context<WhitelistTokens>) -> ProgramResult {
-        msg!("whitelist tokens");
-        instructions::whitelist_tokens::handler(ctx)
-    }
-
     // --------------------------------------- taker
+    // deposits / withdrawals are done by hitting bank program directly
 
     pub fn init_taker_vault(
         ctx: Context<InitTakerVault>,
@@ -64,12 +97,12 @@ pub mod transmuter_v0 {
         _bump_receipt: u8,
         bump_vault: u8,
     ) -> ProgramResult {
+        msg!("init taker vault");
         instructions::init_vault::handler(ctx, bump_creator, bump_vault)
     }
 
     pub fn execute_mutation<'a, 'b, 'c, 'info>(
         ctx: Context<'a, 'b, 'c, 'info, ExecuteMutation<'info>>,
-        _bump_receipt: u8,
     ) -> ProgramResult {
         // msg!("execute mutation"); //save compute
         instructions::execute_mutation::handler(ctx)
@@ -77,7 +110,6 @@ pub mod transmuter_v0 {
 
     pub fn reverse_mutation<'a, 'b, 'c, 'info>(
         ctx: Context<'a, 'b, 'c, 'info, ExecuteMutation<'info>>,
-        _bump_receipt: u8,
     ) -> ProgramResult {
         // msg!("reverse mutation"); //save compute
         instructions::reverse_mutation::handler(ctx)

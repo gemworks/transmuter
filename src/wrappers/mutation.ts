@@ -113,7 +113,7 @@ export class MutationWrapper {
 
     let ix;
     if (!reverse) {
-      ix = this.program.instruction.executeMutation(receiptBump, {
+      ix = this.program.instruction.executeMutation({
         accounts: {
           transmuter: this.transmuter,
           mutation: this.key,
@@ -144,7 +144,7 @@ export class MutationWrapper {
         },
       });
     } else {
-      ix = this.program.instruction.reverseMutation(receiptBump, {
+      ix = this.program.instruction.reverseMutation({
         accounts: {
           transmuter: this.transmuter,
           mutation: this.key,

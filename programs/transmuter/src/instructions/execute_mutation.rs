@@ -9,7 +9,6 @@ use gem_bank::{
 };
 
 #[derive(Accounts)]
-#[instruction(bump_receipt: u8)]
 pub struct ExecuteMutation<'info> {
     // mutation
     #[account(has_one = authority, has_one = owner)]
@@ -59,12 +58,9 @@ pub struct ExecuteMutation<'info> {
     // misc
     #[account(mut)]
     pub taker: Signer<'info>,
-    #[account(mut, seeds = [
-            b"receipt".as_ref(),
-            mutation.key().as_ref(),
-            taker.key().as_ref()
-        ],
-        bump = bump_receipt)]
+    // instead of doing PDA derivation (expensive) simply check if owner = prog id
+    // it's not pssible to set arbitrary data on accounts owned by the program
+    #[account(mut, owner = *program_id)]
     pub execution_receipt: Box<Account<'info, ExecutionReceipt>>,
     pub token_program: Program<'info, Token>,
     pub associated_token_program: Program<'info, AssociatedToken>,

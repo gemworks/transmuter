@@ -1,5 +1,4 @@
 use crate::*;
-use gem_bank::state::Vault;
 
 #[access_control(ctx.accounts.validate())]
 pub fn handler<'a, 'b, 'c, 'info>(

@@ -59,6 +59,169 @@ export type TransmuterV0 = {
       ]
     },
     {
+      "name": "updateTransmuter",
+      "accounts": [],
+      "args": []
+    },
+    {
+      "name": "addToBankWhitelist",
+      "accounts": [
+        {
+          "name": "transmuter",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "owner",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "authority",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "bank",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "addressToWhitelist",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "whitelistProof",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "gemBank",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "bumpAuth",
+          "type": "u8"
+        },
+        {
+          "name": "bumpWl",
+          "type": "u8"
+        },
+        {
+          "name": "whitelistType",
+          "type": "u8"
+        }
+      ]
+    },
+    {
+      "name": "removeFromBankWhitelist",
+      "accounts": [
+        {
+          "name": "transmuter",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "owner",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "authority",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "bank",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "addressToRemove",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "whitelistProof",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "gemBank",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "bumpAuth",
+          "type": "u8"
+        },
+        {
+          "name": "bumpWl",
+          "type": "u8"
+        }
+      ]
+    },
+    {
+      "name": "addRaritiesToBank",
+      "accounts": [
+        {
+          "name": "transmuter",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "owner",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "authority",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "bank",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "gemBank",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "bumpAuth",
+          "type": "u8"
+        },
+        {
+          "name": "rarityConfigs",
+          "type": {
+            "vec": {
+              "defined": "RarityConfig"
+            }
+          }
+        }
+      ]
+    },
+    {
       "name": "initMutation",
       "accounts": [
         {
@@ -278,11 +441,6 @@ export type TransmuterV0 = {
       ]
     },
     {
-      "name": "whitelistTokens",
-      "accounts": [],
-      "args": []
-    },
-    {
       "name": "initTakerVault",
       "accounts": [
         {
@@ -480,12 +638,7 @@ export type TransmuterV0 = {
           "isSigner": false
         }
       ],
-      "args": [
-        {
-          "name": "bumpReceipt",
-          "type": "u8"
-        }
-      ]
+      "args": []
     },
     {
       "name": "reverseMutation",
@@ -621,12 +774,7 @@ export type TransmuterV0 = {
           "isSigner": false
         }
       ],
-      "args": [
-        {
-          "name": "bumpReceipt",
-          "type": "u8"
-        }
-      ]
+      "args": []
     }
   ],
   "accounts": [
@@ -761,6 +909,22 @@ export type TransmuterV0 = {
     }
   ],
   "types": [
+    {
+      "name": "RarityConfig",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "mint",
+            "type": "publicKey"
+          },
+          {
+            "name": "rarityPoints",
+            "type": "u16"
+          }
+        ]
+      }
+    },
     {
       "name": "MutationConfig",
       "type": {
@@ -1099,6 +1263,169 @@ export const IDL: TransmuterV0 = {
       ]
     },
     {
+      "name": "updateTransmuter",
+      "accounts": [],
+      "args": []
+    },
+    {
+      "name": "addToBankWhitelist",
+      "accounts": [
+        {
+          "name": "transmuter",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "owner",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "authority",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "bank",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "addressToWhitelist",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "whitelistProof",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "gemBank",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "bumpAuth",
+          "type": "u8"
+        },
+        {
+          "name": "bumpWl",
+          "type": "u8"
+        },
+        {
+          "name": "whitelistType",
+          "type": "u8"
+        }
+      ]
+    },
+    {
+      "name": "removeFromBankWhitelist",
+      "accounts": [
+        {
+          "name": "transmuter",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "owner",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "authority",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "bank",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "addressToRemove",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "whitelistProof",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "gemBank",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "bumpAuth",
+          "type": "u8"
+        },
+        {
+          "name": "bumpWl",
+          "type": "u8"
+        }
+      ]
+    },
+    {
+      "name": "addRaritiesToBank",
+      "accounts": [
+        {
+          "name": "transmuter",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "owner",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "authority",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "bank",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "gemBank",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "bumpAuth",
+          "type": "u8"
+        },
+        {
+          "name": "rarityConfigs",
+          "type": {
+            "vec": {
+              "defined": "RarityConfig"
+            }
+          }
+        }
+      ]
+    },
+    {
       "name": "initMutation",
       "accounts": [
         {
@@ -1318,11 +1645,6 @@ export const IDL: TransmuterV0 = {
       ]
     },
     {
-      "name": "whitelistTokens",
-      "accounts": [],
-      "args": []
-    },
-    {
       "name": "initTakerVault",
       "accounts": [
         {
@@ -1520,12 +1842,7 @@ export const IDL: TransmuterV0 = {
           "isSigner": false
         }
       ],
-      "args": [
-        {
-          "name": "bumpReceipt",
-          "type": "u8"
-        }
-      ]
+      "args": []
     },
     {
       "name": "reverseMutation",
@@ -1661,12 +1978,7 @@ export const IDL: TransmuterV0 = {
           "isSigner": false
         }
       ],
-      "args": [
-        {
-          "name": "bumpReceipt",
-          "type": "u8"
-        }
-      ]
+      "args": []
     }
   ],
   "accounts": [
@@ -1801,6 +2113,22 @@ export const IDL: TransmuterV0 = {
     }
   ],
   "types": [
+    {
+      "name": "RarityConfig",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "mint",
+            "type": "publicKey"
+          },
+          {
+            "name": "rarityPoints",
+            "type": "u16"
+          }
+        ]
+      }
+    },
     {
       "name": "MutationConfig",
       "type": {

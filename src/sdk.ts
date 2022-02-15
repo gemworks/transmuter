@@ -88,6 +88,7 @@ export class TransmuterSDK {
   ) {}
 
   // --------------------------------------- pda derivations
+  //todo move PDAs out both here and for gem bank / farm
 
   async findTransmuterAuthorityPDA(
     transmuter: PublicKey
@@ -127,12 +128,31 @@ export class TransmuterSDK {
       mutation,
       taker
     );
-    //todo should be using gem farm's instead, but need to re-do the sdk for that
     const [vault, vaultBump] = await PublicKey.findProgramAddress(
       [Buffer.from("vault"), bank.toBytes(), creator.toBytes()],
       GEM_BANK_PROG_ID
     );
     return { creator, creatorBump, vault, vaultBump };
+  }
+
+  async findWhitelistProofPDA(
+    bank: PublicKey,
+    whitelistedAddress: PublicKey
+  ): Promise<[PublicKey, number]> {
+    return PublicKey.findProgramAddress(
+      [Buffer.from("whitelist"), bank.toBytes(), whitelistedAddress.toBytes()],
+      GEM_BANK_PROG_ID
+    );
+  }
+
+  async findRarityPDA(
+    bank: PublicKey,
+    mint: PublicKey
+  ): Promise<[PublicKey, number]> {
+    return PublicKey.findProgramAddress(
+      [Buffer.from("gem_rarity"), bank.toBytes(), mint.toBytes()],
+      GEM_BANK_PROG_ID
+    );
   }
 
   async findExecutionReceiptPDA(

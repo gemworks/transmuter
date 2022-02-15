@@ -9,7 +9,7 @@ pub struct InitTakerVault<'info> {
     #[account(has_one = transmuter)]
     pub mutation: Box<Account<'info, Mutation>>,
 
-    // CPI to bank
+    // cpi
     #[account(mut)]
     pub bank: AccountInfo<'info>,
     #[account(mut)]

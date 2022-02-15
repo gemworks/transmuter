@@ -1,7 +1,15 @@
 import { TransmuterSDK } from "../sdk";
-import { PublicKey } from "@solana/web3.js";
+import { Keypair, PublicKey, SystemProgram } from "@solana/web3.js";
 import { MutationData, TransmuterData, TransmuterProgram } from "../constants";
-import { AugmentedProvider } from "@saberhq/solana-contrib";
+import {
+  AugmentedProvider,
+  TransactionEnvelope,
+} from "@saberhq/solana-contrib";
+import {
+  GEM_BANK_PROG_ID,
+  RarityConfig,
+  WhitelistType,
+} from "@gemworks/gem-farm-ts";
 
 export class TransmuterWrapper {
   private _data?: any;
@@ -28,11 +36,134 @@ export class TransmuterWrapper {
    * reloadData into _data
    */
   async reloadData(): Promise<MutationData> {
-    this._data = (await this.program.account.mutation.fetch(this.key)) as any;
+    this._data = (await this.program.account.transmuter.fetch(this.key)) as any;
     return this._data;
   }
 
   // --------------------------------------- ixs
+
+  async addToBankWhitelist(
+    bank: PublicKey,
+    addressToWhitelist: PublicKey,
+    whitelistType: WhitelistType
+  ) {
+    await this.reloadData();
+
+    const [authority, authBump] = await this.sdk.findTransmuterAuthorityPDA(
+      this.key
+    );
+    const [whitelistProof, wlBump] = await this.sdk.findWhitelistProofPDA(
+      bank,
+      addressToWhitelist
+    );
+
+    const ix = await this.program.instruction.addToBankWhitelist(
+      authBump,
+      wlBump,
+      whitelistType,
+      {
+        accounts: {
+          transmuter: this.key,
+          owner: this.sdk.provider.wallet.publicKey,
+          authority,
+          bank,
+          addressToWhitelist,
+          whitelistProof,
+          systemProgram: SystemProgram.programId,
+          gemBank: GEM_BANK_PROG_ID,
+        },
+      }
+    );
+
+    return {
+      authority,
+      whitelistProof,
+      tx: new TransactionEnvelope(this.sdk.provider, [ix]),
+    };
+  }
+
+  async removeFromBankWhitelist(bank: PublicKey, addressToRemove: PublicKey) {
+    await this.reloadData();
+
+    const [authority, authBump] = await this.sdk.findTransmuterAuthorityPDA(
+      this.key
+    );
+    const [whitelistProof, wlBump] = await this.sdk.findWhitelistProofPDA(
+      bank,
+      addressToRemove
+    );
+
+    const ix = await this.program.instruction.removeFromBankWhitelist(
+      authBump,
+      wlBump,
+      {
+        accounts: {
+          transmuter: this.key,
+          owner: this.sdk.provider.wallet.publicKey,
+          authority,
+          bank,
+          addressToRemove,
+          whitelistProof,
+          gemBank: GEM_BANK_PROG_ID,
+        },
+      }
+    );
+
+    return {
+      authority,
+      whitelistProof,
+      tx: new TransactionEnvelope(this.sdk.provider, [ix]),
+    };
+  }
+
+  async addRaritiesToBank(bank: PublicKey, rarityConfigs: RarityConfig[]) {
+    await this.reloadData();
+
+    const [authority, authBump] = await this.sdk.findTransmuterAuthorityPDA(
+      this.key
+    );
+
+    //prepare rarity configs
+    const completeRarityConfigs = [...rarityConfigs];
+    const remainingAccounts = [];
+
+    for (const config of completeRarityConfigs) {
+      const [gemRarity] = await this.sdk.findRarityPDA(bank, config.mint);
+      //add mint
+      remainingAccounts.push({
+        pubkey: config.mint,
+        isWritable: false,
+        isSigner: false,
+      });
+      //add rarity pda
+      remainingAccounts.push({
+        pubkey: gemRarity,
+        isWritable: true,
+        isSigner: false,
+      });
+    }
+
+    const ix = await this.program.instruction.addRaritiesToBank(
+      authBump,
+      completeRarityConfigs,
+      {
+        accounts: {
+          transmuter: this.key,
+          owner: this.sdk.provider.wallet.publicKey,
+          authority,
+          bank,
+          gemBank: GEM_BANK_PROG_ID,
+          systemProgram: SystemProgram.programId,
+        },
+        remainingAccounts,
+      }
+    );
+
+    return {
+      authority,
+      tx: new TransactionEnvelope(this.sdk.provider, [ix]),
+    };
+  }
 
   // --------------------------------------- load
 

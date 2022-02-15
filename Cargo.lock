@@ -779,7 +779,7 @@ checksum = "835a3dc7d1ec9e75e2b5fb4ba75396837112d2060b03f7d43bc1897c7f7211da"
 [[package]]
 name = "gem_bank"
 version = "0.1.0"
-source = "git+https://github.com/gemworks/gem-farm#b22a767b43b0d6f3e6450b9bca78ee45599922ed"
+source = "git+https://github.com/gemworks/gem-farm#939c60af1b642ffbddb01128061bf53b3dd65174"
 dependencies = [
  "anchor-lang 0.19.0",
  "anchor-spl 0.19.0",
@@ -795,7 +795,7 @@ dependencies = [
 [[package]]
 name = "gem_common"
 version = "0.1.0"
-source = "git+https://github.com/gemworks/gem-farm#b22a767b43b0d6f3e6450b9bca78ee45599922ed"
+source = "git+https://github.com/gemworks/gem-farm#939c60af1b642ffbddb01128061bf53b3dd65174"
 dependencies = [
  "anchor-lang 0.19.0",
  "anchor-spl 0.19.0",
@@ -1183,7 +1183,7 @@ dependencies = [
 [[package]]
 name = "proc_macros"
 version = "0.1.0"
-source = "git+https://github.com/gemworks/gem-farm#b22a767b43b0d6f3e6450b9bca78ee45599922ed"
+source = "git+https://github.com/gemworks/gem-farm#939c60af1b642ffbddb01128061bf53b3dd65174"
 dependencies = [
  "proc-macro2",
  "quote",
