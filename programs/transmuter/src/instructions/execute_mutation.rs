@@ -23,7 +23,7 @@ pub struct ExecuteMutation<'info> {
     // skipping validation to save compute, has_one = auth is enough
     pub authority: AccountInfo<'info>,
 
-    // taker banks + vaults (B and C might be fake - cheaper than going through optoinal accs)
+    // taker banks + vaults (B and C might be fake - cheaper (compute) than making them optional)
     pub bank_a: AccountInfo<'info>,
     #[account(mut)]
     pub vault_a: Box<Account<'info, Vault>>,

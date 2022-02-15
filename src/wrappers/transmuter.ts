@@ -10,6 +10,11 @@ import {
   RarityConfig,
   WhitelistType,
 } from "@gemworks/gem-farm-ts";
+import {
+  findRarityPDA,
+  findTransmuterAuthorityPDA,
+  findWhitelistProofPDA,
+} from "../pda";
 
 export class TransmuterWrapper {
   private _data?: any;
@@ -60,10 +65,8 @@ export class TransmuterWrapper {
   ) {
     await this.reloadData();
 
-    const [authority, authBump] = await this.sdk.findTransmuterAuthorityPDA(
-      this.key
-    );
-    const [whitelistProof, wlBump] = await this.sdk.findWhitelistProofPDA(
+    const [authority, authBump] = await findTransmuterAuthorityPDA(this.key);
+    const [whitelistProof, wlBump] = await findWhitelistProofPDA(
       bank,
       addressToWhitelist
     );
@@ -96,10 +99,8 @@ export class TransmuterWrapper {
   async removeFromBankWhitelist(bank: PublicKey, addressToRemove: PublicKey) {
     await this.reloadData();
 
-    const [authority, authBump] = await this.sdk.findTransmuterAuthorityPDA(
-      this.key
-    );
-    const [whitelistProof, wlBump] = await this.sdk.findWhitelistProofPDA(
+    const [authority, authBump] = await findTransmuterAuthorityPDA(this.key);
+    const [whitelistProof, wlBump] = await findWhitelistProofPDA(
       bank,
       addressToRemove
     );
@@ -130,16 +131,14 @@ export class TransmuterWrapper {
   async addRaritiesToBank(bank: PublicKey, rarityConfigs: RarityConfig[]) {
     await this.reloadData();
 
-    const [authority, authBump] = await this.sdk.findTransmuterAuthorityPDA(
-      this.key
-    );
+    const [authority, authBump] = await findTransmuterAuthorityPDA(this.key);
 
     //prepare rarity configs
     const completeRarityConfigs = [...rarityConfigs];
     const remainingAccounts = [];
 
     for (const config of completeRarityConfigs) {
-      const [gemRarity] = await this.sdk.findRarityPDA(bank, config.mint);
+      const [gemRarity] = await findRarityPDA(bank, config.mint);
       //add mint
       remainingAccounts.push({
         pubkey: config.mint,

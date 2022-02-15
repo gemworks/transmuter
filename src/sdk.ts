@@ -24,6 +24,11 @@ import {
   TokenOwner,
 } from "@saberhq/token-utils";
 import { TOKEN_PROGRAM_ID, u64 } from "@solana/spl-token";
+import {
+  findExecutionReceiptPDA,
+  findTokenEscrowPDA,
+  findTransmuterAuthorityPDA,
+} from "./pda";
 
 export interface TakerTokenConfig {
   gemBank: PublicKey;
@@ -87,86 +92,10 @@ export class TransmuterSDK {
     readonly programs: Programs
   ) {}
 
-  // --------------------------------------- pda derivations
-  //todo move PDAs out both here and for gem bank / farm
-
-  async findTransmuterAuthorityPDA(
-    transmuter: PublicKey
-  ): Promise<[PublicKey, number]> {
-    return PublicKey.findProgramAddress(
-      [transmuter.toBytes()],
-      this.programs.Transmuter.programId
-    );
-  }
-
-  async findTokenEscrowPDA(
-    mutation: PublicKey,
-    mint: PublicKey
-  ): Promise<[PublicKey, number]> {
-    return PublicKey.findProgramAddress(
-      [Buffer.from("escrow"), mutation.toBytes(), mint.toBytes()],
-      this.programs.Transmuter.programId
-    );
-  }
-
-  async findVaultCreatorPDA(
-    mutation: PublicKey,
-    taker: PublicKey
-  ): Promise<[PublicKey, number]> {
-    return PublicKey.findProgramAddress(
-      [Buffer.from("creator"), mutation.toBytes(), taker.toBytes()],
-      this.programs.Transmuter.programId
-    );
-  }
-
-  async findTakerVaultPDA(
-    bank: PublicKey,
-    mutation: PublicKey,
-    taker: PublicKey
-  ) {
-    const [creator, creatorBump] = await this.findVaultCreatorPDA(
-      mutation,
-      taker
-    );
-    const [vault, vaultBump] = await PublicKey.findProgramAddress(
-      [Buffer.from("vault"), bank.toBytes(), creator.toBytes()],
-      GEM_BANK_PROG_ID
-    );
-    return { creator, creatorBump, vault, vaultBump };
-  }
-
-  async findWhitelistProofPDA(
-    bank: PublicKey,
-    whitelistedAddress: PublicKey
-  ): Promise<[PublicKey, number]> {
-    return PublicKey.findProgramAddress(
-      [Buffer.from("whitelist"), bank.toBytes(), whitelistedAddress.toBytes()],
-      GEM_BANK_PROG_ID
-    );
-  }
-
-  async findRarityPDA(
-    bank: PublicKey,
-    mint: PublicKey
-  ): Promise<[PublicKey, number]> {
-    return PublicKey.findProgramAddress(
-      [Buffer.from("gem_rarity"), bank.toBytes(), mint.toBytes()],
-      GEM_BANK_PROG_ID
-    );
-  }
-
-  async findExecutionReceiptPDA(
-    mutation: PublicKey,
-    taker: PublicKey
-  ): Promise<[PublicKey, number]> {
-    return PublicKey.findProgramAddress(
-      [Buffer.from("receipt"), mutation.toBytes(), taker.toBytes()],
-      this.programs.Transmuter.programId
-    );
-  }
+  // --------------------------------------- fetchers
 
   async fetchReceipt(mutation: PublicKey, taker: PublicKey) {
-    const [receiptAddr] = await this.findExecutionReceiptPDA(mutation, taker);
+    const [receiptAddr] = await findExecutionReceiptPDA(mutation, taker);
     return this.programs.Transmuter.account.executionReceipt.fetch(receiptAddr);
   }
 
@@ -178,7 +107,7 @@ export class TransmuterSDK {
     const bankB = Keypair.generate();
     const bankC = Keypair.generate();
 
-    const [authority, bump] = await this.findTransmuterAuthorityPDA(
+    const [authority, bump] = await findTransmuterAuthorityPDA(
       transmuter.publicKey
     );
 
@@ -240,7 +169,7 @@ export class TransmuterSDK {
     const [tokenCEscrow, tokenCEscrowBump, tokenCSource] =
       await this.prepTokenAccounts(mutation.publicKey, tokenCMint);
 
-    const [authority, bump] = await this.findTransmuterAuthorityPDA(transmuter);
+    const [authority, bump] = await findTransmuterAuthorityPDA(transmuter);
 
     const ix = this.programs.Transmuter.instruction.initMutation(
       bump,
@@ -290,7 +219,7 @@ export class TransmuterSDK {
     tokenMint: PublicKey,
     owner?: PublicKey
   ): Promise<[PublicKey, number, PublicKey]> {
-    const [tokenEscrow, tokenEscrowBump] = await this.findTokenEscrowPDA(
+    const [tokenEscrow, tokenEscrowBump] = await findTokenEscrowPDA(
       mutation,
       tokenMint
     );

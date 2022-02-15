@@ -16,6 +16,11 @@ import {
   TOKEN_PROGRAM_ID,
 } from "@solana/spl-token";
 import { createMint } from "@saberhq/token-utils";
+import {
+  findExecutionReceiptPDA,
+  findTakerVaultPDA,
+  findTransmuterAuthorityPDA,
+} from "../pda";
 
 export class MutationWrapper {
   private _data?: any; //todo temp
@@ -62,27 +67,15 @@ export class MutationWrapper {
     // if a bank doesn't exist, we create a fake bank. Cheaper (compute) than optional accs
 
     const bankA = config.takerTokenA.gemBank;
-    const { vault: vaultA } = await this.sdk.findTakerVaultPDA(
-      bankA,
-      this.key,
-      taker
-    );
+    const { vault: vaultA } = await findTakerVaultPDA(bankA, this.key, taker);
     const bankB = config.takerTokenB
       ? config.takerTokenB.gemBank
       : Keypair.generate().publicKey;
-    const { vault: vaultB } = await this.sdk.findTakerVaultPDA(
-      bankB,
-      this.key,
-      taker
-    );
+    const { vault: vaultB } = await findTakerVaultPDA(bankB, this.key, taker);
     const bankC = config.takerTokenC
       ? config.takerTokenC.gemBank
       : Keypair.generate().publicKey;
-    const { vault: vaultC } = await this.sdk.findTakerVaultPDA(
-      bankC,
-      this.key,
-      taker
-    );
+    const { vault: vaultC } = await findTakerVaultPDA(bankC, this.key, taker);
 
     // ----------------- prep escrows
 
@@ -104,12 +97,12 @@ export class MutationWrapper {
 
     // ----------------- prep ix
 
-    const [authority] = await this.sdk.findTransmuterAuthorityPDA(
-      this.transmuter
-    );
+    const [authority] = await findTransmuterAuthorityPDA(this.transmuter);
 
-    const [executionReceipt, receiptBump] =
-      await this.sdk.findExecutionReceiptPDA(this.key, taker);
+    const [executionReceipt, receiptBump] = await findExecutionReceiptPDA(
+      this.key,
+      taker
+    );
 
     let ix;
     if (!reverse) {
@@ -207,9 +200,7 @@ export class MutationWrapper {
 
     // ----------------- prep ix
 
-    const [authority, bump] = await this.sdk.findTransmuterAuthorityPDA(
-      this.transmuter
-    );
+    const [authority, bump] = await findTransmuterAuthorityPDA(this.transmuter);
 
     const ix = this.program.instruction.destroyMutation(bump, {
       accounts: {
@@ -237,10 +228,15 @@ export class MutationWrapper {
   }
 
   async initTakerVault(bank: PublicKey, taker: PublicKey) {
-    const { creator, creatorBump, vault, vaultBump } =
-      await this.sdk.findTakerVaultPDA(bank, this.key, taker);
-    const [executionReceipt, receiptBump] =
-      await this.sdk.findExecutionReceiptPDA(this.key, taker);
+    const { creator, creatorBump, vault, vaultBump } = await findTakerVaultPDA(
+      bank,
+      this.key,
+      taker
+    );
+    const [executionReceipt, receiptBump] = await findExecutionReceiptPDA(
+      this.key,
+      taker
+    );
 
     const ix = this.program.instruction.initTakerVault(
       creatorBump,
