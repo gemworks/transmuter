@@ -43,6 +43,11 @@ impl ExecutionReceipt {
     }
 
     // todo test
+    pub fn mark_not_started(&mut self) {
+        self.state = ExecutionState::NotStarted;
+    }
+
+    // todo test
     pub fn mark_pending(&mut self) {
         self.state = ExecutionState::Pending;
     }

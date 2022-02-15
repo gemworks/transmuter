@@ -8,10 +8,13 @@ pub fn handler<'a, 'b, 'c, 'info>(
         return Err(ErrorCode::MutationNotReversible.into());
     }
 
-    let execution_receipt = &ctx.accounts.execution_receipt;
+    let execution_receipt = &mut ctx.accounts.execution_receipt;
     if !execution_receipt.is_complete() {
         return Err(ErrorCode::MutationNotComplete.into());
     }
+
+    //reset state to not started
+    execution_receipt.mark_not_started();
 
     // --------------------------------------- uses & payment
 
@@ -100,13 +103,6 @@ pub fn handler<'a, 'b, 'c, 'info>(
         ctx.accounts
             .perform_token_transfer(escrow_c, taker_ata_c, maker_token_c, true)?;
     }
-
-    // --------------------------------------- close receipt account
-
-    let receipt = &mut ctx.accounts.execution_receipt.to_account_info();
-    let taker = &mut ctx.accounts.taker.to_account_info();
-
-    close_account(receipt, taker)?;
 
     Ok(())
 }

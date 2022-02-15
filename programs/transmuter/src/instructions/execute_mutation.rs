@@ -1,5 +1,5 @@
 use crate::*;
-use anchor_lang::solana_program::{hash::hash, program::invoke, system_instruction};
+use anchor_lang::solana_program::{program::invoke, system_instruction};
 use anchor_spl::associated_token;
 use anchor_spl::associated_token::{AssociatedToken, Create};
 use anchor_spl::token::{self, Token, Transfer};

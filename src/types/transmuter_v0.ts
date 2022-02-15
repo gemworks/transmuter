@@ -327,11 +327,11 @@ export type TransmuterV0 = {
           "type": "u8"
         },
         {
-          "name": "bumpVault",
+          "name": "bumpReceipt",
           "type": "u8"
         },
         {
-          "name": "bumpReceipt",
+          "name": "bumpVault",
           "type": "u8"
         }
       ]
@@ -1331,11 +1331,11 @@ export const IDL: TransmuterV0 = {
           "type": "u8"
         },
         {
-          "name": "bumpVault",
+          "name": "bumpReceipt",
           "type": "u8"
         },
         {
-          "name": "bumpReceipt",
+          "name": "bumpVault",
           "type": "u8"
         }
       ]

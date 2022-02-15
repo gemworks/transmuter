@@ -61,8 +61,8 @@ pub mod transmuter_v0 {
     pub fn init_taker_vault(
         ctx: Context<InitTakerVault>,
         bump_creator: u8,
-        bump_vault: u8,
         _bump_receipt: u8,
+        bump_vault: u8,
     ) -> ProgramResult {
         instructions::init_vault::handler(ctx, bump_creator, bump_vault)
     }

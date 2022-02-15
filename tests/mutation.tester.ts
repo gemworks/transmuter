@@ -121,27 +121,6 @@ export class MutationTester {
       );
     }
 
-    // setup & fill up any relevant taker vaults
-    ({
-      vault: this.takerVaultA,
-      takerMint: this.takerMintA,
-      takerAcc: this.takerAccA,
-    } = await this.prepareTakerVaults(this.transmuter.bankA));
-    if (takerTokenB) {
-      ({
-        vault: this.takerVaultB,
-        takerMint: this.takerMintB,
-        takerAcc: this.takerAccB,
-      } = await this.prepareTakerVaults(this.transmuter.bankB));
-    }
-    if (takerTokenC) {
-      ({
-        vault: this.takerVaultC,
-        takerMint: this.takerMintC,
-        takerAcc: this.takerAccC,
-      } = await this.prepareTakerVaults(this.transmuter.bankC));
-    }
-
     const config: MutationConfig = {
       takerTokenA: {
         gemBank: this.transmuter.bankA,
@@ -188,6 +167,27 @@ export class MutationTester {
       await expectTX(tx, "init new mutation").to.be.fulfilled;
       this.mutation = mutationWrapper;
       console.log("mutation ready");
+
+      // setup & fill up any relevant taker vaults
+      ({
+        vault: this.takerVaultA,
+        takerMint: this.takerMintA,
+        takerAcc: this.takerAccA,
+      } = await this.prepareTakerVaults(this.transmuter.bankA));
+      if (takerTokenB) {
+        ({
+          vault: this.takerVaultB,
+          takerMint: this.takerMintB,
+          takerAcc: this.takerAccB,
+        } = await this.prepareTakerVaults(this.transmuter.bankB));
+      }
+      if (takerTokenC) {
+        ({
+          vault: this.takerVaultC,
+          takerMint: this.takerMintC,
+          takerAcc: this.takerAccC,
+        } = await this.prepareTakerVaults(this.transmuter.bankC));
+      }
     } else {
       expect(tx.confirm()).to.be.rejectedWith(mutationInitError);
     }
@@ -204,13 +204,12 @@ export class MutationTester {
     await this.doAirdrop(taker.publicKey, 3 * LAMPORTS_PER_SOL);
 
     // create vaults
-    const { vault } = await this.gb.initVault(
+    const { tx, vault } = await this.mutation.initTakerVault(
       bank,
-      taker,
-      taker,
-      taker.publicKey,
-      "abc"
+      taker.publicKey
     );
+    tx.addSigners(this.taker);
+    await tx.confirm();
 
     // create tokens
     const [takerMint, takerAcc] = await this.sdk.createMintAndATA(

@@ -1,9 +1,4 @@
-import {
-  ExecutionState,
-  MutationConfig,
-  RequiredUnits,
-  VaultAction,
-} from "../src";
+import { ExecutionState, RequiredUnits, VaultAction } from "../src";
 import { expectTX } from "@saberhq/chai-solana";
 
 import "chai-bn";
@@ -23,7 +18,7 @@ describe("transmuter (main spec)", () => {
     await mt.prepareMutation({});
 
     //call execute
-    const tx = await mt.mutation.execute(mt.taker.publicKey);
+    const { tx } = await mt.mutation.execute(mt.taker.publicKey);
     tx.addSigners(mt.taker);
     await expectTX(tx, "executes mutation").to.be.fulfilled;
 
@@ -44,7 +39,7 @@ describe("transmuter (main spec)", () => {
     });
 
     //call execute
-    const tx = await mt.mutation.execute(mt.taker.publicKey);
+    const { tx } = await mt.mutation.execute(mt.taker.publicKey);
     tx.addSigners(mt.taker);
     await expectTX(tx, "executes mutation").to.be.fulfilled;
 
@@ -61,7 +56,7 @@ describe("transmuter (main spec)", () => {
     });
 
     //call execute
-    const tx = await mt.mutation.execute(mt.taker.publicKey);
+    const { tx } = await mt.mutation.execute(mt.taker.publicKey);
     tx.addSigners(mt.taker);
     await expectTX(tx, "executes mutation").to.be.fulfilled;
 
@@ -94,7 +89,7 @@ describe("transmuter (main spec)", () => {
     });
 
     //call execute
-    const tx = await mt.mutation.execute(mt.taker.publicKey);
+    const { tx } = await mt.mutation.execute(mt.taker.publicKey);
     tx.addSigners(mt.taker);
     await expectTX(tx, "executes mutation").to.be.fulfilled;
     console.log("executed once");
@@ -158,7 +153,7 @@ describe("transmuter (main spec)", () => {
     });
 
     //call execute
-    const tx = await mt.mutation.execute(mt.taker.publicKey);
+    const { tx } = await mt.mutation.execute(mt.taker.publicKey);
     tx.addSigners(mt.taker);
     await expectTX(tx, "executes mutation").to.be.fulfilled;
     console.log("executed once");
@@ -171,7 +166,7 @@ describe("transmuter (main spec)", () => {
   });
 
   //todo still sometimes fails due to compute :(
-  it("reverse mutation (3x3)", async () => {
+  it.only("reverse mutation (3x3)", async () => {
     await mt.prepareMutation({
       takerTokenB: {
         gemBank: mt.transmuter.bankB,
@@ -191,7 +186,7 @@ describe("transmuter (main spec)", () => {
     });
 
     //call execute
-    const tx = await mt.mutation.execute(mt.taker.publicKey);
+    const { tx } = await mt.mutation.execute(mt.taker.publicKey);
     tx.addSigners(mt.taker);
     await expectTX(tx, "executes mutation").to.be.fulfilled;
     console.log("executed");
@@ -209,9 +204,10 @@ describe("transmuter (main spec)", () => {
     expect(receipt.state == ExecutionState.Complete);
 
     //call reverse
-    const reverseTx = await mt.mutation.reverse(mt.taker.publicKey);
+    const { tx: reverseTx } = await mt.mutation.reverse(mt.taker.publicKey);
     reverseTx.addSigners(mt.taker);
     await expectTX(reverseTx, "reverses mutation").to.be.fulfilled;
+    console.log("reversed");
 
     //will have paid TWICE
     const newBalance = await mt.conn.getBalance(mt.taker.publicKey);
@@ -221,6 +217,13 @@ describe("transmuter (main spec)", () => {
     const vaultAcc2 = await mt.gb.fetchVaultAcc(mt.takerVaultA);
     expect(vaultAcc2.owner.toBase58()).to.be.eq(mt.taker.publicKey.toBase58());
     expect(vaultAcc2.locked).to.be.eq(false);
+
+    //verify receipt exists and is not started
+    const receipt2 = await mt.sdk.fetchReceipt(
+      mt.mutation.key,
+      mt.taker.publicKey
+    );
+    expect(receipt2.state == ExecutionState.NotStarted);
 
     //verify NO tokens are indeed in taker's wallet
     await mt.verifyTakerReceivedMakerTokens(toBN(0));
@@ -272,7 +275,7 @@ describe("transmuter (main spec)", () => {
       (await mt.conn.getTokenAccountBalance(data.tokenCEscrow)).value.uiAmount
     ).to.be.gt(0);
 
-    const tx = await mt.mutation.destroy(mt.transmuter.key);
+    const { tx } = await mt.mutation.destroy(mt.transmuter.key);
     await expectTX(tx, "destroy mutation").to.be.fulfilled;
 
     //AFTER - rent should be empty
@@ -285,11 +288,5 @@ describe("transmuter (main spec)", () => {
     expect(mt.conn.getTokenAccountBalance(data.tokenAEscrow)).to.be.rejected;
     expect(mt.conn.getTokenAccountBalance(data.tokenBEscrow)).to.be.rejected;
     expect(mt.conn.getTokenAccountBalance(data.tokenCEscrow)).to.be.rejected;
-  });
-
-  it.only("inits taker vault", async () => {
-    await mt.prepareMutation({});
-
-    await mt.mutation.initTakerVault(mt.transmuter.bankA, mt.taker.publicKey);
   });
 });

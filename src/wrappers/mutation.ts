@@ -56,7 +56,11 @@ export class MutationWrapper {
     // ----------------- prep banks & vaults
 
     const bankA = config.takerTokenA.gemBank;
-    const [vaultA] = await this.sdk.findVaultPDA(bankA, taker);
+    const { vault: vaultA } = await this.sdk.findTakerVaultPDA(
+      bankA,
+      this.key,
+      taker
+    );
     let bankB: PublicKey;
     let vaultB: PublicKey;
     let bankC: PublicKey;
@@ -66,7 +70,11 @@ export class MutationWrapper {
 
     if (config.takerTokenB) {
       bankB = config.takerTokenB.gemBank;
-      [vaultB] = await this.sdk.findVaultPDA(bankB, taker);
+      ({ vault: vaultB } = await this.sdk.findTakerVaultPDA(
+        bankB,
+        this.key,
+        taker
+      ));
       remainingAccounts.push({
         pubkey: bankB,
         isWritable: false,
@@ -81,7 +89,11 @@ export class MutationWrapper {
 
     if (config.takerTokenC) {
       bankC = config.takerTokenC.gemBank;
-      [vaultC] = await this.sdk.findVaultPDA(bankC, taker);
+      ({ vault: vaultC } = await this.sdk.findTakerVaultPDA(
+        bankC,
+        this.key,
+        taker
+      ));
       remainingAccounts.push({
         pubkey: bankC,
         isWritable: false,
@@ -180,7 +192,12 @@ export class MutationWrapper {
       });
     }
 
-    return new TransactionEnvelope(this.sdk.provider, [ix]);
+    //todo return more?
+    return {
+      authority,
+      executionReceipt,
+      tx: new TransactionEnvelope(this.sdk.provider, [ix]),
+    };
   }
 
   async destroy(transmuter: PublicKey) {
@@ -233,22 +250,20 @@ export class MutationWrapper {
       },
     });
 
-    return new TransactionEnvelope(this.provider, [ix]);
+    //todo return more?
+    return { authority, tx: new TransactionEnvelope(this.provider, [ix]) };
   }
 
   async initTakerVault(bank: PublicKey, taker: PublicKey) {
-    const [creator, creatorBump] = await this.sdk.findVaultCreatorPDA(
-      this.key,
-      taker
-    );
-    const [vault, vaultBump] = await this.sdk.findVaultPDA(bank, creator);
+    const { creator, creatorBump, vault, vaultBump } =
+      await this.sdk.findTakerVaultPDA(bank, this.key, taker);
     const [executionReceipt, receiptBump] =
       await this.sdk.findExecutionReceiptPDA(this.key, taker);
 
     const ix = this.program.instruction.initTakerVault(
       creatorBump,
-      vaultBump,
       receiptBump,
+      vaultBump,
       {
         accounts: {
           transmuter: this.transmuter,
@@ -264,7 +279,12 @@ export class MutationWrapper {
       }
     );
 
-    return new TransactionEnvelope(this.provider, [ix]);
+    return {
+      creator,
+      vault,
+      executionReceipt,
+      tx: new TransactionEnvelope(this.provider, [ix]),
+    };
   }
 
   // --------------------------------------- load

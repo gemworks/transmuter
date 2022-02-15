@@ -55,6 +55,7 @@ export const MutationState = {
 };
 
 export const ExecutionState = {
+  NotStarted: { notStarted: {} },
   Pending: { pending: {} },
   Complete: { complete: {} },
 };
@@ -117,15 +118,21 @@ export class TransmuterSDK {
     );
   }
 
-  //todo should be using gem farm's instead, but need to re-do the sdk for that
-  async findVaultPDA(
+  async findTakerVaultPDA(
     bank: PublicKey,
-    creator: PublicKey
-  ): Promise<[PublicKey, number]> {
-    return PublicKey.findProgramAddress(
+    mutation: PublicKey,
+    taker: PublicKey
+  ) {
+    const [creator, creatorBump] = await this.findVaultCreatorPDA(
+      mutation,
+      taker
+    );
+    //todo should be using gem farm's instead, but need to re-do the sdk for that
+    const [vault, vaultBump] = await PublicKey.findProgramAddress(
       [Buffer.from("vault"), bank.toBytes(), creator.toBytes()],
       GEM_BANK_PROG_ID
     );
+    return { creator, creatorBump, vault, vaultBump };
   }
 
   async findExecutionReceiptPDA(
