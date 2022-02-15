@@ -1,5 +1,6 @@
 use crate::*;
 
+#[proc_macros::assert_size(112)]
 #[repr(C)]
 #[account]
 pub struct ExecutionReceipt {
@@ -8,11 +9,12 @@ pub struct ExecutionReceipt {
     pub state: ExecutionState,
 
     // can be init'ed by user in any order, hence all optional
-    pub vault_a: Option<Pubkey>,
+    pub vault_a: Option<Pubkey>, //option adds 0 to size
     pub vault_b: Option<Pubkey>,
     pub vault_c: Option<Pubkey>,
 }
 
+#[proc_macros::assert_size(4)]
 #[repr(C)]
 #[derive(Debug, Copy, Clone, AnchorSerialize, AnchorDeserialize, PartialEq)]
 pub enum ExecutionState {

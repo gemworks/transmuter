@@ -787,7 +787,7 @@ dependencies = [
  "bytemuck",
  "gem_common",
  "metaplex-token-metadata",
- "proc_macros",
+ "proc_macros 0.1.0 (git+https://github.com/gemworks/gem-farm)",
  "static_assertions",
  "thiserror",
 ]
@@ -1178,6 +1178,16 @@ dependencies = [
  "syn",
  "version_check",
  "yansi",
+]
+
+[[package]]
+name = "proc_macros"
+version = "0.1.0"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "static_assertions",
+ "syn",
 ]
 
 [[package]]
@@ -1583,8 +1593,10 @@ dependencies = [
  "anchor-lang 0.19.0",
  "anchor-spl 0.19.0",
  "gem_bank",
+ "proc_macros 0.1.0",
  "spl-math",
  "spl-token",
+ "static_assertions",
  "vipers",
 ]
 

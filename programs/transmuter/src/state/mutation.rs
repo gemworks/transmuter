@@ -2,6 +2,7 @@ use crate::ErrorCode::NoMoreUsesLeft;
 use crate::*;
 use gem_bank::state::Vault;
 
+#[proc_macros::assert_size(592)]
 #[repr(C)]
 #[account]
 pub struct Mutation {
@@ -12,14 +13,16 @@ pub struct Mutation {
 
     /// storing these here to save compute during ix execution (has_one cheaper than derivation)
     pub token_a_escrow: Pubkey,
-    pub token_b_escrow: Option<Pubkey>,
-    pub token_c_escrow: Option<Pubkey>,
+    pub token_b_escrow: Option<Pubkey>, //option adds 4 to size
+    pub token_c_escrow: Option<Pubkey>, //option adds 4 to size
 
     total_uses: u64,
 
     remaining_uses: u64,
 
     state: MutationState,
+
+    pub _reserved: [u8; 64],
 }
 
 impl Mutation {
@@ -52,6 +55,7 @@ impl Mutation {
     }
 }
 
+#[proc_macros::assert_size(4)]
 #[repr(C)]
 #[derive(Debug, Copy, Clone, AnchorSerialize, AnchorDeserialize)]
 pub enum MutationState {
@@ -59,22 +63,23 @@ pub enum MutationState {
     Exhausted,
 }
 
+#[proc_macros::assert_size(368)]
 #[repr(C)]
 #[derive(Debug, Copy, Clone, AnchorSerialize, AnchorDeserialize)]
 pub struct MutationConfig {
     pub taker_token_a: TakerTokenConfig,
-    pub taker_token_b: Option<TakerTokenConfig>,
+    pub taker_token_b: Option<TakerTokenConfig>, //option adds 0 to size
     pub taker_token_c: Option<TakerTokenConfig>,
-
     pub maker_token_a: MakerTokenConfig,
-    pub maker_token_b: Option<MakerTokenConfig>,
+    pub maker_token_b: Option<MakerTokenConfig>, //option adds 8 to size ¯\_(ツ)_/¯
     pub maker_token_c: Option<MakerTokenConfig>,
-
     pub price: PriceConfig,
 
     pub mutation_duration_sec: u64,
 
     pub reversible: bool,
+
+    pub _reserved: [u8; 32],
 }
 
 impl MutationConfig {
@@ -102,6 +107,7 @@ impl MutationConfig {
     }
 }
 
+#[proc_macros::assert_size(4)]
 #[repr(C)]
 #[derive(Debug, Copy, Clone, AnchorSerialize, AnchorDeserialize)]
 pub enum RequiredUnits {
@@ -110,6 +116,7 @@ pub enum RequiredUnits {
 }
 
 /// Token required FROM taker
+#[proc_macros::assert_size(48)]
 #[repr(C)]
 #[derive(Debug, Copy, Clone, AnchorSerialize, AnchorDeserialize)]
 pub struct TakerTokenConfig {
@@ -151,6 +158,7 @@ impl TakerTokenConfig {
 }
 
 /// Token returned TO taker
+#[proc_macros::assert_size(48)]
 #[repr(C)]
 #[derive(Debug, Copy, Clone, AnchorSerialize, AnchorDeserialize)]
 pub struct MakerTokenConfig {
@@ -180,6 +188,7 @@ impl MakerTokenConfig {
     }
 }
 
+#[proc_macros::assert_size(4)]
 #[repr(C)]
 #[derive(Debug, Copy, Clone, AnchorSerialize, AnchorDeserialize, PartialEq)]
 pub enum VaultAction {
@@ -188,6 +197,7 @@ pub enum VaultAction {
     DoNothing,
 }
 
+#[proc_macros::assert_size(16)]
 #[repr(C)]
 #[derive(Debug, Copy, Clone, AnchorSerialize, AnchorDeserialize)]
 pub struct PriceConfig {

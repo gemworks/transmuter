@@ -2,7 +2,7 @@ use crate::*;
 
 pub const LATEST_TRANSMUTER_VERSION: u16 = 0;
 
-// todo add reserve space + size check
+#[proc_macros::assert_size(260)]
 #[repr(C)]
 #[account]
 pub struct Transmuter {
@@ -18,6 +18,8 @@ pub struct Transmuter {
     pub bank_a: Pubkey,
     pub bank_b: Pubkey,
     pub bank_c: Pubkey,
+
+    pub _reserved: [u8; 64],
 }
 
 impl Transmuter {

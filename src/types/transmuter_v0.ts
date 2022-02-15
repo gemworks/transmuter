@@ -869,6 +869,15 @@ export type TransmuterV0 = {
             "type": {
               "defined": "MutationState"
             }
+          },
+          {
+            "name": "reserved",
+            "type": {
+              "array": [
+                "u8",
+                64
+              ]
+            }
           }
         ]
       }
@@ -914,6 +923,15 @@ export type TransmuterV0 = {
           {
             "name": "bankC",
             "type": "publicKey"
+          },
+          {
+            "name": "reserved",
+            "type": {
+              "array": [
+                "u8",
+                64
+              ]
+            }
           }
         ]
       }
@@ -998,6 +1016,15 @@ export type TransmuterV0 = {
           {
             "name": "reversible",
             "type": "bool"
+          },
+          {
+            "name": "reserved",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
           }
         ]
       }
@@ -2084,6 +2111,15 @@ export const IDL: TransmuterV0 = {
             "type": {
               "defined": "MutationState"
             }
+          },
+          {
+            "name": "reserved",
+            "type": {
+              "array": [
+                "u8",
+                64
+              ]
+            }
           }
         ]
       }
@@ -2129,6 +2165,15 @@ export const IDL: TransmuterV0 = {
           {
             "name": "bankC",
             "type": "publicKey"
+          },
+          {
+            "name": "reserved",
+            "type": {
+              "array": [
+                "u8",
+                64
+              ]
+            }
           }
         ]
       }
@@ -2213,6 +2258,15 @@ export const IDL: TransmuterV0 = {
           {
             "name": "reversible",
             "type": "bool"
+          },
+          {
+            "name": "reserved",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
           }
         ]
       }
