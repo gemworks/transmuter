@@ -2,6 +2,10 @@
 //! 1) Escrow accounts are drained to the owner (ATAs created)
 //! 2) Escrow accounts are closed and SOL credited to the owner
 //! 3) Mutation state account is closed and SOL credited to the owner
+//! 4) Any vaults created by takers for this mutation STAY UNTOUCHED. This means:
+//!    - if they were locked, they stay locked (transmuter authority still controls them)
+//!    - if they were unlocked & owned by taker, taker can withdraw at any point
+//!    - if they were unlocked & owned by maker, maker can withdraw at any point
 
 use crate::*;
 use anchor_spl::associated_token::{AssociatedToken, Create};
