@@ -1,20 +1,18 @@
 import { TransmuterSDK } from "../sdk";
-import { Keypair, PublicKey, SystemProgram } from "@solana/web3.js";
+import { PublicKey, SystemProgram } from "@solana/web3.js";
 import { MutationData, TransmuterData, TransmuterProgram } from "../constants";
 import {
   AugmentedProvider,
   TransactionEnvelope,
 } from "@saberhq/solana-contrib";
 import {
+  findRarityPDA,
+  findWhitelistProofPDA,
   GEM_BANK_PROG_ID,
   RarityConfig,
   WhitelistType,
 } from "@gemworks/gem-farm-ts";
-import {
-  findRarityPDA,
-  findTransmuterAuthorityPDA,
-  findWhitelistProofPDA,
-} from "../pda";
+import { findTransmuterAuthorityPDA } from "../pda";
 
 export class TransmuterWrapper {
   private _data?: any;

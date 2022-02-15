@@ -99,6 +99,46 @@ export class TransmuterSDK {
     return this.programs.Transmuter.account.executionReceipt.fetch(receiptAddr);
   }
 
+  // --------------------------------------- finders
+
+  async findAllReceipts(
+    transmuter?: PublicKey,
+    mutation?: PublicKey,
+    taker?: PublicKey
+  ) {
+    let filter = [];
+    if (transmuter) {
+      filter = [
+        {
+          memcmp: {
+            offset: 8, //need to prepend 8 bytes for anchor's disc
+            bytes: transmuter.toBase58(),
+          },
+        },
+      ];
+    } else if (mutation) {
+      filter = [
+        {
+          memcmp: {
+            offset: 40, //need to prepend 8 bytes for anchor's disc
+            bytes: mutation.toBase58(),
+          },
+        },
+      ];
+    } else if (taker) {
+      filter = [
+        {
+          memcmp: {
+            offset: 72, //need to prepend 8 bytes for anchor's disc
+            bytes: taker.toBase58(),
+          },
+        },
+      ];
+    }
+
+    return this.programs.Transmuter.account.executionReceipt.all(filter);
+  }
+
   // --------------------------------------- initializers
 
   async initTransmuter(payer?: PublicKey) {

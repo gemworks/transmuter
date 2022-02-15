@@ -795,6 +795,18 @@ export type TransmuterV0 = {
         "kind": "struct",
         "fields": [
           {
+            "name": "transmuter",
+            "type": "publicKey"
+          },
+          {
+            "name": "mutation",
+            "type": "publicKey"
+          },
+          {
+            "name": "taker",
+            "type": "publicKey"
+          },
+          {
             "name": "mutationCompleteTs",
             "type": "u64"
           },
@@ -2036,6 +2048,18 @@ export const IDL: TransmuterV0 = {
       "type": {
         "kind": "struct",
         "fields": [
+          {
+            "name": "transmuter",
+            "type": "publicKey"
+          },
+          {
+            "name": "mutation",
+            "type": "publicKey"
+          },
+          {
+            "name": "taker",
+            "type": "publicKey"
+          },
           {
             "name": "mutationCompleteTs",
             "type": "u64"

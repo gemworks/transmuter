@@ -2,8 +2,6 @@ import { PublicKey } from "@solana/web3.js";
 import { GEM_BANK_PROG_ID } from "@gemworks/gem-farm-ts";
 import { TRANSMUTER_ADDRESSES } from "./constants";
 
-//todo fix bank/farm PDAs as well
-
 export const findTransmuterAuthorityPDA = async (
   transmuter: PublicKey
 ): Promise<[PublicKey, number]> => {
@@ -44,26 +42,6 @@ export const findTakerVaultPDA = async (
     GEM_BANK_PROG_ID
   );
   return { creator, creatorBump, vault, vaultBump };
-};
-
-export const findWhitelistProofPDA = async (
-  bank: PublicKey,
-  whitelistedAddress: PublicKey
-): Promise<[PublicKey, number]> => {
-  return PublicKey.findProgramAddress(
-    [Buffer.from("whitelist"), bank.toBytes(), whitelistedAddress.toBytes()],
-    GEM_BANK_PROG_ID
-  );
-};
-
-export const findRarityPDA = async (
-  bank: PublicKey,
-  mint: PublicKey
-): Promise<[PublicKey, number]> => {
-  return PublicKey.findProgramAddress(
-    [Buffer.from("gem_rarity"), bank.toBytes(), mint.toBytes()],
-    GEM_BANK_PROG_ID
-  );
 };
 
 export const findExecutionReceiptPDA = async (

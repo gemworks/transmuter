@@ -1,5 +1,4 @@
 import {
-  MakerTokenConfig,
   MutationConfig,
   MutationWrapper,
   RequiredUnits,

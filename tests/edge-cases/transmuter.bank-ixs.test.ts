@@ -1,6 +1,10 @@
 import "chai-bn";
 import { MutationTester } from "../mutation.tester";
-import { RarityConfig, WhitelistType } from "@gemworks/gem-farm-ts";
+import {
+  findRarityPDA,
+  RarityConfig,
+  WhitelistType,
+} from "@gemworks/gem-farm-ts";
 import { Keypair, PublicKey } from "@solana/web3.js";
 import { expectTX } from "@saberhq/chai-solana";
 import { expect } from "chai";
@@ -48,7 +52,7 @@ describe("transmuter (bank instructions)", () => {
     for (let i = 0; i < 7; i++) {
       const mint = Keypair.generate().publicKey;
 
-      const [rarityAddr] = await mt.gb.findRarityPDA(mt.transmuter.bankA, mint);
+      const [rarityAddr] = await findRarityPDA(mt.transmuter.bankA, mint);
 
       configs.push({
         mint,

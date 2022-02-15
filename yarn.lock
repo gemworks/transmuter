@@ -30,10 +30,10 @@
     "@ethersproject/logger" "^5.5.0"
     hash.js "1.1.7"
 
-"@gemworks/gem-farm-ts@^0.1.4":
-  version "0.1.4"
-  resolved "https://registry.yarnpkg.com/@gemworks/gem-farm-ts/-/gem-farm-ts-0.1.4.tgz#e6d48c500f8e2901edef953646e91a1f37fa9c02"
-  integrity sha512-snshLsZhrd7KuacDvIAhTL8uY5hUaDYZJXJoMjgldlUnOh6F1IiSSayXRUnvdAAFgb1OzqcuV7mNZoFMeuLo9A==
+"@gemworks/gem-farm-ts@^0.1.5":
+  version "0.1.5"
+  resolved "https://registry.yarnpkg.com/@gemworks/gem-farm-ts/-/gem-farm-ts-0.1.5.tgz#8073c8387255ad0ade87c1d0d607d1784803ea00"
+  integrity sha512-RMdqDRoqlUBexs4sqADntcq0aab0j7N7rvYsHXjtc9lqAp2mQo4twM3ZngeoskwNaQb80X+XPvuGrAn/ObrbCw==
   dependencies:
     "@metaplex-foundation/mpl-token-metadata" "^0.0.2"
     "@metaplex/js" "^4.9.0"

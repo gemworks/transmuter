@@ -1,9 +1,15 @@
 use crate::*;
 
-#[proc_macros::assert_size(112)]
+#[proc_macros::assert_size(208)]
 #[repr(C)]
 #[account]
 pub struct ExecutionReceipt {
+    pub transmuter: Pubkey,
+
+    pub mutation: Pubkey,
+
+    pub taker: Pubkey,
+
     pub mutation_complete_ts: u64,
 
     pub state: ExecutionState,

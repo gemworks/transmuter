@@ -73,6 +73,11 @@ pub fn handler(ctx: Context<InitTakerVault>, bump_creator: u8, bump_vault: u8) -
         return Err(ErrorCode::NoneOfTheBanksMatch.into());
     }
 
+    // useful for finding relevant ERs client-side
+    receipt.transmuter = ctx.accounts.transmuter.key();
+    receipt.mutation = ctx.accounts.mutation.key();
+    receipt.taker = ctx.accounts.taker.key();
+
     gem_bank::cpi::init_vault(
         ctx.accounts.init_vault_ctx().with_signer(&[&[
             b"creator".as_ref(),

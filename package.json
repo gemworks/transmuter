@@ -1,19 +1,31 @@
 {
   "name": "@gemworks/transmuter-ts",
-  "description": "TypeScript client for Magic Transmuter.",
+  "description": "sdk for Magic Transmuter ⚗️ (by Gemworks 💎)",
   "version": "0.1.0",
   "repository": "https://github.com/gemworks/transmuter",
-  "license": "MIT",
   "scripts": {
     "build": "anchor build && ./scripts/cp_idl.sh",
     "test": "yarn build && anchor test",
-    "update": "yarn upgrade @gemworks/gem-farm-ts --latest --check-files"
+    "update": "yarn upgrade @gemworks/gem-farm-ts --latest --check-files",
+    "pub": "tsc && npm version patch --force && npm publish --access public"
   },
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "/dist"
+  ],
   "publishConfig": {
-    "access": "public"
+    "registry": "https://registry.npmjs.org/"
   },
+  "keywords": [
+    "solana",
+    "nft",
+    "transmuter"
+  ],
+  "author": "ilmoi",
+  "license": "MIT",
   "dependencies": {
-    "@gemworks/gem-farm-ts": "^0.1.4",
+    "@gemworks/gem-farm-ts": "^0.1.5",
     "@project-serum/anchor": "^0.19.0",
     "@solana/spl-token": "^0.1.8",
     "@solana/web3.js": "^1.33.0",
