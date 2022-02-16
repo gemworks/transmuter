@@ -19,7 +19,7 @@ pub struct Transmuter {
     pub bank_b: Pubkey,
     pub bank_c: Pubkey,
 
-    pub _reserved: [u8; 64],
+    _reserved: [u8; 64],
 }
 
 impl Transmuter {

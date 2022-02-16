@@ -1,6 +1,6 @@
 use crate::*;
 
-#[proc_macros::assert_size(208)]
+#[proc_macros::assert_size(240)]
 #[repr(C)]
 #[account]
 pub struct ExecutionReceipt {
@@ -18,6 +18,8 @@ pub struct ExecutionReceipt {
     pub vault_a: Option<Pubkey>, //option adds 0 to size
     pub vault_b: Option<Pubkey>,
     pub vault_c: Option<Pubkey>,
+
+    _reserved: [u8; 32],
 }
 
 #[proc_macros::assert_size(4)]

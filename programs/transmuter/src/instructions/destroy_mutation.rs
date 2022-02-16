@@ -106,39 +106,48 @@ impl<'info> DestroyMutation<'info> {
     }
 }
 
+impl<'info> Validate<'info> for DestroyMutation<'info> {
+    fn validate(&self) -> ProgramResult {
+        if let Some(b_escrow) = self.mutation.token_b_escrow {
+            assert_keys_eq!(self.token_b_escrow.key(), b_escrow, "b escrow");
+        }
+
+        if let Some(c_escrow) = self.mutation.token_c_escrow {
+            assert_keys_eq!(self.token_c_escrow.key(), c_escrow, "c escrow");
+        }
+
+        Ok(())
+    }
+}
+
+#[access_control(ctx.accounts.validate())]
 pub fn handler(ctx: Context<DestroyMutation>) -> ProgramResult {
-    // --------------------------------------- verify other 2 escrows
-
-    let mutation = &ctx.accounts.mutation;
-
-    if let Some(b_escrow) = mutation.token_b_escrow {
-        assert_keys_eq!(ctx.accounts.token_b_escrow.key(), b_escrow, "b escrow");
-    }
-
-    if let Some(c_escrow) = mutation.token_c_escrow {
-        assert_keys_eq!(ctx.accounts.token_c_escrow.key(), c_escrow, "c escrow");
-    }
-
     // --------------------------------------- create any necessary destination ATAs
 
     let config = ctx.accounts.mutation.config;
 
     let token_a_ata = ctx.accounts.token_a_dest.to_account_info();
     if token_a_ata.data_is_empty() {
-        let token_a_mint = ctx.accounts.token_a_mint.to_account_info();
-        associated_token::create(ctx.accounts.create_ata_ctx(token_a_ata, token_a_mint))?;
+        associated_token::create(
+            ctx.accounts
+                .create_ata_ctx(token_a_ata, ctx.accounts.token_a_mint.to_account_info()),
+        )?;
     }
 
     let token_b_ata = ctx.accounts.token_b_dest.to_account_info();
     if config.maker_token_b.is_some() && token_b_ata.data_is_empty() {
-        let token_b_mint = ctx.accounts.token_b_mint.to_account_info();
-        associated_token::create(ctx.accounts.create_ata_ctx(token_b_ata, token_b_mint))?;
+        associated_token::create(
+            ctx.accounts
+                .create_ata_ctx(token_b_ata, ctx.accounts.token_b_mint.to_account_info()),
+        )?;
     }
 
     let token_c_ata = ctx.accounts.token_c_dest.to_account_info();
     if config.maker_token_c.is_some() && token_c_ata.data_is_empty() {
-        let token_c_mint = ctx.accounts.token_c_mint.to_account_info();
-        associated_token::create(ctx.accounts.create_ata_ctx(token_c_ata, token_c_mint))?;
+        associated_token::create(
+            ctx.accounts
+                .create_ata_ctx(token_c_ata, ctx.accounts.token_c_mint.to_account_info()),
+        )?;
     }
 
     // --------------------------------------- move tokens & close

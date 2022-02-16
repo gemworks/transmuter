@@ -837,6 +837,15 @@ export type TransmuterV0 = {
             "type": {
               "option": "publicKey"
             }
+          },
+          {
+            "name": "reserved",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
           }
         ]
       }
@@ -2103,6 +2112,15 @@ export const IDL: TransmuterV0 = {
             "name": "vaultC",
             "type": {
               "option": "publicKey"
+            }
+          },
+          {
+            "name": "reserved",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
             }
           }
         ]

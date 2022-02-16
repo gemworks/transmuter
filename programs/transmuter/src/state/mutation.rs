@@ -24,7 +24,7 @@ pub struct Mutation {
 
     pub name: [u8; 32],
 
-    pub _reserved: [u8; 64],
+    _reserved: [u8; 64],
 }
 
 impl Mutation {
@@ -81,7 +81,7 @@ pub struct MutationConfig {
 
     pub reversible: bool,
 
-    pub _reserved: [u8; 32],
+    _reserved: [u8; 32],
 }
 
 impl MutationConfig {

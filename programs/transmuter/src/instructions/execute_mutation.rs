@@ -59,8 +59,8 @@ pub struct ExecuteMutation<'info> {
     #[account(mut)]
     pub taker: Signer<'info>,
     // instead of doing PDA derivation (expensive) simply check if owner = prog id
-    // it's not pssible to set arbitrary data on accounts owned by the program
-    #[account(mut, owner = *program_id)]
+    // it's not possible to set arbitrary data on accounts owned by the program
+    #[account(mut, owner = *program_id, has_one = taker, has_one = mutation)]
     pub execution_receipt: Box<Account<'info, ExecutionReceipt>>,
     pub token_program: Program<'info, Token>,
     pub associated_token_program: Program<'info, AssociatedToken>,

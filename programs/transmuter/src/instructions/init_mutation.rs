@@ -24,7 +24,7 @@ pub struct InitMutation<'info> {
         bump = bump_a,
         token::mint = token_a_mint,
         token::authority = authority,
-        payer = owner)]
+        payer = payer)]
     pub token_a_escrow: Box<Account<'info, TokenAccount>>,
     // intentionally not checking if it's a TokenAccount - in some cases it'll be empty
     #[account(mut)]

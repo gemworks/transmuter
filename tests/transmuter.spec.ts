@@ -308,7 +308,7 @@ describe("transmuter (main spec)", () => {
     await mt.verifyTakerReceivedMakerTokens();
   });
 
-  it("destroys mutation (3x3)", async () => {
+  it.only("destroys mutation (3x3)", async () => {
     await mt.prepareMutation({
       takerTokenB: {
         gemBank: mt.transmuter.bankB,
