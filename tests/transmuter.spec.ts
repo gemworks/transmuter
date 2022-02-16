@@ -32,7 +32,7 @@ describe("transmuter (main spec)", () => {
 
     //verify fee paid
     const newBalance = await mt.conn.getBalance(mt.taker.publicKey);
-    expect(newBalance).to.be.lessThan(oldBalance - LAMPORTS_PER_SOL);
+    expect(newBalance).to.be.lessThan(oldBalance - 0.1 * LAMPORTS_PER_SOL);
 
     //verify vault is locked and owned by taker
     await mt.verifyVault(true, mt.taker);
@@ -241,7 +241,8 @@ describe("transmuter (main spec)", () => {
     await mt.verifyTakerReceivedMakerTokens();
   });
 
-  it("reverse mutation (3x3)", async () => {
+  //todo still sometimes fails due to compute :(
+  it.only("reverse mutation (3x3)", async () => {
     await mt.prepareMutation({
       takerTokenB: {
         gemBank: mt.transmuter.bankB,
@@ -286,7 +287,7 @@ describe("transmuter (main spec)", () => {
 
     //will have paid TWICE (execution + reversal)
     const newBalance = await mt.conn.getBalance(mt.taker.publicKey);
-    expect(newBalance).to.be.lessThan(oldBalance - 2 * LAMPORTS_PER_SOL);
+    expect(newBalance).to.be.lessThan(oldBalance - 0.2 * LAMPORTS_PER_SOL);
 
     //verify vault unlocked & belongs to owner (manually, not to withdraw tokens)
     const vaultAcc2 = await mt.gb.fetchVaultAcc(mt.takerVaultA);

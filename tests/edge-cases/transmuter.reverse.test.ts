@@ -64,7 +64,7 @@ describe("transmuter (reverse)", () => {
   it("issues a full refund on reversal", async () => {
     await mt.prepareMutation({
       reversible: true,
-      reversalPriceLamports: toBN(-LAMPORTS_PER_SOL),
+      reversalPriceLamports: toBN(-0.1 * LAMPORTS_PER_SOL),
     });
 
     const oldBalance = await mt.conn.getBalance(mt.taker.publicKey);
@@ -76,8 +76,8 @@ describe("transmuter (reverse)", () => {
     console.log("executed");
 
     const newBalance = await mt.conn.getBalance(mt.taker.publicKey);
-    expect(newBalance).to.be.gt(oldBalance - 2 * LAMPORTS_PER_SOL);
-    expect(newBalance).to.be.lt(oldBalance - LAMPORTS_PER_SOL);
+    expect(newBalance).to.be.gt(oldBalance - 0.2 * LAMPORTS_PER_SOL);
+    expect(newBalance).to.be.lt(oldBalance - 0.1 * LAMPORTS_PER_SOL);
 
     //call reverse
     const { tx: reverseTx } = await mt.mutation.reverse(mt.taker.publicKey);
@@ -85,7 +85,7 @@ describe("transmuter (reverse)", () => {
     await expectTX(reverseTx).to.be.fulfilled;
 
     const newBalance2 = await mt.conn.getBalance(mt.taker.publicKey);
-    expect(newBalance2).to.be.gt(oldBalance - LAMPORTS_PER_SOL);
+    expect(newBalance2).to.be.gt(oldBalance - 0.1 * LAMPORTS_PER_SOL);
     expect(newBalance2).to.be.lt(oldBalance);
   });
 });

@@ -12,9 +12,13 @@ Build the program:
 yarn build
 ```
 
-Run tests (auto builds):
+Run tests:
 ```
+# localnet
 yarn test
+
+# devnet
+anchor test --skip-deploy --provider.cluster devnet --provider.wallet <WALLET>
 ```
 
 Publish new SDK to NPM:

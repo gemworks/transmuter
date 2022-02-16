@@ -91,7 +91,7 @@ export class MutationTester {
     reversible = false,
     uses = toBN(1),
     mutationInitError = undefined,
-    reversalPriceLamports = toBN(LAMPORTS_PER_SOL),
+    reversalPriceLamports = toBN(0.1 * LAMPORTS_PER_SOL),
     name = "mutation123",
   }: {
     vaultAction?: any;
@@ -151,7 +151,7 @@ export class MutationTester {
           }
         : null,
       price: {
-        priceLamports: toBN(LAMPORTS_PER_SOL),
+        priceLamports: toBN(0.1 * LAMPORTS_PER_SOL),
         reversalPriceLamports,
       },
       mutationDurationSec,
@@ -199,12 +199,13 @@ export class MutationTester {
   doAirdrop = async (receiver: PublicKey, amount: number) => {
     await this.conn
       .requestAirdrop(receiver, amount)
-      .then((sig) => this.conn.confirmTransaction(sig, "confirmed"));
+      .then((sig) => this.conn.confirmTransaction(sig, "confirmed"))
+      .catch((e) => console.log("failed to get airdrop", e));
   };
 
   prepareTakerVaults = async (bank: PublicKey, taker = this.taker) => {
     // fund taker
-    await this.doAirdrop(taker.publicKey, 3 * LAMPORTS_PER_SOL);
+    await this.doAirdrop(taker.publicKey, LAMPORTS_PER_SOL);
 
     // create vaults
     const { tx, vault } = await this.mutation.initTakerVault(
