@@ -26,3 +26,12 @@ Pull latest `gem-farm-ts` from NPM:
 ```
 yarn update
 ```
+
+Deploy:
+```
+anchor deploy --provider.cluster devnet --provider.wallet <WALLET>
+anchor deploy --provider.cluster testnet --provider.wallet <WALLET>
+anchor deploy --provider.cluster mainnet --provider.wallet <WALLET>
+
+#note - w/o the --provider.wallet it will deploy using the KP in the /tests folder, which is obviously leaked
+```
