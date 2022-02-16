@@ -26,6 +26,9 @@ pub struct InitTakerVault<'info> {
     // misc
     #[account(mut)]
     pub taker: Signer<'info>,
+    // has to be init_if_needed since we call this 3 times for 3 vaults
+    // same mutation + same taker -> deterministically same creator
+    // same bank + same creator -> deterministically same vault
     #[account(init_if_needed, seeds = [
             b"receipt".as_ref(),
             mutation.key().as_ref(),
@@ -59,6 +62,8 @@ pub fn handler(ctx: Context<InitTakerVault>, bump_creator: u8, bump_vault: u8) -
     let bank = ctx.accounts.bank.key();
     let vault = ctx.accounts.vault.key();
 
+    // can only move the ER to these states in execute_mutation, and execute_mutation
+    // checks that all requirements are fulfilled, which requires all vaults to be already present
     if receipt.is_pending() || receipt.is_complete() {
         return Err(ErrorCode::MutationAlreadyComplete.into());
     }
@@ -74,6 +79,7 @@ pub fn handler(ctx: Context<InitTakerVault>, bump_creator: u8, bump_vault: u8) -
     }
 
     // useful for finding relevant ERs client-side
+    // also needed for has_one checks in execute_mutation
     receipt.transmuter = ctx.accounts.transmuter.key();
     receipt.mutation = ctx.accounts.mutation.key();
     receipt.taker = ctx.accounts.taker.key();

@@ -1,5 +1,5 @@
 import { PublicKey } from "@solana/web3.js";
-import { GEM_BANK_PROG_ID } from "@gemworks/gem-farm-ts";
+import { findVaultPDA } from "@gemworks/gem-farm-ts";
 import { TRANSMUTER_ADDRESSES } from "./constants";
 
 export const findTransmuterAuthorityPDA = async (
@@ -37,10 +37,7 @@ export const findTakerVaultPDA = async (
   taker: PublicKey
 ) => {
   const [creator, creatorBump] = await findVaultCreatorPDA(mutation, taker);
-  const [vault, vaultBump] = await PublicKey.findProgramAddress(
-    [Buffer.from("vault"), bank.toBytes(), creator.toBytes()],
-    GEM_BANK_PROG_ID
-  );
+  const [vault, vaultBump] = await findVaultPDA(bank, creator);
   return { creator, creatorBump, vault, vaultBump };
 };
 
