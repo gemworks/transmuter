@@ -241,8 +241,8 @@ describe("transmuter (main spec)", () => {
     await mt.verifyTakerReceivedMakerTokens();
   });
 
-  //todo still sometimes fails due to compute :(
-  it.only("reverse mutation (3x3)", async () => {
+  // fixme relies on extra compute ix! Currently not live on devnet / testnet (ignored)
+  it("reverse mutation (3x3)", async () => {
     await mt.prepareMutation({
       takerTokenB: {
         gemBank: mt.transmuter.bankB,
@@ -264,7 +264,7 @@ describe("transmuter (main spec)", () => {
     const oldBalance = await mt.conn.getBalance(mt.taker.publicKey);
 
     // ----------------- 1st execution
-    const { tx } = await mt.mutation.execute(mt.taker.publicKey);
+    const { tx } = await mt.mutation.execute(mt.taker.publicKey, 256000);
     tx.addSigners(mt.taker);
     await expectTX(tx, "executes mutation").to.be.fulfilled;
     console.log("executed");

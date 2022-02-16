@@ -12,9 +12,10 @@ import {
   PublicKey,
   SystemProgram,
   SYSVAR_RENT_PUBKEY,
+  TransactionInstruction,
 } from "@solana/web3.js";
 import { BN } from "@project-serum/anchor";
-import { GEM_BANK_PROG_ID } from "@gemworks/gem-farm-ts";
+import { GEM_BANK_PROG_ID, toBN } from "@gemworks/gem-farm-ts";
 import {
   createMint,
   getATAAddress,
@@ -304,6 +305,18 @@ export class TransmuterSDK {
     await mintTx.confirm();
 
     return [mint, ata];
+  }
+
+  createExtraComputeIx(newComputeBudget: number): TransactionInstruction {
+    const data = Buffer.from(
+      Uint8Array.of(0, ...toBN(newComputeBudget).toArray("le", 4))
+    );
+
+    return new TransactionInstruction({
+      keys: [],
+      programId: new PublicKey("ComputeBudget111111111111111111111111111111"),
+      data,
+    });
   }
 
   // --------------------------------------- load sdk

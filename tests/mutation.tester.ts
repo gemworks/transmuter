@@ -205,7 +205,10 @@ export class MutationTester {
 
   prepareTakerVaults = async (bank: PublicKey, taker = this.taker) => {
     // fund taker
-    await this.doAirdrop(taker.publicKey, LAMPORTS_PER_SOL);
+    const balance = await this.conn.getBalance(taker.publicKey);
+    if (balance < 0.1 * LAMPORTS_PER_SOL) {
+      await this.doAirdrop(taker.publicKey, LAMPORTS_PER_SOL);
+    }
 
     // create vaults
     const { tx, vault } = await this.mutation.initTakerVault(
@@ -253,7 +256,7 @@ export class MutationTester {
     return tester;
   };
 
-  // --------------------------------------- verifiiers
+  // --------------------------------------- verifiers
 
   verifyTakerReceivedMakerTokens = async (amount?: BN) => {
     const makerATA = await getATAAddress({

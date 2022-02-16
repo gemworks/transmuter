@@ -51,15 +51,19 @@ export class MutationWrapper {
 
   // --------------------------------------- ixs
 
-  async execute(taker: PublicKey) {
-    return this._executeOrReverse(taker, false);
+  async execute(taker: PublicKey, newMaxCompute?: number) {
+    return this._executeOrReverse(taker, false, newMaxCompute);
   }
 
   async reverse(taker: PublicKey) {
     return this._executeOrReverse(taker, true);
   }
 
-  async _executeOrReverse(taker: PublicKey, reverse = false) {
+  async _executeOrReverse(
+    taker: PublicKey,
+    reverse = false,
+    newMaxCompute?: number
+  ) {
     await this.reloadData();
     let config = this._data.config as any;
 
@@ -169,10 +173,17 @@ export class MutationWrapper {
       });
     }
 
+    const instructions = [ix];
+
+    if (newMaxCompute) {
+      const extraComputeIx = this.sdk.createExtraComputeIx(newMaxCompute);
+      instructions.unshift(extraComputeIx);
+    }
+
     return {
       authority,
       executionReceipt,
-      tx: new TransactionEnvelope(this.provider, [ix]),
+      tx: new TransactionEnvelope(this.provider, instructions),
     };
   }
 
