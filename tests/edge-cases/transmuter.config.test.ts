@@ -2,6 +2,7 @@ import "chai-bn";
 import { MutationTester } from "../mutation.tester";
 import { RequiredUnits, VaultAction } from "../../src";
 import { toBN } from "@gemworks/gem-farm-ts";
+import { UtransmuterErrors } from "../../src/idls/transmuter";
 
 describe("transmuter (config)", () => {
   let mt: MutationTester;
@@ -14,7 +15,7 @@ describe("transmuter (config)", () => {
     await mt.prepareMutation({
       vaultAction: VaultAction.DoNothing,
       reversible: true,
-      mutationInitError: "0x177a",
+      mutationInitError: UtransmuterErrors.VaultsNotSetToLock.code.toString(16),
     });
   });
 
@@ -34,7 +35,7 @@ describe("transmuter (config)", () => {
         requiredUnits: RequiredUnits.RarityPoints,
         vaultAction: VaultAction.DoNothing, //<-- should cause to fail
       },
-      mutationInitError: "0x177a",
+      mutationInitError: UtransmuterErrors.VaultsNotSetToLock.code.toString(16),
     });
   });
 });

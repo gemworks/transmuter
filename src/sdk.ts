@@ -313,7 +313,7 @@ export class TransmuterSDK {
     addresses = TRANSMUTER_ADDRESSES,
   }: {
     provider: Provider;
-    addresses?: any; //todo
+    addresses?: { [K in keyof Programs]: PublicKey };
   }): TransmuterSDK {
     const programs = newProgramMap<Programs>(
       provider,

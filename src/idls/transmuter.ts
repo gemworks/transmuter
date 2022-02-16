@@ -1,4 +1,5 @@
-export type TransmuterV0 = {
+export type UtransmuterIDL =
+{
   "version": "0.1.0",
   "name": "transmuter_v0",
   "instructions": [
@@ -794,7 +795,7 @@ export type TransmuterV0 = {
   ],
   "accounts": [
     {
-      "name": "executionReceipt",
+      "name": "ExecutionReceipt",
       "type": {
         "kind": "struct",
         "fields": [
@@ -851,7 +852,7 @@ export type TransmuterV0 = {
       }
     },
     {
-      "name": "mutation",
+      "name": "Mutation",
       "type": {
         "kind": "struct",
         "fields": [
@@ -917,7 +918,7 @@ export type TransmuterV0 = {
       }
     },
     {
-      "name": "transmuter",
+      "name": "Transmuter",
       "type": {
         "kind": "struct",
         "fields": [
@@ -1272,9 +1273,10 @@ export type TransmuterV0 = {
       "msg": "Trying to init a vault for an unknown bank"
     }
   ]
-};
-
-export const IDL: TransmuterV0 = {
+}
+;
+export const UtransmuterJSON: UtransmuterIDL =
+{
   "version": "0.1.0",
   "name": "transmuter_v0",
   "instructions": [
@@ -2070,7 +2072,7 @@ export const IDL: TransmuterV0 = {
   ],
   "accounts": [
     {
-      "name": "executionReceipt",
+      "name": "ExecutionReceipt",
       "type": {
         "kind": "struct",
         "fields": [
@@ -2127,7 +2129,7 @@ export const IDL: TransmuterV0 = {
       }
     },
     {
-      "name": "mutation",
+      "name": "Mutation",
       "type": {
         "kind": "struct",
         "fields": [
@@ -2193,7 +2195,7 @@ export const IDL: TransmuterV0 = {
       }
     },
     {
-      "name": "transmuter",
+      "name": "Transmuter",
       "type": {
         "kind": "struct",
         "fields": [
@@ -2548,4 +2550,7 @@ export const IDL: TransmuterV0 = {
       "msg": "Trying to init a vault for an unknown bank"
     }
   ]
-};
+}
+;
+import { generateErrorMap } from '@saberhq/anchor-contrib';
+export const UtransmuterErrors = generateErrorMap(UtransmuterJSON);

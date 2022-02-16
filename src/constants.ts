@@ -1,26 +1,42 @@
 import { PublicKey } from "@solana/web3.js";
-import * as anchor from "@project-serum/anchor";
-import { buildCoderMap } from "@saberhq/anchor-contrib";
-import { IDL, TransmuterV0 } from "./types/transmuter_v0";
+import { AnchorTypes, buildCoderMap } from "@saberhq/anchor-contrib";
+import { UtransmuterIDL, UtransmuterJSON } from "./idls/transmuter";
 
-//todo doesn't work - dig deeper into how Goki are doing it
-export type MutationData = Programs["Transmuter"]["account"]["mutation"];
-export type TransmuterData = Programs["Transmuter"]["account"]["transmuter"];
-export type TransmuterProgram = Programs["Transmuter"];
+// --------------------------------------- types & interfaces
+
+export type TransmuterTypes = AnchorTypes<
+  UtransmuterIDL,
+  {
+    transmuter: TransmuterData;
+    mutation: MutationData;
+    executionReceipt: ExecutionReceiptData;
+  }
+>;
+
+type Accounts = TransmuterTypes["Accounts"];
+export type TransmuterData = Accounts["Transmuter"];
+export type MutationData = Accounts["Mutation"];
+export type ExecutionReceiptData = Accounts["ExecutionReceipt"];
+
+export type TransmuterError = TransmuterTypes["Error"];
+export type TransmuterEvents = TransmuterTypes["Events"];
+export type TransmuterProgram = TransmuterTypes["Program"];
 
 export interface Programs {
-  Transmuter: anchor.Program<TransmuterV0>;
+  Transmuter: TransmuterProgram;
 }
 
+// --------------------------------------- constants
+
 export const TRANSMUTER_IDLS = {
-  Transmuter: IDL,
+  Transmuter: UtransmuterJSON,
 };
 
 export const TRANSMUTER_ADDRESSES = {
   Transmuter: new PublicKey("4c5WjWPmecCLHMSo8bQESo26VCotSKtjiUpCPnfEPL2p"),
 };
 
-export const TRANSMUTER_CODES = buildCoderMap(
+export const TRANSMUTER_CODES = buildCoderMap<{ Transmuter: TransmuterTypes }>(
   TRANSMUTER_IDLS,
   TRANSMUTER_ADDRESSES
 );

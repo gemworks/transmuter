@@ -4,6 +4,7 @@ import { toBN } from "@gemworks/gem-farm-ts";
 import { expectTX } from "@saberhq/chai-solana";
 import { expect } from "chai";
 import { LAMPORTS_PER_SOL } from "@solana/web3.js";
+import { UtransmuterErrors } from "../../src/idls/transmuter";
 
 describe("transmuter (reverse)", () => {
   let mt: MutationTester;
@@ -24,7 +25,9 @@ describe("transmuter (reverse)", () => {
     //call reverse
     const { tx: reverseTx } = await mt.mutation.reverse(mt.taker.publicKey);
     reverseTx.addSigners(mt.taker);
-    expect(reverseTx.confirm()).to.be.rejectedWith("0x177d");
+    expect(reverseTx.confirm()).to.be.rejectedWith(
+      UtransmuterErrors.MutationNotReversible.code.toString(16)
+    );
   });
 
   it("tries to reverse a mutation w/o a receipt", async () => {
@@ -33,7 +36,9 @@ describe("transmuter (reverse)", () => {
     //call reverse
     const { tx: reverseTx } = await mt.mutation.reverse(mt.taker.publicKey);
     reverseTx.addSigners(mt.taker);
-    expect(reverseTx.confirm()).to.be.rejectedWith("0x177f");
+    expect(reverseTx.confirm()).to.be.rejectedWith(
+      UtransmuterErrors.NoneOfTheBanksMatch.code.toString(16)
+    );
   });
 
   it("tries to reverse a pending mutation", async () => {
@@ -51,7 +56,9 @@ describe("transmuter (reverse)", () => {
     //call reverse
     const { tx: reverseTx } = await mt.mutation.reverse(mt.taker.publicKey);
     reverseTx.addSigners(mt.taker);
-    expect(reverseTx.confirm()).to.be.rejectedWith("0x177b");
+    expect(reverseTx.confirm()).to.be.rejectedWith(
+      UtransmuterErrors.MutationNotComplete.code.toString(16)
+    );
   });
 
   it("issues a full refund on reversal", async () => {

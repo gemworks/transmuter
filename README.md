@@ -7,7 +7,22 @@ Install dependencies:
 yarn
 ```
 
-Run tests:
+Build the program:
+```
+yarn build
+```
+
+Run tests (auto builds):
 ```
 yarn test
+```
+
+Publish new SDK to NPM:
+```
+yarn pub
+```
+
+Pull latest `gem-farm-ts` from NPM:
+```
+yarn update
 ```

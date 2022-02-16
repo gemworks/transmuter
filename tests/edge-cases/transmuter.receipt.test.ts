@@ -4,6 +4,7 @@ import { toBN } from "@gemworks/gem-farm-ts";
 import { expectTX } from "@saberhq/chai-solana";
 import { expect } from "chai";
 import { Keypair } from "@solana/web3.js";
+import { UtransmuterErrors } from "../../src/idls/transmuter";
 
 describe("transmuter (receipt)", () => {
   let mt: MutationTester;
@@ -21,7 +22,9 @@ describe("transmuter (receipt)", () => {
     await expectTX(tx, "executes mutation").to.be.fulfilled;
     console.log("mutation executed");
 
-    expect(tx.confirm()).to.be.rejectedWith("0x177c");
+    expect(tx.confirm()).to.be.rejectedWith(
+      UtransmuterErrors.MutationAlreadyComplete.code.toString(16)
+    );
   });
 
   it("doesnt create a receipt for non-reversible, 0-timeout txs", async () => {

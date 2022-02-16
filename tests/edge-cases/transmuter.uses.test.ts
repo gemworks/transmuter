@@ -5,6 +5,7 @@ import { expectTX } from "@saberhq/chai-solana";
 import { expect } from "chai";
 import { Keypair } from "@solana/web3.js";
 import { MutationState } from "../../src";
+import { UtransmuterErrors } from "../../src/idls/transmuter";
 
 describe("transmuter (uses)", () => {
   let mt: MutationTester;
@@ -51,7 +52,9 @@ describe("transmuter (uses)", () => {
     //call execute (fails)
     const { tx: tx3 } = await mt.mutation.execute(taker3.publicKey);
     tx3.addSigners(taker3);
-    expect(tx3.confirm()).to.be.rejectedWith("0x1775"); //NoMoreUsesLeft
+    expect(tx3.confirm()).to.be.rejectedWith(
+      UtransmuterErrors.NoMoreUsesLeft.code.toString(16)
+    );
 
     // ----------------- reverse one taker
     const { tx: reverseTx1 } = await mt.mutation.reverse(mt.taker.publicKey);
@@ -77,6 +80,8 @@ describe("transmuter (uses)", () => {
     expect(mt.mutation.data.state).to.deep.eq(MutationState.Available);
 
     // ----------------- try to reverse 1 too many
-    expect(reverseTx1.confirm()).to.be.rejectedWith("0x177b");
+    expect(reverseTx1.confirm()).to.be.rejectedWith(
+      UtransmuterErrors.MutationNotComplete.code.toString(16)
+    );
   });
 });

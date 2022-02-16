@@ -6,6 +6,7 @@ import { Keypair, LAMPORTS_PER_SOL } from "@solana/web3.js";
 import { pause, stringToBytes, toBN } from "@gemworks/gem-farm-ts";
 import { expect } from "chai";
 import { MutationTester } from "./mutation.tester";
+import { UtransmuterErrors } from "../src/idls/transmuter";
 
 describe("transmuter (main spec)", () => {
   let mt: MutationTester;
@@ -120,7 +121,9 @@ describe("transmuter (main spec)", () => {
     await mt.verifyTakerReceivedMakerTokens(toBN(0));
 
     // ----------------- 2nd (failed) execution, since not enough time passed
-    expect(tx.confirm()).to.be.rejectedWith("0x177b"); //MutationNotComplete
+    expect(tx.confirm()).to.be.rejectedWith(
+      UtransmuterErrors.MutationNotComplete.code.toString(16)
+    );
     console.log("tried to execute twice (failure expected)");
 
     console.log("pausing for mutation duration");

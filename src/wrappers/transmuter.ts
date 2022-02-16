@@ -15,7 +15,7 @@ import {
 import { findTransmuterAuthorityPDA } from "../pda";
 
 export class TransmuterWrapper {
-  private _data?: any;
+  private _data?: TransmuterData;
 
   constructor(
     readonly sdk: TransmuterSDK,
@@ -31,7 +31,7 @@ export class TransmuterWrapper {
     return this.sdk.provider;
   }
 
-  get data(): MutationData | undefined {
+  get data(): TransmuterData | undefined {
     return this._data;
   }
 
@@ -39,7 +39,7 @@ export class TransmuterWrapper {
    * reloadData into _data
    */
   async reloadData(): Promise<MutationData> {
-    this._data = (await this.program.account.transmuter.fetch(this.key)) as any;
+    this._data = await this.program.account.transmuter.fetch(this.key);
     return this._data;
   }
 
@@ -182,9 +182,7 @@ export class TransmuterWrapper {
     bankB: PublicKey,
     bankC: PublicKey
   ): Promise<TransmuterWrapper> {
-    const data = (await sdk.programs.Transmuter.account.transmuter.fetch(
-      key
-    )) as any;
+    const data = await sdk.programs.Transmuter.account.transmuter.fetch(key);
     return new TransmuterWrapper(sdk, key, bankA, bankB, bankC, data);
   }
 }

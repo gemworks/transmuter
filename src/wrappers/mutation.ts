@@ -23,7 +23,7 @@ import {
 } from "../pda";
 
 export class MutationWrapper {
-  private _data?: any; //todo temp
+  private _data?: MutationData;
 
   constructor(
     readonly sdk: TransmuterSDK,
@@ -37,7 +37,7 @@ export class MutationWrapper {
     return this.sdk.provider;
   }
 
-  get data(): any {
+  get data(): MutationData | undefined {
     return this._data;
   }
 
@@ -45,7 +45,7 @@ export class MutationWrapper {
    * reloadData into _data
    */
   async reloadData(): Promise<MutationData> {
-    this._data = (await this.program.account.mutation.fetch(this.key)) as any;
+    this._data = await this.program.account.mutation.fetch(this.key);
     return this._data;
   }
 
@@ -61,7 +61,7 @@ export class MutationWrapper {
 
   async _executeOrReverse(taker: PublicKey, reverse = false) {
     await this.reloadData();
-    let config = this._data.config;
+    let config = this._data.config as any;
 
     // ----------------- prep banks & vaults
     // if a bank doesn't exist, we create a fake bank. Cheaper (compute) than optional accs
@@ -178,7 +178,7 @@ export class MutationWrapper {
 
   async destroy(transmuter: PublicKey) {
     await this.reloadData();
-    let config = this._data.config;
+    let config = this._data.config as any;
 
     // ----------------- prep escrows
 
@@ -272,9 +272,7 @@ export class MutationWrapper {
     key: PublicKey,
     transmuter: PublicKey
   ): Promise<MutationWrapper> {
-    const data = (await sdk.programs.Transmuter.account.mutation.fetch(
-      key
-    )) as any;
+    const data = await sdk.programs.Transmuter.account.mutation.fetch(key);
     return new MutationWrapper(sdk, key, transmuter, data);
   }
 }
