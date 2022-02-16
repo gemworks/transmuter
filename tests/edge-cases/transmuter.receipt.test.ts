@@ -52,11 +52,11 @@ describe("transmuter (receipt)", () => {
     const { tx: tx2 } = await mt.mutation.execute(taker2.publicKey);
     tx2.addSigners(taker2);
     await expectTX(tx2, "executes mutation").to.be.fulfilled;
-    console.log("mutation executed (taker 1)");
+    console.log("mutation executed (taker 2)");
 
     //fetch w/o options
     const receipts = await mt.sdk.findAllReceipts();
-    expect(receipts.length).to.be.eq(2);
+    expect(receipts.length).to.be.gte(2); //due to previous tests
 
     //fetch by transmuter
     const receipts2 = await mt.sdk.findAllReceipts(mt.transmuter.key);

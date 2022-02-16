@@ -46,13 +46,13 @@ pub struct ExecuteMutation<'info> {
     #[account(mut)]
     pub token_b_escrow: AccountInfo<'info>,
     #[account(mut)]
-    pub token_b_taker_ata: AccountInfo<'info>, //may/not be TA, can't deserialize
+    pub token_b_taker_ata: AccountInfo<'info>,
     pub token_b_mint: AccountInfo<'info>,
     // c
     #[account(mut)]
     pub token_c_escrow: AccountInfo<'info>,
     #[account(mut)]
-    pub token_c_taker_ata: AccountInfo<'info>, //may/not be TA, can't deserialize
+    pub token_c_taker_ata: AccountInfo<'info>,
     pub token_c_mint: AccountInfo<'info>,
 
     // misc

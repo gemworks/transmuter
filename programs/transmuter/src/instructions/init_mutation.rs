@@ -26,22 +26,20 @@ pub struct InitMutation<'info> {
         token::authority = authority,
         payer = payer)]
     pub token_a_escrow: Box<Account<'info, TokenAccount>>,
-    // intentionally not checking if it's a TokenAccount - in some cases it'll be empty
     #[account(mut)]
-    pub token_a_source: AccountInfo<'info>,
+    pub token_a_source: Box<Account<'info, TokenAccount>>,
     pub token_a_mint: Box<Account<'info, Mint>>,
     // b
-    // todo can make optional, but doesn't really change anything
     #[account(mut)] //manually init'ing
-    pub token_b_escrow: AccountInfo<'info>,
+    pub token_b_escrow: AccountInfo<'info>, //skip deser coz might be empty
     #[account(mut)]
-    pub token_b_source: AccountInfo<'info>,
+    pub token_b_source: AccountInfo<'info>, //skip deser coz might be empty
     pub token_b_mint: Box<Account<'info, Mint>>,
     // c
     #[account(mut)] //manually init'ing
-    pub token_c_escrow: AccountInfo<'info>,
+    pub token_c_escrow: AccountInfo<'info>, //skip deser coz might be empty
     #[account(mut)]
-    pub token_c_source: AccountInfo<'info>,
+    pub token_c_source: AccountInfo<'info>, //skip deser coz might be empty
     pub token_c_mint: Box<Account<'info, Mint>>,
 
     // misc
