@@ -26,7 +26,7 @@ describe("transmuter (uses)", () => {
     await mt.mutation.reloadData();
     expect(mt.mutation.data.totalUses.toNumber()).to.eq(2);
     expect(mt.mutation.data.remainingUses.toNumber()).to.eq(1);
-    expect(mt.mutation.data.state == MutationState.Available);
+    expect(mt.mutation.data.state).to.deep.eq(MutationState.Available);
 
     // ----------------- 2nd taker
     const taker2 = Keypair.generate();
@@ -42,7 +42,7 @@ describe("transmuter (uses)", () => {
     await mt.mutation.reloadData();
     expect(mt.mutation.data.totalUses.toNumber()).to.eq(2);
     expect(mt.mutation.data.remainingUses.toNumber()).to.eq(0);
-    expect(mt.mutation.data.state == MutationState.Exhausted);
+    expect(mt.mutation.data.state).to.deep.eq(MutationState.Exhausted);
 
     // ----------------- 3rd taker
     const taker3 = Keypair.generate();
@@ -74,7 +74,7 @@ describe("transmuter (uses)", () => {
     await mt.mutation.reloadData();
     expect(mt.mutation.data.totalUses.toNumber()).to.eq(2);
     expect(mt.mutation.data.remainingUses.toNumber()).to.eq(2);
-    expect(mt.mutation.data.state == MutationState.Available);
+    expect(mt.mutation.data.state).to.deep.eq(MutationState.Available);
 
     // ----------------- try to reverse 1 too many
     expect(reverseTx1.confirm()).to.be.rejectedWith("0x177b");

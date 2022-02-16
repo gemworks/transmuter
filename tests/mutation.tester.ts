@@ -275,10 +275,8 @@ export class MutationTester {
     const vaultAcc = await this.gb.fetchVaultAcc(this.takerVaultA);
 
     // verify owner & lock
-    expect(vaultAcc.owner.toBase58()).to.be.eq(
-      isKp(owner)
-        ? (<Keypair>owner).publicKey.toBase58()
-        : (<PublicKey>owner).toBase58()
+    expect(vaultAcc.owner).to.eqAddress(
+      isKp(owner) ? (<Keypair>owner).publicKey : <PublicKey>owner
     );
     expect(vaultAcc.locked).to.be.eq(locked);
 

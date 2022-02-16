@@ -29,9 +29,7 @@ describe("transmuter (bank instructions)", () => {
     console.log("whitelisted");
 
     const proofAcc = await mt.gb.fetchWhitelistProofAcc(whitelistProof);
-    expect(proofAcc.whitelistedAddress.toBase58()).to.be.eq(
-      addressToWhitelist.toBase58()
-    );
+    expect(proofAcc.whitelistedAddress).to.eqAddress(addressToWhitelist);
 
     //remove
     const { tx: tx2 } = await mt.transmuter.removeFromBankWhitelist(

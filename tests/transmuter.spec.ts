@@ -110,7 +110,7 @@ describe("transmuter (main spec)", () => {
       mt.mutation.key,
       mt.taker.publicKey
     );
-    expect(receipt.state == ExecutionState.Pending);
+    expect(receipt.state).to.deep.eq(ExecutionState.Pending);
     expect(receipt.mutationCompleteTs.toNumber()).to.be.gt(+new Date() / 1000);
     expect(receipt.mutationCompleteTs.toNumber()).to.be.lt(
       +new Date() / 1000 + 10
@@ -138,7 +138,7 @@ describe("transmuter (main spec)", () => {
       mt.mutation.key,
       mt.taker.publicKey
     );
-    expect(receipt2.state == ExecutionState.Complete);
+    expect(receipt2.state).to.deep.eq(ExecutionState.Complete);
 
     //this time tokens present
     await mt.verifyTakerReceivedMakerTokens();
@@ -273,7 +273,7 @@ describe("transmuter (main spec)", () => {
       mt.mutation.key,
       mt.taker.publicKey
     );
-    expect(receipt.state == ExecutionState.Complete);
+    expect(receipt.state).to.deep.eq(ExecutionState.Complete);
 
     // ----------------- reversal
     const { tx: reverseTx } = await mt.mutation.reverse(mt.taker.publicKey);
@@ -287,7 +287,7 @@ describe("transmuter (main spec)", () => {
 
     //verify vault unlocked & belongs to owner (manually, not to withdraw tokens)
     const vaultAcc2 = await mt.gb.fetchVaultAcc(mt.takerVaultA);
-    expect(vaultAcc2.owner.toBase58()).to.be.eq(mt.taker.publicKey.toBase58());
+    expect(vaultAcc2.owner).to.eqAddress(mt.taker.publicKey);
     expect(vaultAcc2.locked).to.be.eq(false);
 
     //verify receipt exists and is not started
@@ -295,7 +295,7 @@ describe("transmuter (main spec)", () => {
       mt.mutation.key,
       mt.taker.publicKey
     );
-    expect(receipt2.state == ExecutionState.NotStarted);
+    expect(receipt2.state).to.deep.eq(ExecutionState.NotStarted);
 
     //verify NO tokens are indeed in taker's wallet
     await mt.verifyTakerReceivedMakerTokens(toBN(0));
@@ -395,8 +395,6 @@ describe("transmuter (main spec)", () => {
     await expectTX(tx, "updates owner").to.be.fulfilled;
 
     await mt.transmuter.reloadData();
-    expect((<any>mt.transmuter.data).owner.toBase58()).to.be.eq(
-      newOwner.toBase58()
-    );
+    expect((<any>mt.transmuter.data).owner).to.eqAddress(newOwner);
   });
 });
