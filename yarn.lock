@@ -30,14 +30,14 @@
     "@ethersproject/logger" "^5.5.0"
     hash.js "1.1.7"
 
-"@gemworks/gem-farm-ts@^0.1.8":
-  version "0.1.8"
-  resolved "https://registry.yarnpkg.com/@gemworks/gem-farm-ts/-/gem-farm-ts-0.1.8.tgz#e61630d6164327b10c738ed7bf97bbb43bedde0e"
-  integrity sha512-rOV5yIGl78+smEkPK+Mc57bli49BCRUOoxGGYXn7n1yQkZVceNjFIRey4V207MGl4Kk8sVJh1r5vCrM7apomew==
+"@gemworks/gem-farm-ts@^0.1.10":
+  version "0.1.10"
+  resolved "https://registry.yarnpkg.com/@gemworks/gem-farm-ts/-/gem-farm-ts-0.1.10.tgz#a06c45a66d492c6992a9dc9704eab342371e1406"
+  integrity sha512-4WMaVimO619n5YziOW7aXtwNqNflqYMU2m/Ip2eL0rNZAZOMeNgOEHz27In6Ysjl7PGPs8tXlmF56v1DrghlIQ==
   dependencies:
     "@metaplex-foundation/mpl-token-metadata" "^0.0.2"
     "@metaplex/js" "^4.9.0"
-    "@project-serum/anchor" "^0.19.0"
+    "@project-serum/anchor" "0.19.1-beta.1"
     "@solana/spl-token" "^0.1.8"
     "@solana/wallet-adapter-base" "^0.8.1"
     "@solana/web3.js" "^1.31.0"
@@ -140,10 +140,10 @@
     "@nodelib/fs.scandir" "2.1.5"
     fastq "^1.6.0"
 
-"@project-serum/anchor@^0.19.0":
-  version "0.19.0"
-  resolved "https://registry.yarnpkg.com/@project-serum/anchor/-/anchor-0.19.0.tgz#79f1fbe7c3134860ccbfe458a0e09daf79644885"
-  integrity sha512-cs0LBmJOrL9eJ8MRNqitnzbpCT5QEzVdJmiIjfNV5YaGn1K9vISR7DtISj3Bdl3KBdLqii4CTw1mpHdi8iXUCg==
+"@project-serum/anchor@0.19.1-beta.1":
+  version "0.19.1-beta.1"
+  resolved "https://registry.yarnpkg.com/@project-serum/anchor/-/anchor-0.19.1-beta.1.tgz#516b78432acabd8563831c3b9df4628ca34dba28"
+  integrity sha512-TzkgS5a4WUDJotmur9/pQhqeqa5W14h++ppF+oGZVoR0EkcLbW7SKpx/z80XhsHCIhWz9/1hBAkbKElXdKUUiw==
   dependencies:
     "@project-serum/borsh" "^0.2.2"
     "@solana/web3.js" "^1.17.0"
