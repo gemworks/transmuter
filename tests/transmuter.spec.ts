@@ -3,7 +3,7 @@ import { expectTX } from "@saberhq/chai-solana";
 
 import "chai-bn";
 import { Keypair, LAMPORTS_PER_SOL } from "@solana/web3.js";
-import { pause, stringToBytes, toBN } from "@gemworks/gem-farm-ts";
+import { pause, stringToBytes, toBN } from "@gemworks/gem-farm-ts/";
 import { expect } from "chai";
 import { MutationTester } from "./mutation.tester";
 import { UtransmuterErrors } from "../src/idls/transmuter";
