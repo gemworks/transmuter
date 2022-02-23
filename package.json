@@ -1,13 +1,14 @@
 {
   "name": "@gemworks/transmuter-ts",
-  "description": "sdk for Magic Transmuter ⚗️ (by Gemworks 💎)",
-  "version": "0.1.8",
+  "description": "sdk for Magic Transmuter ⚗️ (by GemWorks 💎)",
+  "version": "0.22.1",
   "repository": "https://github.com/gemworks/transmuter",
   "scripts": {
     "build": "anchor build && ./scripts/parse-idls.sh && ./scripts/generate-idl-types.sh",
-    "test": "yarn build && anchor test",
+    "test": "yarn build && anchor test --skip-build",
+    "pub": "rm -rf ./dist && tsc && npm version patch --force && npm publish --access public",
     "update": "yarn upgrade @gemworks/gem-farm-ts --latest --check-files",
-    "pub": "rm -rf ./dist && tsc && npm version patch --force && npm publish --access public"
+    "update:anchor": "yarn upgrade @project-serum/anchor --latest --check-files"
   },
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -25,8 +26,8 @@
   "author": "ilmoi",
   "license": "MIT",
   "dependencies": {
-    "@gemworks/gem-farm-ts": "^0.1.10",
-    "@project-serum/anchor": "0.19.1-beta.1",
+    "@gemworks/gem-farm-ts": "^0.22.2",
+    "@project-serum/anchor": "0.22.0",
     "@solana/spl-token": "^0.1.8",
     "@solana/web3.js": "^1.33.0",
     "@types/bn.js": "^5.1.0",
@@ -35,7 +36,6 @@
   "devDependencies": {
     "@saberhq/anchor-contrib": "^1.12.37",
     "@saberhq/chai-solana": "1.11.1",
-    "@saberhq/eslint-config": "^1.12.37",
     "@saberhq/solana-contrib": "^1.12.37",
     "@saberhq/token-utils": "^1.12.37",
     "@types/chai": "^4.3.0",
