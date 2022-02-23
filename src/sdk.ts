@@ -215,7 +215,6 @@ export class TransmuterSDK {
 
     const ix = this.programs.Transmuter.instruction.initMutation(
       bump,
-      tokenAEscrowBump,
       tokenBEscrowBump,
       tokenCEscrowBump,
       config as any,

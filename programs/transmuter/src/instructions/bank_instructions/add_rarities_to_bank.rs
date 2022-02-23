@@ -11,10 +11,12 @@ pub struct AddRaritiesToBank<'info> {
     pub transmuter: Box<Account<'info, Transmuter>>,
     #[account(mut)]
     pub owner: Signer<'info>,
+    /// CHECK:
     #[account(seeds = [transmuter.key().as_ref()], bump = bump_auth)]
     pub authority: AccountInfo<'info>,
 
     // cpi
+    /// CHECK:
     pub bank: AccountInfo<'info>,
     pub gem_bank: Program<'info, GemBank>,
     pub system_program: Program<'info, System>,
@@ -42,7 +44,7 @@ impl<'info> AddRaritiesToBank<'info> {
 pub fn handler<'a, 'b, 'c, 'info>(
     ctx: Context<'a, 'b, 'c, 'info, AddRaritiesToBank<'info>>,
     rarity_configs: Vec<RarityConfig>,
-) -> ProgramResult {
+) -> Result<()> {
     gem_bank::cpi::record_rarity_points(
         ctx.accounts
             .add_rarities()

@@ -71,7 +71,6 @@ export class TransmuterWrapper {
 
     const ix = await this.program.instruction.addToBankWhitelist(
       authBump,
-      wlBump,
       whitelistType,
       {
         accounts: {

@@ -24,6 +24,7 @@ pub struct DestroyMutation<'info> {
     )] //other 2 escrows conditionally checked in handler
     pub mutation: Box<Account<'info, Mutation>>,
     pub owner: Signer<'info>,
+    /// CHECK:
     #[account(seeds = [transmuter.key().as_ref()], bump = bump_auth)]
     pub authority: AccountInfo<'info>,
 
@@ -31,18 +32,23 @@ pub struct DestroyMutation<'info> {
     // a
     #[account(mut)]
     pub token_a_escrow: Box<Account<'info, TokenAccount>>,
+    /// CHECK:
     #[account(mut)]
     pub token_a_dest: AccountInfo<'info>, //skip deser coz might be empty
     pub token_a_mint: Box<Account<'info, Mint>>,
     // b
+    /// CHECK:
     #[account(mut)]
     pub token_b_escrow: AccountInfo<'info>, //skip deser coz might be empty
+    /// CHECK:
     #[account(mut)]
     pub token_b_dest: AccountInfo<'info>, //skip deser coz might be empty
     pub token_b_mint: Box<Account<'info, Mint>>,
     // c
+    /// CHECK:
     #[account(mut)]
     pub token_c_escrow: AccountInfo<'info>, //skip deser coz might be empty
+    /// CHECK:
     #[account(mut)]
     pub token_c_dest: AccountInfo<'info>, //skip deser coz might be empty
     pub token_c_mint: Box<Account<'info, Mint>>,
@@ -105,7 +111,7 @@ impl<'info> DestroyMutation<'info> {
 }
 
 impl<'info> Validate<'info> for DestroyMutation<'info> {
-    fn validate(&self) -> ProgramResult {
+    fn validate(&self) -> Result<()> {
         if let Some(b_escrow) = self.mutation.token_b_escrow {
             assert_keys_eq!(self.token_b_escrow.key(), b_escrow, "b escrow");
         }
@@ -119,7 +125,7 @@ impl<'info> Validate<'info> for DestroyMutation<'info> {
 }
 
 #[access_control(ctx.accounts.validate())]
-pub fn handler(ctx: Context<DestroyMutation>) -> ProgramResult {
+pub fn handler(ctx: Context<DestroyMutation>) -> Result<()> {
     // --------------------------------------- create any necessary destination ATAs
 
     let config = ctx.accounts.mutation.config;

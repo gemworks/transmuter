@@ -2,13 +2,13 @@ use crate::*;
 use gem_bank::{self, cpi::accounts::InitBank, program::GemBank};
 
 #[derive(Accounts)]
-#[instruction(bump_auth: u8)]
 pub struct InitTransmuter<'info> {
     // transmuter
     #[account(init, payer = payer, space = 8 + std::mem::size_of::<Transmuter>())]
     pub transmuter: Box<Account<'info, Transmuter>>,
     pub owner: Signer<'info>,
-    #[account(seeds = [transmuter.key().as_ref()], bump = bump_auth)]
+    /// CHECK:
+    #[account(seeds = [transmuter.key().as_ref()], bump)]
     pub authority: AccountInfo<'info>,
 
     // taker banks
@@ -47,7 +47,7 @@ impl<'info> InitTransmuter<'info> {
 pub fn handler<'a, 'b, 'c, 'info>(
     ctx: Context<'a, 'b, 'c, 'info, InitTransmuter<'info>>,
     bump_auth: u8,
-) -> ProgramResult {
+) -> Result<()> {
     let transmuter = &mut ctx.accounts.transmuter;
     let key = transmuter.key();
 

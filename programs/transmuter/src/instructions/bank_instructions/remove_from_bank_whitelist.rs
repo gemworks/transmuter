@@ -14,12 +14,14 @@ pub struct RemoveFromBankWhitelist<'info> {
     pub transmuter: Box<Account<'info, Transmuter>>,
     #[account(mut)]
     pub owner: Signer<'info>,
+    /// CHECK:
     #[account(mut, seeds = [transmuter.key().as_ref()], bump = bump_auth)]
     pub authority: AccountInfo<'info>,
 
     // cpi
     #[account(mut)]
     pub bank: Box<Account<'info, Bank>>,
+    /// CHECK:
     pub address_to_remove: AccountInfo<'info>,
     #[account(mut)]
     pub whitelist_proof: Box<Account<'info, WhitelistProof>>,
@@ -43,7 +45,7 @@ impl<'info> RemoveFromBankWhitelist<'info> {
     }
 }
 
-pub fn handler(ctx: Context<RemoveFromBankWhitelist>, bump_wl: u8) -> ProgramResult {
+pub fn handler(ctx: Context<RemoveFromBankWhitelist>, bump_wl: u8) -> Result<()> {
     gem_bank::cpi::remove_from_whitelist(
         ctx.accounts
             .remove_from_whitelist_ctx()

@@ -7,7 +7,7 @@ use anchor_lang::solana_program::program::invoke_signed;
 use anchor_lang::solana_program::system_instruction::create_account;
 use anchor_lang::{prelude::*, solana_program::clock};
 
-pub fn now_ts() -> Result<u64, ProgramError> {
+pub fn now_ts() -> Result<u64> {
     //i64 -> u64 ok to unwrap
     Ok(clock::Clock::get()?.unix_timestamp.try_into().unwrap())
 }
@@ -19,7 +19,7 @@ pub fn create_pda_with_space<'info>(
     owner: &Pubkey,
     funder_info: &AccountInfo<'info>,
     system_program_info: &AccountInfo<'info>,
-) -> ProgramResult {
+) -> Result<()> {
     //create a PDA and allocate space inside of it at the same time
     //can only be done from INSIDE the program
     //based on https://github.com/solana-labs/solana-program-library/blob/7c8e65292a6ebc90de54468c665e30bc590c513a/feature-proposal/program/src/processor.rs#L148-L163
@@ -38,12 +38,13 @@ pub fn create_pda_with_space<'info>(
         ],
         &[pda_seeds], //this is the part you can't do outside the program
     )
+    .map_err(Into::into)
 }
 
 pub fn close_account(
     pda_to_close: &mut AccountInfo,
     sol_destination: &mut AccountInfo,
-) -> ProgramResult {
+) -> Result<()> {
     // Transfer tokens from the account to the sol_destination.
     let dest_starting_lamports = sol_destination.lamports();
     **sol_destination.lamports.borrow_mut() =

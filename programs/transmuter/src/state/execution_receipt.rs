@@ -44,7 +44,7 @@ impl ExecutionReceipt {
         self.state == ExecutionState::Complete
     }
 
-    pub fn record_mutation_complete_ts(&mut self, mutation_time_sec: u64) -> ProgramResult {
+    pub fn record_mutation_complete_ts(&mut self, mutation_time_sec: u64) -> Result<()> {
         let now_ts = now_ts()?;
         self.mutation_complete_ts = now_ts.try_add(mutation_time_sec)?;
 
@@ -59,7 +59,7 @@ impl ExecutionReceipt {
         self.state = ExecutionState::Pending;
     }
 
-    pub fn try_mark_complete(&mut self) -> ProgramResult {
+    pub fn try_mark_complete(&mut self) -> Result<()> {
         let now_ts = now_ts()?;
         require!(now_ts >= self.mutation_complete_ts, MutationNotComplete);
         self.state = ExecutionState::Complete;

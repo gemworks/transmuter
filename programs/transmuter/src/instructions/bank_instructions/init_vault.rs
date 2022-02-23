@@ -2,7 +2,7 @@ use crate::*;
 use gem_bank::{self, cpi::accounts::InitVault, program::GemBank};
 
 #[derive(Accounts)]
-#[instruction(bump_creator: u8, bump_receipt: u8)]
+#[instruction(bump_creator: u8)]
 pub struct InitTakerVault<'info> {
     // mutation
     pub transmuter: Box<Account<'info, Transmuter>>,
@@ -10,10 +10,13 @@ pub struct InitTakerVault<'info> {
     pub mutation: Box<Account<'info, Mutation>>,
 
     // cpi
+    /// CHECK:
     #[account(mut)]
     pub bank: AccountInfo<'info>,
+    /// CHECK:
     #[account(mut)]
     pub vault: AccountInfo<'info>,
+    /// CHECK:
     #[account(seeds = [
             b"creator".as_ref(),
             mutation.key().as_ref(),
@@ -34,7 +37,7 @@ pub struct InitTakerVault<'info> {
             mutation.key().as_ref(),
             taker.key().as_ref()
         ],
-        bump = bump_receipt,
+        bump,
         payer = taker,
         space = 8 + std::mem::size_of::<ExecutionReceipt>())]
     pub execution_receipt: Account<'info, ExecutionReceipt>,
@@ -56,7 +59,7 @@ impl<'info> InitTakerVault<'info> {
     }
 }
 
-pub fn handler(ctx: Context<InitTakerVault>, bump_creator: u8, bump_vault: u8) -> ProgramResult {
+pub fn handler(ctx: Context<InitTakerVault>, bump_creator: u8) -> Result<()> {
     let transmuter = &ctx.accounts.transmuter;
     let receipt = &mut ctx.accounts.execution_receipt;
     let bank = ctx.accounts.bank.key();
@@ -65,7 +68,7 @@ pub fn handler(ctx: Context<InitTakerVault>, bump_creator: u8, bump_vault: u8) -
     // can only move the ER to these states in execute_mutation, and execute_mutation
     // checks that all requirements are fulfilled, which requires all vaults to be already present
     if receipt.is_pending() || receipt.is_complete() {
-        return Err(ErrorCode::MutationAlreadyComplete.into());
+        return Err(error!(ErrorCode::MutationAlreadyComplete));
     }
 
     if bank == transmuter.bank_a {
@@ -75,7 +78,7 @@ pub fn handler(ctx: Context<InitTakerVault>, bump_creator: u8, bump_vault: u8) -
     } else if bank == transmuter.bank_c {
         receipt.vault_c = Some(vault);
     } else {
-        return Err(ErrorCode::NoneOfTheBanksMatch.into());
+        return Err(error!(ErrorCode::NoneOfTheBanksMatch));
     }
 
     // useful for finding relevant ERs client-side
@@ -91,7 +94,6 @@ pub fn handler(ctx: Context<InitTakerVault>, bump_creator: u8, bump_vault: u8) -
             ctx.accounts.taker.key().as_ref(),
             &[bump_creator],
         ]]),
-        bump_vault,
         ctx.accounts.taker.key(),
         "mutavault".to_string(),
     )

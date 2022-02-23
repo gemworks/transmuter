@@ -3,14 +3,14 @@ use crate::*;
 #[access_control(ctx.accounts.validate())]
 pub fn handler<'a, 'b, 'c, 'info>(
     ctx: Context<'a, 'b, 'c, 'info, ExecuteMutation<'info>>,
-) -> ProgramResult {
+) -> Result<()> {
     if !ctx.accounts.mutation.config.reversible {
-        return Err(ErrorCode::MutationNotReversible.into());
+        return Err(error!(ErrorCode::MutationNotReversible));
     }
 
     let execution_receipt = &mut ctx.accounts.execution_receipt;
     if !execution_receipt.is_complete() {
-        return Err(ErrorCode::MutationNotComplete.into());
+        return Err(error!(ErrorCode::MutationNotComplete));
     }
     execution_receipt.mark_not_started();
 

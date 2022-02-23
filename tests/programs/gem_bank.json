@@ -80,10 +80,6 @@
       ],
       "args": [
         {
-          "name": "bump",
-          "type": "u8"
-        },
-        {
           "name": "owner",
           "type": "publicKey"
         },
@@ -212,14 +208,6 @@
       "args": [
         {
           "name": "bumpAuth",
-          "type": "u8"
-        },
-        {
-          "name": "bumpGemBox",
-          "type": "u8"
-        },
-        {
-          "name": "bumpGdr",
           "type": "u8"
         },
         {
@@ -365,10 +353,6 @@
       ],
       "args": [
         {
-          "name": "bump",
-          "type": "u8"
-        },
-        {
           "name": "whitelistType",
           "type": "u8"
         }
@@ -384,8 +368,13 @@
         },
         {
           "name": "bankManager",
-          "isMut": true,
+          "isMut": false,
           "isSigner": true
+        },
+        {
+          "name": "fundsReceiver",
+          "isMut": true,
+          "isSigner": false
         },
         {
           "name": "addressToRemove",
@@ -658,5 +647,8 @@
         ]
       }
     }
-  ]
+  ],
+  "metadata": {
+    "address": "bankHHdqMuaaST4qQk6mkzxGeKPHWmqdgor6Gs8r88m"
+  }
 }

@@ -34,7 +34,7 @@ impl Mutation {
         self.state = MutationState::Available;
     }
 
-    pub fn try_decrement_uses(&mut self) -> ProgramResult {
+    pub fn try_decrement_uses(&mut self) -> Result<()> {
         self.remaining_uses
             .try_sub_assign(1)
             .map_err(|_| NoMoreUsesLeft)?;
@@ -42,7 +42,7 @@ impl Mutation {
         Ok(())
     }
 
-    pub fn increment_uses(&mut self) -> ProgramResult {
+    pub fn increment_uses(&mut self) -> Result<()> {
         self.remaining_uses.try_add_assign(1)?;
         self.update_state();
         Ok(())
@@ -86,7 +86,7 @@ pub struct MutationConfig {
 
 impl MutationConfig {
     /// for a mutation to be reversible, all vaults must be set to Lock
-    pub fn assert_is_valid(&self) -> ProgramResult {
+    pub fn assert_is_valid(&self) -> Result<()> {
         if self.reversible {
             require!(
                 self.taker_token_a.vault_action == VaultAction::Lock,
@@ -134,13 +134,13 @@ pub struct TakerTokenConfig {
 
 impl TakerTokenConfig {
     /// verifies that bank passed matches bank stored on taker token config
-    pub fn assert_correct_bank(&self, bank_key: Pubkey) -> ProgramResult {
+    pub fn assert_correct_bank(&self, bank_key: Pubkey) -> Result<()> {
         require!(bank_key == self.gem_bank, BankDoesNotMatch);
         Ok(())
     }
 
     /// verifies taker has indeed fulfilled the requirements set out by maker
-    pub fn assert_sufficient_amount(&self, vault: &Account<Vault>) -> ProgramResult {
+    pub fn assert_sufficient_amount(&self, vault: &Account<Vault>) -> Result<()> {
         match self.required_units {
             RequiredUnits::RarityPoints => {
                 let taker_rarity_points = vault.rarity_points;
@@ -175,13 +175,13 @@ pub struct MakerTokenConfig {
 
 impl MakerTokenConfig {
     /// verifies the passed mint matches that recorded on token config
-    pub fn assert_correct_mint(&self, mint: Pubkey) -> ProgramResult {
+    pub fn assert_correct_mint(&self, mint: Pubkey) -> Result<()> {
         require!(mint == self.mint, MintDoesNotMatch);
         Ok(())
     }
 
     /// verifies the math of uses * funding per use = total funding
-    pub fn assert_sufficient_funding(&self, uses: u64) -> ProgramResult {
+    pub fn assert_sufficient_funding(&self, uses: u64) -> Result<()> {
         require!(
             self.total_funding == uses.try_mul(self.amount_per_use)?,
             IncorrectFunding

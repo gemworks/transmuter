@@ -3,7 +3,7 @@ use anchor_spl::token::{self, InitializeAccount, Mint, Token, TokenAccount, Tran
 use std::io::Write;
 
 #[derive(Accounts)]
-#[instruction(bump_auth: u8, bump_a: u8)]
+#[instruction(bump_auth: u8)]
 pub struct InitMutation<'info> {
     // mutation
     #[account(has_one = authority, has_one = owner)]
@@ -11,6 +11,7 @@ pub struct InitMutation<'info> {
     #[account(init, payer = payer, space = 8 + std::mem::size_of::<Mutation>())]
     pub mutation: Box<Account<'info, Mutation>>,
     pub owner: Signer<'info>,
+    /// CHECK:
     #[account(seeds = [transmuter.key().as_ref()], bump = bump_auth)]
     pub authority: AccountInfo<'info>,
 
@@ -21,7 +22,7 @@ pub struct InitMutation<'info> {
             mutation.key().as_ref(),
             token_a_mint.key().as_ref(),
         ],
-        bump = bump_a,
+        bump,
         token::mint = token_a_mint,
         token::authority = authority,
         payer = payer)]
@@ -30,14 +31,18 @@ pub struct InitMutation<'info> {
     pub token_a_source: Box<Account<'info, TokenAccount>>,
     pub token_a_mint: Box<Account<'info, Mint>>,
     // b
+    /// CHECK:
     #[account(mut)] //manually init'ing
     pub token_b_escrow: AccountInfo<'info>, //skip deser coz might be empty
+    /// CHECK:
     #[account(mut)]
     pub token_b_source: AccountInfo<'info>, //skip deser coz might be empty
     pub token_b_mint: Box<Account<'info, Mint>>,
     // c
+    /// CHECK:
     #[account(mut)] //manually init'ing
     pub token_c_escrow: AccountInfo<'info>, //skip deser coz might be empty
+    /// CHECK:
     #[account(mut)]
     pub token_c_source: AccountInfo<'info>, //skip deser coz might be empty
     pub token_c_mint: Box<Account<'info, Mint>>,
@@ -73,7 +78,7 @@ impl<'info> InitMutation<'info> {
         source: AccountInfo<'info>,
         escrow: AccountInfo<'info>,
         maker_token: MakerTokenConfig,
-    ) -> ProgramResult {
+    ) -> Result<()> {
         maker_token.assert_correct_mint(mint)?;
         maker_token.assert_sufficient_funding(uses)?;
 
@@ -101,7 +106,7 @@ impl<'info> InitMutation<'info> {
         token_account: AccountInfo<'info>,
         mint: AccountInfo<'info>,
         bump: u8,
-    ) -> ProgramResult {
+    ) -> Result<()> {
         // create
         create_pda_with_space(
             &[
@@ -129,7 +134,7 @@ pub fn handler(
     bump_b: u8,
     bump_c: u8,
     name: String,
-) -> ProgramResult {
+) -> Result<()> {
     let mutation = &mut ctx.accounts.mutation;
 
     mutation.transmuter = ctx.accounts.transmuter.key();

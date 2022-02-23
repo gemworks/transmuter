@@ -249,24 +249,19 @@ export class MutationWrapper {
       taker
     );
 
-    const ix = this.program.instruction.initTakerVault(
-      creatorBump,
-      receiptBump,
-      vaultBump,
-      {
-        accounts: {
-          transmuter: this.transmuter,
-          mutation: this.key,
-          bank,
-          vault,
-          creator,
-          gemBank: GEM_BANK_PROG_ID,
-          taker,
-          executionReceipt,
-          systemProgram: SystemProgram.programId,
-        },
-      }
-    );
+    const ix = this.program.instruction.initTakerVault(creatorBump, {
+      accounts: {
+        transmuter: this.transmuter,
+        mutation: this.key,
+        bank,
+        vault,
+        creator,
+        gemBank: GEM_BANK_PROG_ID,
+        taker,
+        executionReceipt,
+        systemProgram: SystemProgram.programId,
+      },
+    });
 
     return {
       creator,

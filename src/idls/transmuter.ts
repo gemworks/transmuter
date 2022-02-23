@@ -130,10 +130,6 @@ export type UtransmuterIDL =
           "type": "u8"
         },
         {
-          "name": "bumpWl",
-          "type": "u8"
-        },
-        {
           "name": "whitelistType",
           "type": "u8"
         }
@@ -333,10 +329,6 @@ export type UtransmuterIDL =
           "type": "u8"
         },
         {
-          "name": "bumpA",
-          "type": "u8"
-        },
-        {
           "name": "bumpB",
           "type": "u8"
         },
@@ -508,14 +500,6 @@ export type UtransmuterIDL =
       "args": [
         {
           "name": "bumpCreator",
-          "type": "u8"
-        },
-        {
-          "name": "bumpReceipt",
-          "type": "u8"
-        },
-        {
-          "name": "bumpVault",
           "type": "u8"
         }
       ]
@@ -1407,10 +1391,6 @@ export const UtransmuterJSON: UtransmuterIDL =
           "type": "u8"
         },
         {
-          "name": "bumpWl",
-          "type": "u8"
-        },
-        {
           "name": "whitelistType",
           "type": "u8"
         }
@@ -1610,10 +1590,6 @@ export const UtransmuterJSON: UtransmuterIDL =
           "type": "u8"
         },
         {
-          "name": "bumpA",
-          "type": "u8"
-        },
-        {
           "name": "bumpB",
           "type": "u8"
         },
@@ -1785,14 +1761,6 @@ export const UtransmuterJSON: UtransmuterIDL =
       "args": [
         {
           "name": "bumpCreator",
-          "type": "u8"
-        },
-        {
-          "name": "bumpReceipt",
-          "type": "u8"
-        },
-        {
-          "name": "bumpVault",
           "type": "u8"
         }
       ]

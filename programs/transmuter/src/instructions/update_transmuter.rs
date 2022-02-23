@@ -9,7 +9,7 @@ pub struct UpdateTransmuter<'info> {
     pub owner: Signer<'info>,
 }
 
-pub fn handler(ctx: Context<UpdateTransmuter>, new_owner: Pubkey) -> ProgramResult {
+pub fn handler(ctx: Context<UpdateTransmuter>, new_owner: Pubkey) -> Result<()> {
     let transmuter = &mut ctx.accounts.transmuter;
 
     transmuter.owner = new_owner;

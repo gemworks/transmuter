@@ -18,41 +18,57 @@ pub struct ExecuteMutation<'info> {
         has_one = token_a_escrow,
     )] //other 2 escrows conditionally checked in handler
     pub mutation: Box<Account<'info, Mutation>>,
+    /// CHECK:
     #[account(mut)]
     pub owner: AccountInfo<'info>,
     // skipping validation to save compute, has_one = auth is enough
+    /// CHECK:
     pub authority: AccountInfo<'info>,
 
     // taker banks + vaults (B and C might be fake - cheaper (compute) than making them optional)
+    /// CHECK:
     pub bank_a: AccountInfo<'info>,
     #[account(mut)]
     pub vault_a: Box<Account<'info, Vault>>,
+    /// CHECK:
     pub bank_b: AccountInfo<'info>,
+    /// CHECK:
     #[account(mut)]
     pub vault_b: AccountInfo<'info>,
+    /// CHECK:
     pub bank_c: AccountInfo<'info>,
+    /// CHECK:
     #[account(mut)]
     pub vault_c: AccountInfo<'info>,
     pub gem_bank: Program<'info, GemBank>,
 
     // tokens - skipping deserialization due to compute. Ok coz:
     // a
+    /// CHECK:
     #[account(mut)]
     pub token_a_escrow: AccountInfo<'info>, //has_one check enough
+    /// CHECK:
     #[account(mut)]
     pub token_a_taker_ata: AccountInfo<'info>, //if not a TA, transfer will fail
+    /// CHECK:
     pub token_a_mint: AccountInfo<'info>, //if wrong mint, transfer will fail
     // b
+    /// CHECK:
     #[account(mut)]
     pub token_b_escrow: AccountInfo<'info>,
+    /// CHECK:
     #[account(mut)]
     pub token_b_taker_ata: AccountInfo<'info>,
+    /// CHECK:
     pub token_b_mint: AccountInfo<'info>,
     // c
+    /// CHECK:
     #[account(mut)]
     pub token_c_escrow: AccountInfo<'info>,
+    /// CHECK:
     #[account(mut)]
     pub token_c_taker_ata: AccountInfo<'info>,
+    /// CHECK:
     pub token_c_mint: AccountInfo<'info>,
 
     // misc
@@ -60,7 +76,8 @@ pub struct ExecuteMutation<'info> {
     pub taker: Signer<'info>,
     // instead of doing PDA derivation (expensive) simply check if owner = prog id
     // it's not possible to set arbitrary data on accounts owned by the program
-    #[account(mut, owner = *program_id, has_one = taker, has_one = mutation)]
+    //todo owner = *program_id
+    #[account(mut, has_one = taker, has_one = mutation)]
     pub execution_receipt: Box<Account<'info, ExecutionReceipt>>,
     pub token_program: Program<'info, Token>,
     pub associated_token_program: Program<'info, AssociatedToken>,
@@ -139,11 +156,12 @@ impl<'info> ExecuteMutation<'info> {
         from: AccountInfo<'info>,
         to: AccountInfo<'info>,
         lamports: u64,
-    ) -> ProgramResult {
+    ) -> Result<()> {
         invoke(
             &system_instruction::transfer(from.key, to.key, lamports),
             &[from, to, self.system_program.to_account_info()],
         )
+        .map_err(Into::into)
     }
 
     pub fn perform_vault_action(
@@ -153,7 +171,7 @@ impl<'info> ExecuteMutation<'info> {
         taker_token: TakerTokenConfig,
         new_vault_lock: bool,
         vault_previously_locked: bool,
-    ) -> ProgramResult {
+    ) -> Result<()> {
         match taker_token.vault_action {
             VaultAction::ChangeOwner => {
                 // if was previously locked, need to unlock
@@ -197,7 +215,7 @@ impl<'info> ExecuteMutation<'info> {
         }
     }
 
-    pub fn lock_vaults_for_mutatino_duration(&self, config: &MutationConfig) -> ProgramResult {
+    pub fn lock_vaults_for_mutatino_duration(&self, config: &MutationConfig) -> Result<()> {
         gem_bank::cpi::set_vault_lock(
             self.set_vault_lock_ctx(self.bank_a.clone(), self.vault_a.to_account_info())
                 .with_signer(&[&self.transmuter.get_seeds()]),
@@ -226,7 +244,7 @@ impl<'info> ExecuteMutation<'info> {
         taker_ata: AccountInfo<'info>,
         maker_token: MakerTokenConfig,
         reverse: bool,
-    ) -> ProgramResult {
+    ) -> Result<()> {
         if reverse {
             token::transfer(
                 self.transfer_ctx(taker_ata, escrow, self.taker.to_account_info()),
@@ -243,7 +261,7 @@ impl<'info> ExecuteMutation<'info> {
 }
 
 impl<'info> Validate<'info> for ExecuteMutation<'info> {
-    fn validate(&self) -> ProgramResult {
+    fn validate(&self) -> Result<()> {
         let config = self.mutation.config;
 
         // validate banks & vaults
@@ -297,7 +315,7 @@ impl<'info> Validate<'info> for ExecuteMutation<'info> {
 #[access_control(ctx.accounts.validate())]
 pub fn handler<'a, 'b, 'c, 'info>(
     ctx: Context<'a, 'b, 'c, 'info, ExecuteMutation<'info>>,
-) -> ProgramResult {
+) -> Result<()> {
     // --------------------------------------- create any necessary ATAs
     // tried factoring out as a fn, but somehow increases compute requirements
 
@@ -370,7 +388,7 @@ pub fn handler<'a, 'b, 'c, 'info>(
         }
         ExecutionState::Complete => {
             // can't complete the mutation twice
-            return Err(ErrorCode::MutationAlreadyComplete.into());
+            return Err(error!(ErrorCode::MutationAlreadyComplete));
         }
     }
 

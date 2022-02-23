@@ -1,6 +1,6 @@
 use crate::*;
 
-#[error]
+#[error_code]
 pub enum ErrorCode {
     #[msg("Token index must be one of 1,2,3")]
     InvalidTokenIndex, //0

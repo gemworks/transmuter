@@ -12,6 +12,7 @@ import {
   GEM_BANK_PROG_ID,
   GemBankClient,
   isKp,
+  stringifyPKsAndBNs,
   toBN,
 } from "@gemworks/gem-farm-ts";
 import { BN } from "@project-serum/anchor";
