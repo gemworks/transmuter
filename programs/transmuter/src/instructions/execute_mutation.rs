@@ -76,8 +76,9 @@ pub struct ExecuteMutation<'info> {
     pub taker: Signer<'info>,
     // instead of doing PDA derivation (expensive) simply check if owner = prog id
     // it's not possible to set arbitrary data on accounts owned by the program
-    //todo owner = *program_id
-    #[account(mut, has_one = taker, has_one = mutation)]
+    #[account(mut,
+        constraint = execution_receipt.to_account_info().owner == program_id,
+        has_one = taker, has_one = mutation)]
     pub execution_receipt: Box<Account<'info, ExecutionReceipt>>,
     pub token_program: Program<'info, Token>,
     pub associated_token_program: Program<'info, AssociatedToken>,
