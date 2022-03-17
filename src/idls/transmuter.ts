@@ -47,6 +47,11 @@ export type UtransmuterIDL =
           "isSigner": true
         },
         {
+          "name": "feeAcc",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
           "name": "systemProgram",
           "isMut": false,
           "isSigner": false
@@ -306,6 +311,11 @@ export type UtransmuterIDL =
           "name": "payer",
           "isMut": true,
           "isSigner": true
+        },
+        {
+          "name": "feeAcc",
+          "isMut": true,
+          "isSigner": false
         },
         {
           "name": "tokenProgram",
@@ -1308,6 +1318,11 @@ export const UtransmuterJSON: UtransmuterIDL =
           "isSigner": true
         },
         {
+          "name": "feeAcc",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
           "name": "systemProgram",
           "isMut": false,
           "isSigner": false
@@ -1567,6 +1582,11 @@ export const UtransmuterJSON: UtransmuterIDL =
           "name": "payer",
           "isMut": true,
           "isSigner": true
+        },
+        {
+          "name": "feeAcc",
+          "isMut": true,
+          "isSigner": false
         },
         {
           "name": "tokenProgram",

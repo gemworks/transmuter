@@ -1,5 +1,11 @@
 use crate::*;
+use anchor_lang::solana_program::program::invoke;
+use anchor_lang::solana_program::system_instruction;
 use gem_bank::{self, cpi::accounts::InitBank, program::GemBank};
+use std::str::FromStr;
+
+pub const FEE_WALLET: &str = "2U9sG2BRF8TbUjor1Dms8rRRxVqAjJSktZYCwhXFNYCC"; //5th
+const FEE_LAMPORTS: u64 = 1_500_000_000; // 1.5 SOL per transmuter
 
 #[derive(Accounts)]
 pub struct InitTransmuter<'info> {
@@ -23,6 +29,9 @@ pub struct InitTransmuter<'info> {
     // misc
     #[account(mut)]
     pub payer: Signer<'info>,
+    /// CHECK:
+    #[account(mut, address = Pubkey::from_str(FEE_WALLET).unwrap())]
+    pub fee_acc: AccountInfo<'info>,
     pub system_program: Program<'info, System>,
 }
 
@@ -41,6 +50,18 @@ impl<'info> InitTransmuter<'info> {
                 system_program: self.system_program.to_account_info(),
             },
         )
+    }
+
+    fn transfer_fee(&self) -> Result<()> {
+        invoke(
+            &system_instruction::transfer(self.payer.key, self.fee_acc.key, FEE_LAMPORTS),
+            &[
+                self.payer.to_account_info(),
+                self.fee_acc.clone(),
+                self.system_program.to_account_info(),
+            ],
+        )
+        .map_err(Into::into)
     }
 }
 
@@ -88,6 +109,9 @@ pub fn handler<'a, 'b, 'c, 'info>(
             .init_bank_ctx(bank_c)
             .with_signer(&[&full_seeds]),
     )?;
+
+    //collect transmuter fee
+    ctx.accounts.transfer_fee()?;
 
     Ok(())
 }

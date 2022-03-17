@@ -31,6 +31,10 @@ import {
   findTransmuterAuthorityPDA,
 } from "./pda";
 
+export const feeAccount = new PublicKey(
+  "2U9sG2BRF8TbUjor1Dms8rRRxVqAjJSktZYCwhXFNYCC"
+);
+
 export interface TakerTokenConfig {
   gemBank: PublicKey;
   requiredAmount: BN;
@@ -162,6 +166,7 @@ export class TransmuterSDK {
         bankC: bankC.publicKey,
         gemBank: GEM_BANK_PROG_ID,
         payer: payer ?? this.provider.wallet.publicKey,
+        feeAcc: feeAccount,
         systemProgram: SystemProgram.programId,
       },
     });
@@ -236,6 +241,7 @@ export class TransmuterSDK {
           tokenCSource,
           tokenCMint,
           payer: payer ?? this.provider.wallet.publicKey,
+          feeAcc: feeAccount,
           tokenProgram: TOKEN_PROGRAM_ID,
           systemProgram: SystemProgram.programId,
           rent: SYSVAR_RENT_PUBKEY,

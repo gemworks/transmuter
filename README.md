@@ -2,6 +2,16 @@
 
 Simple program to mutate old NFTs into new.
 
+## Docs
+
+Read full documentation [here](https://docs.gemworks.gg/transmuter/overview).
+
+## Official deployment
+
+Transmuter is officially deployed at: `muto7o7vvfXcvpy5Qgjtaog7GRhtr9Zpzn7PSCmmF8Z` across all 3: mainnet, devnet, testnet.
+
+## Deploying / using
+
 Install dependencies:
 ```
 yarn

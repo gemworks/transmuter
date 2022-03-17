@@ -46,6 +46,11 @@
           "isSigner": true
         },
         {
+          "name": "feeAcc",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
           "name": "systemProgram",
           "isMut": false,
           "isSigner": false
@@ -305,6 +310,11 @@
           "name": "payer",
           "isMut": true,
           "isSigner": true
+        },
+        {
+          "name": "feeAcc",
+          "isMut": true,
+          "isSigner": false
         },
         {
           "name": "tokenProgram",

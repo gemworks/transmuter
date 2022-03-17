@@ -33,7 +33,7 @@ export const TRANSMUTER_IDLS = {
 };
 
 export const TRANSMUTER_ADDRESSES = {
-  Transmuter: new PublicKey("4c5WjWPmecCLHMSo8bQESo26VCotSKtjiUpCPnfEPL2p"),
+  Transmuter: new PublicKey("muto7o7vvfXcvpy5Qgjtaog7GRhtr9Zpzn7PSCmmF8Z"),
 };
 
 export const TRANSMUTER_CODES = buildCoderMap<{ Transmuter: TransmuterTypes }>(

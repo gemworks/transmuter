@@ -14,7 +14,7 @@ pub use state::*;
 pub use try_math::*;
 pub use util::*;
 
-declare_id!("4c5WjWPmecCLHMSo8bQESo26VCotSKtjiUpCPnfEPL2p");
+declare_id!("muto7o7vvfXcvpy5Qgjtaog7GRhtr9Zpzn7PSCmmF8Z");
 
 #[program]
 pub mod transmuter_v0 {
