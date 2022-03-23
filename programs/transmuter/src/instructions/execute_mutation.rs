@@ -344,32 +344,31 @@ pub fn handler<'a, 'b, 'c, 'info>(
         )?;
     }
 
-    // --------------------------------------- uses & payment
-    // this section must go first, or we can have 10 ppl triggering a mutation with 1 use
-    // if it has mutation time > 0
-
-    let mutation = &mut ctx.accounts.mutation;
-    mutation.try_decrement_uses()?;
-
-    let price = mutation.config.price.price_lamports;
-    if price > 0 {
-        ctx.accounts.make_payment(
-            ctx.accounts.taker.to_account_info(),
-            ctx.accounts.owner.to_account_info(),
-            price,
-        )?;
-    }
-
     // --------------------------------------- execution receipt
 
     let execution_receipt = &mut ctx.accounts.execution_receipt;
     let config = ctx.accounts.mutation.config;
+    let mutation = &mut ctx.accounts.mutation;
+    let price = mutation.config.price.price_lamports;
 
     let mut vaults_previously_locked = false;
 
     match execution_receipt.state {
         ExecutionState::NotStarted => {
             execution_receipt.record_mutation_complete_ts(config.mutation_duration_sec)?;
+
+            // only decrementing uses / take payment on 1st call, when mutation not yet started
+            mutation.try_decrement_uses()?;
+            if price > 0 {
+                ctx.accounts.make_payment(
+                    ctx.accounts.taker.to_account_info(),
+                    ctx.accounts.owner.to_account_info(),
+                    price,
+                )?;
+            }
+
+            let execution_receipt = &mut ctx.accounts.execution_receipt;
+
             // if need time to complete, mark pending and exit
             if config.mutation_duration_sec > 0 {
                 // mark pending
