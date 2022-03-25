@@ -5,7 +5,6 @@ use anchor_spl::token::{self, InitializeAccount, Mint, Token, TokenAccount, Tran
 use std::io::Write;
 use std::str::FromStr;
 
-pub const FEE_WALLET: &str = "2U9sG2BRF8TbUjor1Dms8rRRxVqAjJSktZYCwhXFNYCC"; //5th
 const FEE_LAMPORTS: u64 = 100_000_000; // 0.1 SOL per mutation
 
 #[derive(Accounts)]
@@ -59,6 +58,9 @@ pub struct InitMutation<'info> {
     /// CHECK:
     #[account(mut, address = Pubkey::from_str(FEE_WALLET).unwrap())]
     pub fee_acc: AccountInfo<'info>,
+    /// CHECK:
+    #[account(mut, address = Pubkey::from_str(FEE_WALLET_2).unwrap())]
+    pub fee_acc2: AccountInfo<'info>,
     pub token_program: Program<'info, Token>,
     pub system_program: Program<'info, System>,
     pub rent: Sysvar<'info, Rent>,
@@ -135,12 +137,12 @@ impl<'info> InitMutation<'info> {
         anchor_spl::token::initialize_account(self.init_token_account(token_account, mint))
     }
 
-    fn transfer_fee(&self) -> Result<()> {
+    fn transfer_fee(&self, dest: &AccountInfo<'info>) -> Result<()> {
         invoke(
-            &system_instruction::transfer(self.payer.key, self.fee_acc.key, FEE_LAMPORTS),
+            &system_instruction::transfer(self.payer.key, dest.key, FEE_LAMPORTS / 2),
             &[
                 self.payer.to_account_info(),
-                self.fee_acc.clone(),
+                dest.clone(),
                 self.system_program.to_account_info(),
             ],
         )
@@ -212,7 +214,8 @@ pub fn handler(
     }
 
     //collect transmuter fee
-    ctx.accounts.transfer_fee()?;
+    ctx.accounts.transfer_fee(&ctx.accounts.fee_acc)?;
+    ctx.accounts.transfer_fee(&ctx.accounts.fee_acc2)?;
 
     Ok(())
 }
