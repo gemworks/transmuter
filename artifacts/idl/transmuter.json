@@ -51,6 +51,11 @@
           "isSigner": false
         },
         {
+          "name": "feeAcc2",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
           "name": "systemProgram",
           "isMut": false,
           "isSigner": false
@@ -313,6 +318,11 @@
         },
         {
           "name": "feeAcc",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "feeAcc2",
           "isMut": true,
           "isSigner": false
         },

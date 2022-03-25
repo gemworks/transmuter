@@ -34,6 +34,9 @@ import {
 export const feeAccount = new PublicKey(
   "2U9sG2BRF8TbUjor1Dms8rRRxVqAjJSktZYCwhXFNYCC"
 );
+export const feeAccount2 = new PublicKey(
+  "BkRfbyZWsDwQWvJTibjJ1wuvBuFsw8HvfgHEEDCXHDRQ"
+);
 
 export interface TakerTokenConfig {
   gemBank: PublicKey;
@@ -167,6 +170,7 @@ export class TransmuterSDK {
         gemBank: GEM_BANK_PROG_ID,
         payer: payer ?? this.provider.wallet.publicKey,
         feeAcc: feeAccount,
+        feeAcc2: feeAccount2,
         systemProgram: SystemProgram.programId,
       },
     });
@@ -242,6 +246,7 @@ export class TransmuterSDK {
           tokenCMint,
           payer: payer ?? this.provider.wallet.publicKey,
           feeAcc: feeAccount,
+          feeAcc2: feeAccount2,
           tokenProgram: TOKEN_PROGRAM_ID,
           systemProgram: SystemProgram.programId,
           rent: SYSVAR_RENT_PUBKEY,

@@ -1,9 +1,14 @@
-import { ExecutionState, RequiredUnits, VaultAction } from "../src";
+import {
+  ExecutionState,
+  feeAccount2,
+  RequiredUnits,
+  VaultAction,
+} from "../src";
 import { expectTX } from "@saberhq/chai-solana";
 
 import "chai-bn";
 import { Keypair, LAMPORTS_PER_SOL } from "@solana/web3.js";
-import { pause, stringToBytes, toBN } from "@gemworks/gem-farm-ts/";
+import { feeAccount, pause, stringToBytes, toBN } from "@gemworks/gem-farm-ts/";
 import { expect } from "chai";
 import { MutationTester } from "./mutation.tester";
 import { UtransmuterErrors } from "../src/idls/transmuter";
@@ -16,6 +21,12 @@ describe("transmuter (main spec)", () => {
   });
 
   it("execute mutation (lock vault)", async () => {
+    //verify fees collected (can't test exact amount since test order non-deterministic)
+    const feeAcc1 = await mt.conn.getBalance(feeAccount);
+    const feeAcc2 = await mt.conn.getBalance(feeAccount2);
+    expect(feeAcc1 > 0);
+    expect(feeAcc2 > 0);
+
     await mt.prepareMutation({});
 
     await mt.mutation.reloadData();

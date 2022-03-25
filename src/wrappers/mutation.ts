@@ -51,18 +51,19 @@ export class MutationWrapper {
 
   // --------------------------------------- ixs
 
-  async execute(taker: PublicKey, newMaxCompute?: number) {
-    return this._executeOrReverse(taker, false, newMaxCompute);
+  async execute(taker: PublicKey, newMaxCompute?: number, owner?: PublicKey) {
+    return this._executeOrReverse(taker, false, newMaxCompute, owner);
   }
 
-  async reverse(taker: PublicKey) {
-    return this._executeOrReverse(taker, true);
+  async reverse(taker: PublicKey, owner?: PublicKey) {
+    return this._executeOrReverse(taker, true, undefined, owner);
   }
 
   async _executeOrReverse(
     taker: PublicKey,
     reverse = false,
-    newMaxCompute?: number
+    newMaxCompute?: number,
+    owner?: PublicKey
   ) {
     await this.reloadData();
     let config = this._data.config as any;
@@ -115,7 +116,7 @@ export class MutationWrapper {
           transmuter: this.transmuter,
           mutation: this.key,
           authority,
-          owner: this.provider.wallet.publicKey,
+          owner: owner ?? this.provider.wallet.publicKey,
           bankA,
           vaultA,
           bankB,
@@ -146,7 +147,7 @@ export class MutationWrapper {
           transmuter: this.transmuter,
           mutation: this.key,
           authority,
-          owner: this.provider.wallet.publicKey,
+          owner: owner ?? this.provider.wallet.publicKey,
           bankA,
           vaultA,
           bankB,
