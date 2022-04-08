@@ -319,7 +319,11 @@ export class TransmuterSDK {
 
   createExtraComputeIx(newComputeBudget: number): TransactionInstruction {
     const data = Buffer.from(
-      Uint8Array.of(0, ...toBN(newComputeBudget).toArray("le", 4))
+      Uint8Array.of(
+        0,
+        ...toBN(newComputeBudget).toArray("le", 4),
+        ...new BN(0).toArray("le", 4)
+      )
     );
 
     return new TransactionInstruction({
