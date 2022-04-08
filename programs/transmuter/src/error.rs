@@ -49,4 +49,7 @@ pub enum ErrorCode {
 
     #[msg("Trying to init a vault for an unknown bank")]
     NoneOfTheBanksMatch, //15 = 0x177f
+
+    #[msg("Account discriminator mismatch")]
+    AccountDiscriminatorMismatch,
 }

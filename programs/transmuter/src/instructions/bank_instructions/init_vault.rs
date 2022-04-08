@@ -1,4 +1,6 @@
 use crate::*;
+use anchor_lang::Discriminator;
+use arrayref::array_ref;
 use gem_bank::{self, cpi::accounts::InitVault, program::GemBank};
 
 #[derive(Accounts)]
@@ -60,6 +62,16 @@ impl<'info> InitTakerVault<'info> {
 }
 
 pub fn handler(ctx: Context<InitTakerVault>, bump_creator: u8) -> Result<()> {
+    // fix missing discriminator check
+    {
+        let acct = ctx.accounts.execution_receipt.to_account_info();
+        let data: &[u8] = &acct.try_borrow_data()?;
+        let disc_bytes = array_ref![data, 0, 8];
+        if disc_bytes != &ExecutionReceipt::discriminator() && disc_bytes.iter().any(|a| a != &0) {
+            return Err(error!(ErrorCode::AccountDiscriminatorMismatch));
+        }
+    }
+
     let transmuter = &ctx.accounts.transmuter;
     let receipt = &mut ctx.accounts.execution_receipt;
     let bank = ctx.accounts.bank.key();

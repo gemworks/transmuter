@@ -1420,6 +1420,7 @@ version = "0.1.0"
 dependencies = [
  "anchor-lang",
  "anchor-spl",
+ "arrayref",
  "gem_bank",
  "proc_macros 0.1.0",
  "spl-math",
