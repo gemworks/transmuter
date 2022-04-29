@@ -16,9 +16,9 @@ cpi = ["no-entrypoint"]
 default = []
 
 [dependencies]
-anchor-lang = { version="0.22.0", features = ["init-if-needed"] }
-anchor-spl = "0.22.0"
-vipers = "2.0.0"
+anchor-lang = { version="0.24.2", features = ["init-if-needed"] }
+anchor-spl = "0.24.2"
+vipers = "2.0.4"
 gem_bank = {git = "https://github.com/gemworks/gem-farm", features = ["no-entrypoint", "cpi"]}
 spl-math = { version = "0.1.0", features = ["no-entrypoint"] }
 spl-token = "3.3.0"

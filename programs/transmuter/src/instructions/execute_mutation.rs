@@ -313,10 +313,13 @@ impl<'info> Validate<'info> for ExecuteMutation<'info> {
     }
 }
 
-#[access_control(ctx.accounts.validate())]
+// #[access_control(ctx.accounts.validate())]
 pub fn handler<'a, 'b, 'c, 'info>(
     ctx: Context<'a, 'b, 'c, 'info, ExecuteMutation<'info>>,
 ) -> Result<()> {
+    // todo temp moving here due to error
+    ctx.accounts.validate()?;
+
     // --------------------------------------- create any necessary ATAs
     // tried factoring out as a fn, but somehow increases compute requirements
 

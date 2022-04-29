@@ -305,7 +305,7 @@ export class MutationTester {
           this.takerMintA,
           Keypair.generate().publicKey
         )
-      ).to.be.rejectedWith("0x1784");
+      ).to.be.rejectedWith("VaultAccessSuspended.");
     }
 
     console.log("vault valid");

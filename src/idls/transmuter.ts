@@ -1275,6 +1275,11 @@ export type UtransmuterIDL =
       "code": 6015,
       "name": "NoneOfTheBanksMatch",
       "msg": "Trying to init a vault for an unknown bank"
+    },
+    {
+      "code": 6016,
+      "name": "AccountDiscriminatorMismatch",
+      "msg": "Account discriminator mismatch"
     }
   ]
 }
@@ -2556,6 +2561,11 @@ export const UtransmuterJSON: UtransmuterIDL =
       "code": 6015,
       "name": "NoneOfTheBanksMatch",
       "msg": "Trying to init a vault for an unknown bank"
+    },
+    {
+      "code": 6016,
+      "name": "AccountDiscriminatorMismatch",
+      "msg": "Account discriminator mismatch"
     }
   ]
 }

@@ -11,7 +11,7 @@ import { TransmuterSDK } from "../src";
 chai.use(chaiSolana);
 
 export const makeSDK = (): TransmuterSDK => {
-  const anchorProvider = anchor.Provider.env();
+  const anchorProvider = anchor.AnchorProvider.env();
   anchor.setProvider(anchorProvider);
 
   const provider = SolanaProvider.init({

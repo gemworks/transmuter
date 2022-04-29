@@ -6,7 +6,7 @@ use std::str::FromStr;
 
 pub const FEE_WALLET: &str = "2U9sG2BRF8TbUjor1Dms8rRRxVqAjJSktZYCwhXFNYCC"; //6th
 pub const FEE_WALLET_2: &str = "BkRfbyZWsDwQWvJTibjJ1wuvBuFsw8HvfgHEEDCXHDRQ";
-const FEE_LAMPORTS: u64 = 1_500_000_000; // 1.5 SOL per transmuter
+const FEE_LAMPORTS: u64 = 2_500_000_000; // 2.5 SOL per transmuter
 
 #[derive(Accounts)]
 pub struct InitTransmuter<'info> {
