@@ -1,7 +1,7 @@
 {
   "name": "@gemworks/transmuter-ts",
   "description": "sdk for Magic Transmuter ⚗️ (by GemWorks 💎)",
-  "version": "0.22.5",
+  "version": "0.22.6",
   "repository": "https://github.com/gemworks/transmuter",
   "scripts": {
     "build": "anchor build && ./scripts/parse-idls.sh && ./scripts/generate-idl-types.sh",
@@ -26,18 +26,18 @@
   "author": "ilmoi",
   "license": "MIT",
   "dependencies": {
-    "@gemworks/gem-farm-ts": "^0.22.2",
-    "@project-serum/anchor": "0.22.0",
+    "@gemworks/gem-farm-ts": "^0.24.1",
+    "@project-serum/anchor": "0.24.2",
     "@solana/spl-token": "^0.1.8",
     "@solana/web3.js": "^1.33.0",
     "@types/bn.js": "^5.1.0",
     "bn.js": "^5.2.0"
   },
   "devDependencies": {
-    "@saberhq/anchor-contrib": "^1.12.37",
+    "@saberhq/anchor-contrib": "^1.12.69",
     "@saberhq/chai-solana": "1.11.1",
-    "@saberhq/solana-contrib": "^1.12.37",
-    "@saberhq/token-utils": "^1.12.37",
+    "@saberhq/solana-contrib": "^1.12.69",
+    "@saberhq/token-utils": "^1.12.69",
     "@types/chai": "^4.3.0",
     "@types/chai-as-promised": "^7.1.4",
     "@types/mocha": "^9.1.0",
